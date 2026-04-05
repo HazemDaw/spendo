@@ -1,0 +1,89 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_ru.dart';
+
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
+
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('ru'),
+  ];
+
+  String get appTitle;
+  String get periodToday;
+  String get periodWeek;
+  String get periodMonth;
+  String get balanceLabel;
+  String get actionExpense;
+  String get actionIncome;
+  String get categoryFood;
+  String get categoryTransport;
+  String get categoryHousing;
+  String get categoryHealth;
+  String get categoryClothing;
+  String get categoryEntertainment;
+  String get categoryCommunication;
+  String get categoryPets;
+  String get categoryGifts;
+  String get categorySport;
+  String get addTransactionPlaceholder;
+  String get transactionListPlaceholder;
+  String get drawerStub;
+  String get categoryPickerStub;
+  String get authLoginPhase3;
+  String get authRegisterPhase3;
+  String get chartOther;
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(
+      lookupAppLocalizations(locale),
+    );
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['ru'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  switch (locale.languageCode) {
+    case 'ru':
+      return AppLocalizationsRu();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale".',
+  );
+}
