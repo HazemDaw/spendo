@@ -34,64 +34,58 @@ class DonutChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          PieChart(
-            PieChartData(
-              sectionsSpace: _isEmpty ? 0 : 4,
-              centerSpaceRadius: 68,
-              startDegreeOffset: -90,
-              pieTouchData: PieTouchData(
-                enabled: !_isEmpty,
-                touchCallback:
-                    (FlTouchEvent event, PieTouchResponse? response) {
-                  if (event is! FlTapUpEvent ||
-                      response?.touchedSection == null) {
-                    return;
-                  }
+    return Stack(
+      alignment: Alignment.center,
+      children: <Widget>[
+        PieChart(
+          PieChartData(
+            sectionsSpace: 2,
+            centerSpaceRadius: 62,
+            startDegreeOffset: -90,
+            pieTouchData: PieTouchData(
+              enabled: !_isEmpty,
+              touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
+                if (event is! FlTapUpEvent || response?.touchedSection == null) {
+                  return;
+                }
 
-                  final int index =
-                      response!.touchedSection!.touchedSectionIndex;
-                  onSliceTap(slices[index].categoryKey);
-                },
-              ),
-              sections: _isEmpty ? _emptySections() : _dataSections(),
+                final int index =
+                    response!.touchedSection!.touchedSectionIndex;
+                onSliceTap(slices[index].categoryKey);
+              },
             ),
+            sections: _isEmpty ? _emptySections() : _dataSections(),
           ),
-          IgnorePointer(
-            child: _isEmpty
-                ? Text(
-                    CurrencyFormatter.format(0),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                  )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        CurrencyFormatter.format(income),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.income,
-                              fontWeight: FontWeight.w600,
-                            ),
+        ),
+        IgnorePointer(
+          child: _isEmpty
+              ? Text(
+                  CurrencyFormatter.format(0),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppColors.textSecondary,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        CurrencyFormatter.format(expense),
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppColors.expense,
-                                ),
-                      ),
-                    ],
-                  ),
-          ),
-        ],
-      ),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      CurrencyFormatter.format(income),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.income,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      CurrencyFormatter.format(expense),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppColors.expense,
+                          ),
+                    ),
+                  ],
+                ),
+        ),
+      ],
     );
   }
 
@@ -100,7 +94,7 @@ class DonutChartWidget extends StatelessWidget {
       PieChartSectionData(
         value: 1,
         color: AppColors.emptyDonut,
-        radius: 28,
+        radius: 38,
         showTitle: false,
       ),
     ];
@@ -112,7 +106,7 @@ class DonutChartWidget extends StatelessWidget {
           (DonutCategorySlice slice) => PieChartSectionData(
             value: slice.value,
             color: slice.color,
-            radius: 28,
+            radius: 38,
             showTitle: false,
           ),
         )

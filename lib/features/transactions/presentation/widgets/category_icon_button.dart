@@ -11,18 +11,81 @@ class CategoryIconButton extends StatelessWidget {
     required this.category,
     required this.onPressed,
     this.selected = false,
+    this.showContainer = true,
+    this.label,
+    this.labelStyle,
+    this.iconOpacity = 1,
+    this.iconSize = 30,
+    this.width = 84,
+    this.containerSize = 64,
+    this.labelMaxLines = 2,
+    this.labelOverflow = TextOverflow.ellipsis,
+    this.labelSoftWrap = true,
+    this.labelOffset = 8,
   });
 
   final Category category;
   final VoidCallback onPressed;
   final bool selected;
+  final bool showContainer;
+  final String? label;
+  final TextStyle? labelStyle;
+  final double iconOpacity;
+  final double iconSize;
+  final double width;
+  final double containerSize;
+  final int labelMaxLines;
+  final TextOverflow labelOverflow;
+  final bool labelSoftWrap;
+  final double labelOffset;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final String resolvedLabel =
+        label ?? CategoryLocalizer.label(l10n, category);
+    final Widget icon = Opacity(
+      opacity: iconOpacity,
+      child: Icon(category.icon, color: category.color, size: iconSize),
+    );
+
+    if (!showContainer) {
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: SizedBox(
+          width: containerSize,
+          height: containerSize,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: <Widget>[
+              SizedBox(
+                width: containerSize,
+                height: containerSize,
+                child: Center(child: icon),
+              ),
+              Positioned(
+                top: containerSize + labelOffset,
+                left: -24,
+                right: -24,
+                child: Text(
+                  resolvedLabel,
+                  textAlign: TextAlign.center,
+                  maxLines: labelMaxLines,
+                  overflow: labelOverflow,
+                  softWrap: labelSoftWrap,
+                  style: labelStyle ?? Theme.of(context).textTheme.labelSmall,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return SizedBox(
-      width: 84,
+      width: width,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onPressed,
@@ -30,8 +93,8 @@ class CategoryIconButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Container(
-              width: 64,
-              height: 64,
+              width: containerSize,
+              height: containerSize,
               decoration: BoxDecoration(
                 color: selected ? AppColors.primaryLight : AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
@@ -46,15 +109,16 @@ class CategoryIconButton extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(category.icon, color: category.color, size: 30),
+              child: Center(child: icon),
             ),
             const SizedBox(height: 8),
             Text(
-              CategoryLocalizer.label(l10n, category),
+              resolvedLabel,
               textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall,
+              maxLines: labelMaxLines,
+              overflow: labelOverflow,
+              softWrap: labelSoftWrap,
+              style: labelStyle ?? Theme.of(context).textTheme.labelSmall,
             ),
           ],
         ),
