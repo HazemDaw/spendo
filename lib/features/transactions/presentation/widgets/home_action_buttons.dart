@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-
 class HomeActionButtons extends StatelessWidget {
   const HomeActionButtons({
     super.key,
@@ -19,40 +17,54 @@ class HomeActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: onExpensePressed,
-            icon: const Icon(Icons.remove_circle_outline,
-                color: AppColors.expense),
-            label: Text(
-              expenseLabel,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.expense,
-                  ),
-            ),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.expense),
-            ),
-          ),
+        _CircularActionButton(
+          color: const Color(0xFFEF7E8E),
+          icon: Icons.remove_rounded,
+          onPressed: onExpensePressed,
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: onIncomePressed,
-            icon: const Icon(Icons.add_circle_outline, color: AppColors.income),
-            label: Text(
-              incomeLabel,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.income,
-                  ),
-            ),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.income),
-            ),
-          ),
+        const SizedBox(width: 76),
+        _CircularActionButton(
+          color: const Color(0xFF6BD98B),
+          icon: Icons.add_rounded,
+          onPressed: onIncomePressed,
         ),
       ],
+    );
+  }
+}
+
+class _CircularActionButton extends StatelessWidget {
+  const _CircularActionButton({
+    required this.color,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final Color color;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 190,
+      height: 190,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          shape: const CircleBorder(),
+          side: BorderSide(color: color, width: 8),
+          padding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+        ),
+        child: Icon(
+          icon,
+          color: color,
+          size: 84,
+        ),
+      ),
     );
   }
 }

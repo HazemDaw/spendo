@@ -1,42 +1,48 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
+
+class OrbitConnector {
+  const OrbitConnector({
+    required this.iconCenter,
+    required this.color,
+    required this.active,
+  });
+
+  final Offset iconCenter;
+  final Color color;
+  final bool active;
+}
 
 class ConnectorLinesPainter extends CustomPainter {
   const ConnectorLinesPainter({
-    required this.angles,
-    required this.hasSpending,
+    required this.connectors,
     required this.center,
-    required this.chartOuterRadius,
-    required this.iconOrbitRadius,
+    required this.chartRadius,
   });
 
-  final List<double> angles;
-  final List<bool> hasSpending;
+  final List<OrbitConnector> connectors;
   final Offset center;
-  final double chartOuterRadius;
-  final double iconOrbitRadius;
+  final double chartRadius;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = Colors.grey.withValues(alpha: 0.4)
-      ..strokeWidth = 0.8
-      ..strokeCap = StrokeCap.round;
-
-    for (int index = 0; index < angles.length; index++) {
-      if (!hasSpending[index]) {
+    for (final OrbitConnector connector in connectors) {
+      if (!connector.active) {
         continue;
       }
 
-      final Offset lineStart = Offset(
-        center.dx + (iconOrbitRadius * math.cos(angles[index])),
-        center.dy + (iconOrbitRadius * math.sin(angles[index])),
-      );
-      final Offset lineEnd = Offset(
-        center.dx + (chartOuterRadius * math.cos(angles[index])),
-        center.dy + (chartOuterRadius * math.sin(angles[index])),
-      );
+      final Offset delta = connector.iconCenter - center;
+      final double distance = delta.distance;
+      if (distance == 0) {
+        continue;
+      }
+
+      final Offset unit = delta / distance;
+      final Offset lineStart = center + (unit * chartRadius);
+      final Offset lineEnd = connector.iconCenter - (unit * 34);
+      final Paint paint = Paint()
+        ..color = connector.color.withValues(alpha: 0.42)
+        ..strokeWidth = 2.4
+        ..strokeCap = StrokeCap.round;
 
       canvas.drawLine(lineStart, lineEnd, paint);
     }
@@ -44,10 +50,8 @@ class ConnectorLinesPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant ConnectorLinesPainter oldDelegate) {
-    return oldDelegate.angles != angles ||
-        oldDelegate.hasSpending != hasSpending ||
+    return oldDelegate.connectors != connectors ||
         oldDelegate.center != center ||
-        oldDelegate.chartOuterRadius != chartOuterRadius ||
-        oldDelegate.iconOrbitRadius != iconOrbitRadius;
+        oldDelegate.chartRadius != chartRadius;
   }
 }

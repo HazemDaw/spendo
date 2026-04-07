@@ -20,15 +20,15 @@ class AppColors {
   static const Color emptyDonut = Color(0xFFD1D5DB);
 
   static const List<Color> categoryPalette = <Color>[
-    Color(0xFF7C3AED),
-    Color(0xFF2563EB),
-    Color(0xFF059669),
-    Color(0xFFD97706),
-    Color(0xFFDC2626),
-    Color(0xFF9333EA),
-    Color(0xFF0891B2),
-    Color(0xFFDB2777),
-    Color(0xFF65A30D),
-    Color(0xFFF59E0B),
+    Color(0xFFF58CB7),
+    Color(0xFFFE817F),
+    Color(0xFF79B9E5),
+    Color(0xFF6E88B6),
+    Color(0xFFB86DDA),
+    Color(0xFFF5B365),
+    Color(0xFFBBA6C5),
+    Color(0xFF8FCAB1),
+    Color(0xFFD7C7D2),
+    Color(0xFFBDD9E6),
   ];
 }

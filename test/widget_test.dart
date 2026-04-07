@@ -6,6 +6,6 @@ void main() {
     await tester.pumpWidget(const SpendoApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Spendo'), findsOneWidget);
+    expect(find.text('Monefy'), findsOneWidget);
   });
 }
