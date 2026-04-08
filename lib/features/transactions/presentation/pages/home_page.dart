@@ -27,8 +27,10 @@ class _HomePageState extends State<HomePage> {
   static const double _donutOuterRadius = 205;
   static const double _donutInnerRadius = 120;
   static const double _donutStartAngle = 320;
-  static const double _orbitRadius = 294;
-  static const double _iconHitRadius = 34;
+  static const double _orbitGridOffset = 114;
+  static const double _iconTouchSize = 84;
+  static const double _iconSize = 58;
+  static const double _slotAxisRadius = _donutOuterRadius + _orbitGridOffset;
   static final NumberFormat _homeAmountFormatter = NumberFormat.currency(
     locale: 'en_US',
     symbol: 'RUB',
@@ -44,6 +46,41 @@ class _HomePageState extends State<HomePage> {
     'health',
     'entertainment',
   ];
+  static const List<_OrbitAssignment> _orbitAssignments =
+      <_OrbitAssignment>[
+        _OrbitAssignment(
+          categoryKey: 'entertainment',
+          slot: _OrbitSlot.topLeft,
+        ),
+        _OrbitAssignment(
+          categoryKey: 'clothing',
+          slot: _OrbitSlot.topCenter,
+        ),
+        _OrbitAssignment(
+          categoryKey: 'communication',
+          slot: _OrbitSlot.topRight,
+        ),
+        _OrbitAssignment(
+          categoryKey: 'housing',
+          slot: _OrbitSlot.right,
+        ),
+        _OrbitAssignment(
+          categoryKey: 'transport',
+          slot: _OrbitSlot.bottomRight,
+        ),
+        _OrbitAssignment(
+          categoryKey: 'food',
+          slot: _OrbitSlot.bottomCenter,
+        ),
+        _OrbitAssignment(
+          categoryKey: 'sport',
+          slot: _OrbitSlot.bottomLeft,
+        ),
+        _OrbitAssignment(
+          categoryKey: 'health',
+          slot: _OrbitSlot.left,
+        ),
+      ];
 
   TransactionPeriod _selectedPeriod = TransactionPeriod.month;
 
@@ -300,29 +337,33 @@ class _HomePageState extends State<HomePage> {
 
   Positioned _buildOrbitNode(_OrbitNode node) {
     return Positioned(
-      left: node.position.dx - 42,
-      top: node.position.dy - 42,
+      left: node.position.dx - (_iconTouchSize / 2),
+      top: node.position.dy - (_iconTouchSize / 2),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: node.categoryKey == null
-            ? null
-            : () {
-                context.pushNamed(
-                  'addTransaction',
-                  queryParameters: <String, String>{
-                    'type': 'expense',
-                    'categoryKey': node.categoryKey!,
-                  },
-                );
-              },
+        onTap: () {
+          context.pushNamed(
+            'addTransaction',
+            queryParameters: <String, String>{
+              'type': 'expense',
+              'categoryKey': node.categoryKey,
+            },
+          );
+        },
         child: SizedBox(
-          width: 84,
+          width: _iconTouchSize,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Icon(
-                node.icon,
-                color: node.color.withValues(alpha: node.active ? 1 : 0.78),
-                size: 58,
+              SizedBox.square(
+                dimension: _iconTouchSize,
+                child: Center(
+                  child: Icon(
+                    node.icon,
+                    color: node.color.withValues(alpha: node.active ? 1 : 0.42),
+                    size: _iconSize,
+                  ),
+                ),
               ),
               if (node.label != null) ...<Widget>[
                 const SizedBox(height: 8),
@@ -379,34 +420,20 @@ class _HomePageState extends State<HomePage> {
       0,
       (double sum, double value) => sum + value,
     );
-
-    final List<_OrbitNode> nodes = <_OrbitNode>[];
-    const double startAngleDegrees = -90;
-    const double stepAngleDegrees = 360 / 8;
-    for (int i = 0; i < _sliceOrder.length; i++) {
-      final String key = _sliceOrder[i];
-      final category = MockData.categoryByKey(key)!;
-      final double angle = (startAngleDegrees + (stepAngleDegrees * i)) *
-          (math.pi / 180);
-      final Offset position = Offset(
-        _chartCenter.dx + (math.cos(angle) * _orbitRadius),
-        _chartCenter.dy + (math.sin(angle) * _orbitRadius),
+    return _orbitAssignments.map((_OrbitAssignment assignment) {
+      final category = MockData.categoryByKey(assignment.categoryKey)!;
+      final bool active = (totals[assignment.categoryKey] ?? 0) > 0;
+      return _OrbitNode(
+        position: _slotPosition(assignment.slot),
+        slot: assignment.slot,
+        icon: category.icon,
+        color: category.color,
+        categoryKey: assignment.categoryKey,
+        label: active
+            ? _percentLabel(totals, totalExpense, assignment.categoryKey)
+            : null,
+        active: active,
       );
-      nodes.add(
-        _OrbitNode(
-          position: position,
-          icon: category.icon,
-          color: category.color,
-          categoryKey: key,
-          label: _percentLabel(totals, totalExpense, key),
-        ),
-      );
-    }
-
-    return nodes.map((_OrbitNode node) {
-      final bool active =
-          node.categoryKey != null && (totals[node.categoryKey] ?? 0) > 0;
-      return node.copyWith(active: active);
     }).toList();
   }
 
@@ -419,8 +446,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     final Map<String, _OrbitNode> nodeByKey = <String, _OrbitNode>{
-      for (final _OrbitNode node in orbitNodes)
-        if (node.categoryKey != null) node.categoryKey!: node,
+      for (final _OrbitNode node in orbitNodes) node.categoryKey: node,
     };
     final double total = slices.fold<double>(
       0,
@@ -430,7 +456,7 @@ class _HomePageState extends State<HomePage> {
     final List<OrbitConnector> connectors = <OrbitConnector>[];
     for (final DonutCategorySlice slice in slices) {
       final _OrbitNode? node = nodeByKey[slice.categoryKey];
-      if (node == null || !node.active) {
+      if (node == null) {
         currentAngle += (slice.value / total) * (math.pi * 2);
         continue;
       }
@@ -440,24 +466,66 @@ class _HomePageState extends State<HomePage> {
         _chartCenter.dx + (math.cos(midAngle) * _donutOuterRadius),
         _chartCenter.dy + (math.sin(midAngle) * _donutOuterRadius),
       );
-      final Offset toIcon = node.position - chartEdge;
-      final double distance = toIcon.distance;
-      if (distance == 0) {
-        currentAngle += sweep;
-        continue;
-      }
-      final Offset unit = toIcon / distance;
-      final Offset iconEdge = node.position - (unit * _iconHitRadius);
       connectors.add(
         OrbitConnector(
           start: chartEdge,
-          end: iconEdge,
+          end: node.position,
           color: node.color,
+          chartCenter: _chartCenter,
+          routeRadius: _routeRadiusFor(node.slot),
         ),
       );
       currentAngle += sweep;
     }
     return connectors;
+  }
+
+  Offset _slotPosition(_OrbitSlot slot) {
+    return switch (slot) {
+      _OrbitSlot.topLeft => Offset(
+          _chartCenter.dx - _slotAxisRadius,
+          _chartCenter.dy - _slotAxisRadius,
+        ),
+      _OrbitSlot.topCenter => Offset(
+          _chartCenter.dx,
+          _chartCenter.dy - _slotAxisRadius,
+        ),
+      _OrbitSlot.topRight => Offset(
+          _chartCenter.dx + _slotAxisRadius,
+          _chartCenter.dy - _slotAxisRadius,
+        ),
+      _OrbitSlot.right => Offset(
+          _chartCenter.dx + _slotAxisRadius,
+          _chartCenter.dy,
+        ),
+      _OrbitSlot.bottomRight => Offset(
+          _chartCenter.dx + _slotAxisRadius,
+          _chartCenter.dy + _slotAxisRadius,
+        ),
+      _OrbitSlot.bottomCenter => Offset(
+          _chartCenter.dx,
+          _chartCenter.dy + _slotAxisRadius,
+        ),
+      _OrbitSlot.bottomLeft => Offset(
+          _chartCenter.dx - _slotAxisRadius,
+          _chartCenter.dy + _slotAxisRadius,
+        ),
+      _OrbitSlot.left => Offset(
+          _chartCenter.dx - _slotAxisRadius,
+          _chartCenter.dy,
+        ),
+    };
+  }
+
+  double _routeRadiusFor(_OrbitSlot slot) {
+    return switch (slot) {
+      _OrbitSlot.topCenter || _OrbitSlot.bottomCenter => _donutOuterRadius + 56,
+      _OrbitSlot.left || _OrbitSlot.right => _donutOuterRadius + 70,
+      _OrbitSlot.topLeft ||
+      _OrbitSlot.topRight ||
+      _OrbitSlot.bottomRight ||
+      _OrbitSlot.bottomLeft => _donutOuterRadius + 86,
+    };
   }
 
   String? _percentLabel(
@@ -492,33 +560,42 @@ class _HomePageState extends State<HomePage> {
 class _OrbitNode {
   const _OrbitNode({
     required this.position,
+    required this.slot,
     required this.icon,
     required this.color,
-    this.categoryKey,
+    required this.categoryKey,
+    required this.active,
     this.label,
-    this.active = false,
   });
 
   final Offset position;
+  final _OrbitSlot slot;
   final IconData icon;
   final Color color;
-  final String? categoryKey;
-  final String? label;
+  final String categoryKey;
   final bool active;
+  final String? label;
+}
 
-  _OrbitNode copyWith({
-    String? label,
-    bool? active,
-  }) {
-    return _OrbitNode(
-      position: position,
-      icon: icon,
-      color: color,
-      categoryKey: categoryKey,
-      label: label ?? this.label,
-      active: active ?? this.active,
-    );
-  }
+class _OrbitAssignment {
+  const _OrbitAssignment({
+    required this.categoryKey,
+    required this.slot,
+  });
+
+  final String categoryKey;
+  final _OrbitSlot slot;
+}
+
+enum _OrbitSlot {
+  topLeft,
+  topCenter,
+  topRight,
+  right,
+  bottomRight,
+  bottomCenter,
+  bottomLeft,
+  left,
 }
 
 class _PhaseDrawer extends StatelessWidget {
