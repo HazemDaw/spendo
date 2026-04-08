@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +27,8 @@ class _HomePageState extends State<HomePage> {
   static const double _donutOuterRadius = 205;
   static const double _donutInnerRadius = 120;
   static const double _donutStartAngle = 320;
+  static const double _orbitRadius = 294;
+  static const double _iconHitRadius = 34;
   static final NumberFormat _homeAmountFormatter = NumberFormat.currency(
     locale: 'en_US',
     symbol: 'RUB',
@@ -70,16 +74,10 @@ class _HomePageState extends State<HomePage> {
     );
     final List<DonutCategorySlice> slices = _buildSlices(expenseTotals);
     final List<_OrbitNode> orbitNodes = _buildOrbitNodes(expenseTotals);
-    final List<OrbitConnector> connectors = orbitNodes
-        .where((node) => node.active)
-        .map(
-          (node) => OrbitConnector(
-            iconCenter: node.position,
-            color: node.color,
-            active: true,
-          ),
-        )
-        .toList();
+    final List<OrbitConnector> connectors = _buildConnectors(
+      slices: slices,
+      orbitNodes: orbitNodes,
+    );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -143,21 +141,10 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  Positioned(
-                    left: _chartCenter.dx - (_donutOuterRadius * 1.15),
-                    top: _chartCenter.dy - (_donutOuterRadius * 1.15),
-                    child: SizedBox(
-                      width: _donutOuterRadius * 2.3,
-                      height: _donutOuterRadius * 2.3,
+                  Positioned.fill(
+                    child: IgnorePointer(
                       child: CustomPaint(
-                        painter: ConnectorLinesPainter(
-                          connectors: connectors,
-                          center: const Offset(
-                            _donutOuterRadius * 1.15,
-                            _donutOuterRadius * 1.15,
-                          ),
-                          chartRadius: _donutOuterRadius,
-                        ),
+                        painter: ConnectorLinesPainter(connectors: connectors),
                       ),
                     ),
                   ),
@@ -261,7 +248,7 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                'Monefy',
+                'Spendo',
                 style: GoogleFonts.parisienne(
                   color: Colors.white,
                   fontSize: 52,
@@ -343,7 +330,7 @@ class _HomePageState extends State<HomePage> {
                   node.label!,
                   style: GoogleFonts.inter(
                     color: node.color,
-                    fontSize: 25,
+                    fontSize: 21,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -393,100 +380,84 @@ class _HomePageState extends State<HomePage> {
       (double sum, double value) => sum + value,
     );
 
-    return <_OrbitNode>[
-      _OrbitNode(
-        position: const Offset(70, 324),
-        icon: Icons.accessibility_new_outlined,
-        color: MockData.categoryByKey('sport')!.color,
-        categoryKey: 'sport',
-        label: _percentLabel(totals, totalExpense, 'sport'),
-      ),
-      _OrbitNode(
-        position: const Offset(250, 322),
-        icon: Icons.restaurant_menu_outlined,
-        color: MockData.categoryByKey('health')!.color,
-        categoryKey: 'health',
-        label: _percentLabel(totals, totalExpense, 'health'),
-      ),
-      _OrbitNode(
-        position: const Offset(472, 322),
-        icon: Icons.local_bar_outlined,
-        color: MockData.categoryByKey('entertainment')!.color,
-        categoryKey: 'entertainment',
-        label: _percentLabel(totals, totalExpense, 'entertainment'),
-      ),
-      _OrbitNode(
-        position: const Offset(650, 324),
-        icon: Icons.card_giftcard_outlined,
-        color: MockData.categoryByKey('gifts')!.color,
-        categoryKey: 'gifts',
-      ),
-      _OrbitNode(
-        position: const Offset(94, 520),
-        icon: Icons.pets_outlined,
-        color: MockData.categoryByKey('pets')!.color,
-        categoryKey: 'pets',
-      ),
-      _OrbitNode(
-        position: const Offset(640, 518),
-        icon: Icons.checkroom_outlined,
-        color: MockData.categoryByKey('clothing')!.color,
-        categoryKey: 'clothing',
-        label: _percentLabel(totals, totalExpense, 'clothing'),
-      ),
-      _OrbitNode(
-        position: const Offset(72, 686),
-        icon: Icons.shopping_basket_outlined,
-        color: MockData.categoryByKey('food')!.color,
-        categoryKey: 'food',
-        label: _percentLabel(totals, totalExpense, 'food'),
-      ),
-      _OrbitNode(
-        position: const Offset(652, 684),
-        icon: Icons.phone_outlined,
-        color: MockData.categoryByKey('communication')!.color,
-        categoryKey: 'communication',
-        label: _percentLabel(totals, totalExpense, 'communication'),
-      ),
-      const _OrbitNode(
-        position: Offset(76, 902),
-        icon: Icons.sports_tennis_outlined,
-        color: Color(0xFFEA8D94),
-      ),
-      const _OrbitNode(
-        position: Offset(614, 902),
-        icon: Icons.work_outline_rounded,
-        color: Color(0xFFDBAE4F),
-      ),
-      _OrbitNode(
-        position: const Offset(76, 1080),
-        icon: Icons.calendar_month_outlined,
-        color: MockData.categoryByKey('transport')!.color,
-        categoryKey: 'transport',
-        label: _percentLabel(totals, totalExpense, 'transport'),
-      ),
-      const _OrbitNode(
-        position: Offset(312, 1100),
-        icon: Icons.directions_car_outlined,
-        color: Color(0xFF9097A0),
-      ),
-      const _OrbitNode(
-        position: Offset(476, 1090),
-        icon: Icons.restaurant_outlined,
-        color: Color(0xFF97A89A),
-      ),
-      _OrbitNode(
-        position: const Offset(650, 1086),
-        icon: Icons.home_outlined,
-        color: MockData.categoryByKey('housing')!.color,
-        categoryKey: 'housing',
-        label: _percentLabel(totals, totalExpense, 'housing'),
-      ),
-    ].map((_OrbitNode node) {
+    final List<_OrbitNode> nodes = <_OrbitNode>[];
+    const double startAngleDegrees = -90;
+    const double stepAngleDegrees = 360 / 8;
+    for (int i = 0; i < _sliceOrder.length; i++) {
+      final String key = _sliceOrder[i];
+      final category = MockData.categoryByKey(key)!;
+      final double angle = (startAngleDegrees + (stepAngleDegrees * i)) *
+          (math.pi / 180);
+      final Offset position = Offset(
+        _chartCenter.dx + (math.cos(angle) * _orbitRadius),
+        _chartCenter.dy + (math.sin(angle) * _orbitRadius),
+      );
+      nodes.add(
+        _OrbitNode(
+          position: position,
+          icon: category.icon,
+          color: category.color,
+          categoryKey: key,
+          label: _percentLabel(totals, totalExpense, key),
+        ),
+      );
+    }
+
+    return nodes.map((_OrbitNode node) {
       final bool active =
           node.categoryKey != null && (totals[node.categoryKey] ?? 0) > 0;
       return node.copyWith(active: active);
     }).toList();
+  }
+
+  List<OrbitConnector> _buildConnectors({
+    required List<DonutCategorySlice> slices,
+    required List<_OrbitNode> orbitNodes,
+  }) {
+    if (slices.isEmpty) {
+      return const <OrbitConnector>[];
+    }
+
+    final Map<String, _OrbitNode> nodeByKey = <String, _OrbitNode>{
+      for (final _OrbitNode node in orbitNodes)
+        if (node.categoryKey != null) node.categoryKey!: node,
+    };
+    final double total = slices.fold<double>(
+      0,
+      (double sum, DonutCategorySlice slice) => sum + slice.value,
+    );
+    double currentAngle = _donutStartAngle * (math.pi / 180);
+    final List<OrbitConnector> connectors = <OrbitConnector>[];
+    for (final DonutCategorySlice slice in slices) {
+      final _OrbitNode? node = nodeByKey[slice.categoryKey];
+      if (node == null || !node.active) {
+        currentAngle += (slice.value / total) * (math.pi * 2);
+        continue;
+      }
+      final double sweep = (slice.value / total) * (math.pi * 2);
+      final double midAngle = currentAngle + (sweep / 2);
+      final Offset chartEdge = Offset(
+        _chartCenter.dx + (math.cos(midAngle) * _donutOuterRadius),
+        _chartCenter.dy + (math.sin(midAngle) * _donutOuterRadius),
+      );
+      final Offset toIcon = node.position - chartEdge;
+      final double distance = toIcon.distance;
+      if (distance == 0) {
+        currentAngle += sweep;
+        continue;
+      }
+      final Offset unit = toIcon / distance;
+      final Offset iconEdge = node.position - (unit * _iconHitRadius);
+      connectors.add(
+        OrbitConnector(
+          start: chartEdge,
+          end: iconEdge,
+          color: node.color,
+        ),
+      );
+      currentAngle += sweep;
+    }
+    return connectors;
   }
 
   String? _percentLabel(
