@@ -61,6 +61,60 @@ class AppLocalizationsRu extends AppLocalizations {
   String get transactionListPlaceholder => 'Список по категории, фаза 1';
 
   @override
+  String get addExpenseTitle => 'Добавить расход';
+
+  @override
+  String get addIncomeTitle => 'Добавить доход';
+
+  @override
+  String get editTransactionTitle => 'Редактировать';
+
+  @override
+  String get saveAction => 'Сохранить';
+
+  @override
+  String get cancelAction => 'Отмена';
+
+  @override
+  String get deleteAction => 'Удалить';
+
+  @override
+  String get dateLabel => 'Дата';
+
+  @override
+  String get noteLabel => 'Заметка';
+
+  @override
+  String get pickCategoryAction => 'ВЫБРАТЬ КАТЕГОРИЮ';
+
+  @override
+  String get invalidAmountMessage => 'Введите сумму больше нуля';
+
+  @override
+  String get invalidCategoryMessage => 'Выберите категорию';
+
+  @override
+  String get transactionAddedMessage => 'Транзакция добавлена';
+
+  @override
+  String get transactionUpdatedMessage => 'Изменения сохранены';
+
+  @override
+  String get transactionDeletedMessage => 'Транзакция удалена';
+
+  @override
+  String get deleteTransactionTitle => 'Удалить транзакцию?';
+
+  @override
+  String get deleteTransactionMessage => 'Это действие нельзя отменить';
+
+  @override
+  String get noTransactionsInCategory => 'Нет транзакций в этой категории';
+
+  @override
+  String get totalExpenseLabel => 'Итого расходы';
+
+  @override
   String get drawerStub => 'Фаза 1, скоро';
 
   @override

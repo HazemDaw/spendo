@@ -1,5 +1,15 @@
 enum TransactionPeriod { day, week, month }
 
+class TransactionDateRange {
+  const TransactionDateRange({
+    required this.start,
+    required this.end,
+  });
+
+  final DateTime start;
+  final DateTime end;
+}
+
 class AppDateUtils {
   AppDateUtils._();
 
@@ -21,6 +31,53 @@ class AppDateUtils {
       case TransactionPeriod.month:
         return candidate.year == reference.year &&
             candidate.month == reference.month;
+    }
+  }
+
+  static TransactionDateRange getPeriodRange(
+    TransactionPeriod period, {
+    DateTime? now,
+  }) {
+    final DateTime reference = now ?? DateTime.now();
+
+    switch (period) {
+      case TransactionPeriod.day:
+        return TransactionDateRange(
+          start: DateTime(reference.year, reference.month, reference.day),
+          end: DateTime(
+            reference.year,
+            reference.month,
+            reference.day,
+            23,
+            59,
+            59,
+          ),
+        );
+      case TransactionPeriod.week:
+        final DateTime start = _startOfWeek(_dateOnly(reference));
+        return TransactionDateRange(
+          start: start,
+          end: DateTime(
+            reference.year,
+            reference.month,
+            reference.day,
+            23,
+            59,
+            59,
+          ),
+        );
+      case TransactionPeriod.month:
+        return TransactionDateRange(
+          start: DateTime(reference.year, reference.month, 1),
+          end: DateTime(
+            reference.year,
+            reference.month,
+            reference.day,
+            23,
+            59,
+            59,
+          ),
+        );
     }
   }
 

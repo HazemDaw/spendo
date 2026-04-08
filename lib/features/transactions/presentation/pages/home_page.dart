@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,7 +9,10 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/mock/mock_data.dart';
 import '../../../../core/utils/date_utils.dart';
-import '../../domain/entities/transaction.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../bloc/transaction_bloc.dart';
+import '../bloc/transaction_event.dart';
+import '../bloc/transaction_state.dart';
 import '../widgets/balance_bar.dart';
 import '../widgets/connector_lines_painter.dart';
 import '../widgets/donut_chart_widget.dart';
@@ -86,172 +90,196 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Transaction> filteredTransactions = MockData.sampleTransactions
-        .where(
-          (Transaction transaction) =>
-              AppDateUtils.matchesPeriod(transaction.date, _selectedPeriod),
-        )
-        .toList();
-    final double income = filteredTransactions
-        .where((Transaction transaction) =>
-            transaction.type == TransactionType.income)
-        .fold<double>(
-          0,
-          (double sum, Transaction transaction) => sum + transaction.amount,
-        );
-    final double expense = filteredTransactions
-        .where((Transaction transaction) =>
-            transaction.type == TransactionType.expense)
-        .fold<double>(
-          0,
-          (double sum, Transaction transaction) => sum + transaction.amount,
-        );
-    final Map<String, double> expenseTotals = _buildExpenseTotals(
-      filteredTransactions,
-    );
+    final TransactionState transactionState = context.watch<TransactionBloc>().state;
+    final double income = transactionState is TransactionLoaded
+        ? transactionState.totalIncome
+        : 0;
+    final double expense = transactionState is TransactionLoaded
+        ? transactionState.totalExpense
+        : 0;
+    final Map<String, double> expenseTotals = transactionState is TransactionLoaded
+        ? transactionState.categoryTotals
+        : const <String, double>{};
     final List<DonutCategorySlice> slices = _buildSlices(expenseTotals);
     final List<_OrbitNode> orbitNodes = _buildOrbitNodes(expenseTotals);
     final List<OrbitConnector> connectors = _buildConnectors(
       slices: slices,
       orbitNodes: orbitNodes,
     );
+    final bool isLoading =
+        transactionState is TransactionInitial ||
+        transactionState is TransactionLoading;
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFF7AC793),
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF2FFF6),
-        drawer: const _PhaseDrawer(icon: Icons.menu_rounded),
-        endDrawer: const _PhaseDrawer(icon: Icons.more_vert_rounded),
-        body: Align(
-          alignment: Alignment.topCenter,
-          child: FittedBox(
-            fit: BoxFit.contain,
+    return BlocListener<TransactionBloc, TransactionState>(
+      listener: (BuildContext context, TransactionState state) {
+        if (state is TransactionError &&
+            (ModalRoute.of(context)?.isCurrent ?? false)) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+        }
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Color(0xFF7AC793),
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: Scaffold(
+          backgroundColor: const Color(0xFFF2FFF6),
+          drawer: const _PhaseDrawer(icon: Icons.menu_rounded),
+          endDrawer: const _PhaseDrawer(icon: Icons.more_vert_rounded),
+          body: Align(
             alignment: Alignment.topCenter,
-            child: SizedBox(
-              width: _referenceSize.width,
-              height: _referenceSize.height,
-              child: Stack(
-                children: <Widget>[
-                  const Positioned.fill(
-                    child: ColoredBox(
-                      color: Color(0xFFF2FFF6),
-                    ),
-                  ),
-                  const Positioned(
-                    left: 0,
-                    top: 0,
-                    right: 0,
-                    child: SizedBox(
-                      height: 156,
-                      child: ColoredBox(color: Color(0xFF7AC793)),
-                    ),
-                  ),
-                  _buildHeader(),
-                  Positioned(
-                    left: 6,
-                    top: 190,
-                    child: Text(
-                      '10 Mar',
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFFBAC9C1),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w500,
+            child: FittedBox(
+              fit: BoxFit.contain,
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: _referenceSize.width,
+                height: _referenceSize.height,
+                child: Stack(
+                  children: <Widget>[
+                    const Positioned.fill(
+                      child: ColoredBox(
+                        color: Color(0xFFF2FFF6),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    left: 288,
-                    top: 190,
-                    child: GestureDetector(
-                      onTap: _cyclePeriod,
+                    const Positioned(
+                      left: 0,
+                      top: 0,
+                      right: 0,
+                      child: SizedBox(
+                        height: 156,
+                        child: ColoredBox(color: Color(0xFF7AC793)),
+                      ),
+                    ),
+                    _buildHeader(),
+                    Positioned(
+                      left: 6,
+                      top: 190,
                       child: Text(
-                        '11 Mar - 25 Mar',
+                        '10 Mar',
                         style: GoogleFonts.inter(
-                          color: const Color(0xFF96A69C),
-                          fontSize: 24,
+                          color: const Color(0xFFBAC9C1),
+                          fontSize: 22,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: CustomPaint(
-                        painter: ConnectorLinesPainter(connectors: connectors),
+                    Positioned(
+                      left: 288,
+                      top: 190,
+                      child: GestureDetector(
+                        onTap: _cyclePeriod,
+                        child: Text(
+                          '11 Mar - 25 Mar',
+                          style: GoogleFonts.inter(
+                            color: const Color(0xFF96A69C),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    left: _chartCenter.dx - _donutOuterRadius,
-                    top: _chartCenter.dy - _donutOuterRadius,
-                    child: DonutChartWidget(
-                      slices: slices,
-                      incomeText: _homeAmountFormatter.format(income),
-                      expenseText: _homeAmountFormatter.format(expense),
-                      startAngleDegrees: _donutStartAngle,
-                      outerRadius: _donutOuterRadius,
-                      innerRadius: _donutInnerRadius,
-                      onSliceTap: (String categoryKey) {
-                        context.pushNamed(
-                          'transactionList',
-                          pathParameters: <String, String>{
-                            'categoryKey': categoryKey,
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  for (final _OrbitNode node in orbitNodes) _buildOrbitNode(node),
-                  Positioned(
-                    left: 44,
-                    right: 44,
-                    top: 1248,
-                    child: BalanceBar(
-                      balanceText: _formatSignedHomeAmount(income - expense),
-                    ),
-                  ),
-                  Positioned(
-                    left: 70,
-                    right: 70,
-                    top: 1362,
-                    child: HomeActionButtons(
-                      expenseLabel: 'Expense',
-                      incomeLabel: 'Income',
-                      onExpensePressed: () {
-                        context.pushNamed(
-                          'addTransaction',
-                          queryParameters: const <String, String>{
-                            'type': 'expense',
-                          },
-                        );
-                      },
-                      onIncomePressed: () {
-                        context.pushNamed(
-                          'addTransaction',
-                          queryParameters: const <String, String>{
-                            'type': 'income',
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  const Positioned(
-                    left: 175,
-                    right: 175,
-                    bottom: 18,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Color(0xFF808582),
-                        borderRadius: BorderRadius.all(Radius.circular(999)),
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          painter: ConnectorLinesPainter(connectors: connectors),
+                        ),
                       ),
-                      child: SizedBox(height: 8),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      left: _chartCenter.dx - _donutOuterRadius,
+                      top: _chartCenter.dy - _donutOuterRadius,
+                      child: SizedBox.square(
+                        dimension: _donutOuterRadius * 2,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: <Widget>[
+                            DonutChartWidget(
+                              slices: slices,
+                              incomeText: _homeAmountFormatter.format(income),
+                              expenseText: _homeAmountFormatter.format(expense),
+                              startAngleDegrees: _donutStartAngle,
+                              outerRadius: _donutOuterRadius,
+                              innerRadius: _donutInnerRadius,
+                              onSliceTap: (String categoryKey) {
+                                context.pushNamed(
+                                  'transactionList',
+                                  pathParameters: <String, String>{
+                                    'categoryKey': categoryKey,
+                                  },
+                                );
+                              },
+                            ),
+                            if (isLoading)
+                              const SizedBox(
+                                width: 36,
+                                height: 36,
+                                child: CircularProgressIndicator(strokeWidth: 2.5),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    for (final _OrbitNode node in orbitNodes) _buildOrbitNode(node),
+                    Positioned(
+                      left: 44,
+                      right: 44,
+                      top: 1248,
+                      child: BalanceBar(
+                        balanceText: _formatSignedHomeAmount(income - expense),
+                      ),
+                    ),
+                    Positioned(
+                      left: 70,
+                      right: 70,
+                      top: 1362,
+                      child: HomeActionButtons(
+                        expenseLabel: 'Expense',
+                        incomeLabel: 'Income',
+                        onExpensePressed: () async {
+                          final Object? result = await context.pushNamed(
+                            'addTransaction',
+                            queryParameters: const <String, String>{
+                              'type': 'expense',
+                            },
+                          );
+                          if (!mounted) {
+                            return;
+                          }
+                          _showAddResult(result);
+                        },
+                        onIncomePressed: () async {
+                          final Object? result = await context.pushNamed(
+                            'addTransaction',
+                            queryParameters: const <String, String>{
+                              'type': 'income',
+                            },
+                          );
+                          if (!mounted) {
+                            return;
+                          }
+                          _showAddResult(result);
+                        },
+                      ),
+                    ),
+                    const Positioned(
+                      left: 175,
+                      right: 175,
+                      bottom: 18,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Color(0xFF808582),
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
+                        ),
+                        child: SizedBox(height: 8),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -341,14 +369,18 @@ class _HomePageState extends State<HomePage> {
       top: node.position.dy - (_iconTouchSize / 2),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () {
-          context.pushNamed(
+        onTap: () async {
+          final Object? result = await context.pushNamed(
             'addTransaction',
             queryParameters: <String, String>{
               'type': 'expense',
               'categoryKey': node.categoryKey,
             },
           );
+          if (!mounted) {
+            return;
+          }
+          _showAddResult(result);
         },
         child: SizedBox(
           width: _iconTouchSize,
@@ -381,25 +413,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
-
-  Map<String, double> _buildExpenseTotals(List<Transaction> filteredTransactions) {
-    final Map<String, double> totals = <String, double>{};
-
-    for (final Transaction transaction in filteredTransactions) {
-      if (transaction.type != TransactionType.expense ||
-          transaction.categoryKey == null) {
-        continue;
-      }
-
-      totals.update(
-        transaction.categoryKey!,
-        (double value) => value + transaction.amount,
-        ifAbsent: () => transaction.amount,
-      );
-    }
-
-    return totals;
   }
 
   List<DonutCategorySlice> _buildSlices(Map<String, double> totals) {
@@ -554,6 +567,40 @@ class _HomePageState extends State<HomePage> {
         TransactionPeriod.month => TransactionPeriod.day,
       };
     });
+    context.read<TransactionBloc>().add(LoadTransactionsEvent(_selectedPeriod));
+  }
+
+  void _showAddResult(Object? result) {
+    final messenger = ScaffoldMessenger.of(context);
+    if (result == 'added') {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.transactionAddedMessage),
+          ),
+        );
+    } else if (result == 'updated') {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.transactionUpdatedMessage,
+            ),
+          ),
+        );
+    } else if (result == 'deleted') {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.transactionDeletedMessage,
+            ),
+          ),
+        );
+    }
   }
 }
 

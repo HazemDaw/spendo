@@ -19,9 +19,16 @@ dependencies:
   # State (Phase 2 — add now so structure is ready)
   flutter_bloc: ^8.1.5
   equatable: ^2.0.5
+  dartz: ^0.10.1
 
   # Routing
   go_router: ^13.0.0
+
+  # Local storage & DI
+  get_it: ^7.7.0
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.5
 
   # Utils
   intl: ^0.20.2
@@ -30,6 +37,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  build_runner: ^2.4.13
+  isar_generator: ^3.1.0+1
 
 flutter:
   uses-material-design: true

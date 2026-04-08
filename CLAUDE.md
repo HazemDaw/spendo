@@ -23,23 +23,18 @@ The developer is a **final-year software engineering student** with experience i
 
 ---
 
-## 🚦 Development Phases — CRITICAL
+## 🚦 Development Phases
 
-The project is developed in **strict phases**. Never mix concerns across phases.
+### ✅ Phase 1 — UI Shell (COMPLETE)
+All screens built with hardcoded mock data. No BLoC, no Isar, no Firebase.
+Mock data lives in `lib/core/mock/mock_data.dart`.
+Every widget is extracted into its own file.
 
-### ✅ Phase 1 — UI Shell (CURRENT)
-- Build every screen and widget with **hardcoded mock data only**.
-- **No BLoC, no Cubit** — only `setState` for local UI interactions (keypad input,
-  date picker, selected category).
-- **No Isar, no Firebase, no real services.**
-- Goal: every screen pixel-perfect against the specs below, every widget extracted
-  and reusable.
-- All sample data lives in `lib/core/mock/mock_data.dart`.
-
-### 🔲 Phase 2 — State & Local Logic
+### 🔲 Phase 2 — State & Local Logic (CURRENT)
 - Introduce BLoC / Cubit and wire to Phase 1 UI.
 - Integrate Isar as the local database.
-- App works 100 % offline after this phase.
+- App must work 100% offline after this phase.
+- Do NOT introduce Firebase or any remote service in this phase.
 
 ### 🔲 Phase 3 — Backend & Sync
 - Firebase Auth (email/password + Google Sign-In).
@@ -75,26 +70,26 @@ lib/
 │   │   ├── app_theme.dart
 │   │   └── app_colors.dart
 │   ├── mock/
-│   │   └── mock_data.dart                # Phase 1 only — hardcoded samples
+│   │   └── mock_data.dart                # Phase 1 — remove in Phase 2
 │   └── utils/
-│       ├── currency_formatter.dart       # Russian locale formatting
+│       ├── currency_formatter.dart
 │       └── date_utils.dart
 │
 ├── features/
 │   ├── transactions/
 │   │   ├── data/
 │   │   │   ├── datasources/
-│   │   │   │   ├── transaction_local_datasource.dart   # Isar  (Phase 2)
+│   │   │   │   ├── transaction_local_datasource.dart   # Isar (Phase 2)
 │   │   │   │   └── transaction_remote_datasource.dart  # Firestore (Phase 3)
 │   │   │   ├── models/
-│   │   │   │   └── transaction_model.dart
+│   │   │   │   └── transaction_model.dart              # Isar schema + toEntity()
 │   │   │   └── repositories/
 │   │   │       └── transaction_repository_impl.dart
 │   │   ├── domain/
 │   │   │   ├── entities/
-│   │   │   │   └── transaction.dart      # Pure Dart — zero Flutter / framework imports
+│   │   │   │   └── transaction.dart
 │   │   │   ├── repositories/
-│   │   │   │   └── transaction_repository.dart  # Abstract interface
+│   │   │   │   └── transaction_repository.dart
 │   │   │   └── usecases/
 │   │   │       ├── add_transaction.dart
 │   │   │       ├── update_transaction.dart
@@ -103,17 +98,21 @@ lib/
 │   │   │       ├── get_transactions_by_category.dart
 │   │   │       └── get_balance.dart
 │   │   └── presentation/
-│   │       ├── bloc/                     # Introduced in Phase 2
+│   │       ├── bloc/
+│   │       │   ├── transaction_bloc.dart
+│   │       │   ├── transaction_event.dart
+│   │       │   └── transaction_state.dart
 │   │       ├── pages/
-│   │       │   ├── home_page.dart
-│   │       │   ├── add_transaction_page.dart   # create + edit modes
-│   │       │   └── transaction_list_page.dart  # filtered by category
+│   │       │   ├── home_page.dart             ✅ built
+│   │       │   ├── add_transaction_page.dart  ✅ built
+│   │       │   └── transaction_list_page.dart ✅ built
 │   │       └── widgets/
-│   │           ├── donut_chart_widget.dart
-│   │           ├── category_icon_button.dart
-│   │           ├── balance_bar.dart
-│   │           ├── calculator_keypad.dart
-│   │           └── transaction_list_item.dart
+│   │           ├── donut_chart_widget.dart        ✅ built
+│   │           ├── category_icon_button.dart      ✅ built
+│   │           ├── connector_lines_painter.dart   ✅ built
+│   │           ├── balance_bar.dart               ✅ built
+│   │           ├── calculator_keypad.dart         ✅ built
+│   │           └── transaction_list_item.dart     ✅ built
 │   │
 │   ├── categories/
 │   │   ├── domain/
@@ -121,15 +120,15 @@ lib/
 │   │   │       └── category.dart
 │   │   └── presentation/
 │   │       └── widgets/
-│   │           └── category_picker_sheet.dart
+│   │           └── category_picker_sheet.dart     ✅ built
 │   │
-│   └── auth/                             # Phase 3
+│   └── auth/                                      # Phase 3
 │       └── presentation/
 │           └── pages/
 │               ├── login_page.dart
 │               └── register_page.dart
 │
-├── injection_container.dart              # get_it — Phase 2+
+├── injection_container.dart              # get_it — Phase 2
 └── main.dart
 ```
 
@@ -159,7 +158,6 @@ lib/
 | Fonts | `google_fonts` (Inter) |
 
 > **Never suggest:** GetX, Provider, MobX, Hive, sqflite, Riverpod.
-> Stick to this stack unless the developer explicitly asks to evaluate an alternative.
 
 ---
 
@@ -170,26 +168,20 @@ lib/
 ```dart
 // lib/core/theme/app_colors.dart
 class AppColors {
-  // Primary
   static const Color primary       = Color(0xFF7C3AED); // Violet-600
   static const Color primaryLight  = Color(0xFFEDE9FE); // Violet-100
   static const Color primaryDark   = Color(0xFF5B21B6); // Violet-800
-
-  // Semantic
   static const Color income        = Color(0xFF10B981); // Emerald-500
   static const Color expense       = Color(0xFFEF4444); // Red-500
   static const Color incomeLight   = Color(0xFFD1FAE5);
   static const Color expenseLight  = Color(0xFFFEE2E2);
-
-  // Neutrals
   static const Color background    = Color(0xFFF5F3FF); // Violet-50
   static const Color surface       = Color(0xFFFFFFFF);
   static const Color textPrimary   = Color(0xFF1E1B4B); // Indigo-950
   static const Color textSecondary = Color(0xFF6B7280); // Gray-500
   static const Color divider       = Color(0xFFE5E7EB);
-  static const Color emptyDonut    = Color(0xFFD1D5DB); // Gray-300 — empty state
+  static const Color emptyDonut    = Color(0xFFD1D5DB); // Gray-300
 
-  // Category chart colors — index matches category list
   static const List<Color> categoryPalette = [
     Color(0xFF7C3AED), // 0 food
     Color(0xFF2563EB), // 1 transport
@@ -204,6 +196,24 @@ class AppColors {
   ];
 }
 ```
+
+### Theme Application Rules (CRITICAL — prevents green leak from Monefy)
+
+```dart
+// lib/core/theme/app_theme.dart
+ThemeData(
+  scaffoldBackgroundColor: AppColors.background,   // 0xFFF5F3FF — violet-50, NOT green
+  appBarTheme: AppBarTheme(
+    backgroundColor: AppColors.primary,             // 0xFF7C3AED — violet, NOT green
+    foregroundColor: Colors.white,
+    elevation: 0,
+  ),
+  colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
+)
+```
+
+> If the background looks mint green or the AppBar looks green, the theme is not
+> applied correctly. background must be `0xFFF5F3FF`, AppBar must be `0xFF7C3AED`.
 
 ### Typography — Inter (google_fonts)
 
@@ -223,251 +233,237 @@ class AppColors {
 | Base unit | 8.0 |
 | Card border radius | 16.0 |
 | Button border radius | 12.0 |
-| Category icon tap target | 64 × 64 |
 | Keypad button height | 64.0 |
-| Keypad operator column color | AppColors.primaryLight |
-| Keypad operator text color | AppColors.primary |
+| Keypad operator bg | AppColors.primaryLight |
+| Keypad operator text | AppColors.primary |
 
 ---
 
 ## 💱 Currency & Number Formatting
 
 **Locale:** Russian (`ru_RU`)
-**Format:** `1 250,50 ₽` — space as thousands separator, comma as decimal, ₽ symbol at end.
+**Format:** `1 250,50 ₽`
 
 ```dart
 // lib/core/utils/currency_formatter.dart
-// Use NumberFormat from the intl package:
 // NumberFormat.currency(locale: 'ru_RU', symbol: '₽', decimalDigits: 2)
-// Example output: "1 250,50 ₽"
 ```
 
-All monetary values stored internally as `double` in **kopecks-as-double** (e.g. 1250.50).
-Display always goes through `CurrencyFormatter` — never format inline in widgets.
+All monetary values stored as `double`. Display always via `CurrencyFormatter` — never inline.
+
+---
+
+## 📐 Home Screen — VERIFIED WORKING LAYOUT
+
+> These are the exact values that produce the correct Monefy-like layout.
+> Do NOT change these numbers without explicit instruction.
+
+### Sizing constants
+
+```dart
+const double kOrbitBoxSize    = 360.0;  // outer Stack size
+const double kChartInset      = 80.0;   // Positioned inset → chart = 200x200
+const double kChartOuterRadius = 100.0; // centerSpaceRadius(62) + sectionRadius(38)
+const double kIconOrbitRadius  = 158.0; // icon centers sit at 158px from box center
+const double kBoxCenter        = 180.0; // kOrbitBoxSize / 2
+// Gap from chart edge to icon center: 158 - 100 = 58px ✅
+```
+
+### Layout structure
+
+```dart
+Column(
+  children: [
+    PeriodFilterChips(),
+    SizedBox(height: 16),
+    Center(
+      child: SizedBox(
+        width: kOrbitBoxSize,   // 360
+        height: kOrbitBoxSize,  // 360
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // 1. Donut chart — inset 80px on all sides → 200x200
+            Positioned.fill(
+              left: 80, right: 80, top: 80, bottom: 80,
+              child: DonutChartWidget(...),
+            ),
+            // 2. Connector lines — fills full 360x360
+            Positioned.fill(child: CustomPaint(painter: ConnectorLinesPainter(...))),
+            // 3. Category icons — Positioned via polar coordinates
+            ...categoriesWithPositions,
+          ],
+        ),
+      ),
+    ),
+    SizedBox(height: 16),   // ← fixed gap, NO Spacer(), NO Expanded()
+    BalanceBar(),
+    SizedBox(height: 16),
+    ActionButtons(),
+    SizedBox(height: 32),
+  ],
+)
+```
+
+> RULE: Never wrap the SizedBox(360,360) in Expanded or Flexible.
+> Never use MediaQuery to size the chart.
+> Never use Spacer() between chart and balance bar.
+
+### Donut chart (fl_chart PieChart)
+
+```dart
+PieChart(
+  PieChartData(
+    centerSpaceRadius: 62,     // hole radius — DO NOT CHANGE
+    sectionsSpace: 2,
+    startDegreeOffset: -90,    // 0° at top
+    sections: [
+      PieChartSectionData(
+        radius: 38,            // ring thickness — DO NOT CHANGE
+        // outer edge = 62 + 38 = 100px from chart center ✅
+      ),
+    ],
+  ),
+)
+```
+
+### Category icon polar coordinate formula
+
+```dart
+// Box center = (180, 180). Orbit radius = 158.
+final double angle = (2 * pi / 10) * index - (pi / 2);
+final double iconCenterX = 180 + 158 * cos(angle);
+final double iconCenterY = 180 + 158 * sin(angle);
+// Positioned: left = iconCenterX - 20, top = iconCenterY - 20
+// (icon widget is 40x40, offset by half to center on point)
+```
+
+### CategoryIconButton spec
+
+```dart
+// NO card background, NO rounded rect, NO shadow, NO border
+// Size: 40x40 GestureDetector
+// Icon: 26px, color = AppColors.categoryPalette[index]
+// Icon opacity: 1.0 if hasSpending, else 0.35
+// Label below icon:
+//   hasSpending → percentage string e.g. "35%"
+//   no spending → Russian category name (short)
+//   fontSize: 10, color: AppColors.textSecondary
+//   overflow: TextOverflow.visible, softWrap: false
+```
+
+### ConnectorLinesPainter spec
+
+```dart
+// lib/features/transactions/presentation/widgets/connector_lines_painter.dart
+// Only draw line if category has spending > 0
+// lineStart = icon center (polar formula at orbitRadius 158)
+// lineEnd   = outer ring point (polar formula at chartOuterRadius 100)
+// Paint: color = Colors.grey.withOpacity(0.4), strokeWidth: 0.8, StrokeCap.round
+```
+
+### Action buttons spec
+
+```dart
+// Two circular buttons — symbol only, NO text labels
+// Size: 72x72, shape: BoxShape.circle
+// Background: transparent
+// Border: 3px solid
+
+// Left button:  symbol '−', color = AppColors.expense  (0xFFEF4444)
+// Right button: symbol '+', color = AppColors.income   (0xFF10B981)
+
+// Symbol style: fontSize 36, fontWeight w300, color = button color
+```
+
+### Balance bar spec
+
+```dart
+// Full-width Container, background: AppColors.primary
+// Row layout:
+//   [SizedBox 16] [Icon(Icons.menu) white] [Spacer] [balance text white bold]
+//   [Spacer] [Icon(Icons.menu) white] [SizedBox 16]
+// Left menu icon → opens left drawer
+// Right menu icon → opens right drawer
+```
 
 ---
 
 ## 📱 Screen Specs
 
----
-
-### Screen 1: `home_page.dart`
-
-**Route:** `/` (root)
-
-```
-┌────────────────────────────────────────┐
-│  [≡]        Spendo          [⚙]        │  AppBar
-├────────────────────────────────────────┤
-│   [Day]    [Week]    [Month]           │  FilterChip row — period selector
-├────────────────────────────────────────┤
-│                                        │
-│    Category icons orbit the donut      │
-│    chart using polar coordinates.      │
-│    (see layout math below)             │
-│                                        │
-│    Donut center (no transactions):     │
-│      grey ring + "₽ 0,00" centered    │
-│                                        │
-│    Donut center (with transactions):   │
-│      "₽ 0,00"       ← income (green)  │
-│      "₽ 16 592,00"  ← expense (red)   │
-│                                        │
-├────────────────────────────────────────┤
-│ ████  Balance  −₽ 16 592,00  ████████ │  Balance bar
-├────────────────────────────────────────┤
-│    [○  − Расход]    [○  + Доход]       │  Action buttons
-└────────────────────────────────────────┘
-```
-
-**Donut chart (`donut_chart_widget.dart`):**
-- Widget: `fl_chart` `PieChart`
-- Each segment: color = `AppColors.categoryPalette[categoryIndex]`
-- Segment arc size: proportional to total expense amount per category
-- Center hole radius: ~55 % of total chart radius
-- Center widget: `Column` with income text (green) and expense text (red/primary)
-- **Empty state:** single grey segment (`AppColors.emptyDonut`) covering 360°,
-  center shows `"₽ 0,00"` in `textSecondary` — no category breakdown
-- **Tapping a segment:** navigates to `transaction_list_page.dart` passing the
-  `categoryKey` as a route parameter
-
-**Category icon orbit (`category_icon_button.dart`):**
-- Layout: `Stack` + `Positioned`, 10 icons placed via polar-to-Cartesian math:
-  ```
-  dx = centerX + radiusX * cos(angle)
-  dy = centerY + radiusY * sin(angle)
-  angle = (2π / 10) * index − π/2   // start from top
-  ```
-- Each `CategoryIconButton`: icon (32px) above, Russian l10n label below (12px)
-- Tap → navigates to `add_transaction_page.dart` in **create mode** with
-  `initialCategory` and `TransactionType.expense` pre-set
-
-**Period filter:**
-- `FilterChip` row: Сегодня / Неделя / Месяц
-- Phase 1: `setState` to track `selectedPeriod`, re-filter mock data
-
-**Balance bar:**
-- Full-width `Container`, `AppColors.primary` background, white text
-- Shows: `"Баланс  −₽ 16 592,00"` (negative when expenses > income)
-
-**Action buttons:**
-- Two `OutlinedButton` with circular shape
-- Left: red outline + red `−` icon → `"− Расход"` → navigates to
-  `add_transaction_page.dart` in **create mode**, `TransactionType.expense`
-- Right: green outline + green `+` icon → `"+ Доход"` → navigates to
-  `add_transaction_page.dart` in **create mode**, `TransactionType.income`,
-  no category pre-selected (income has no category in v1)
-
----
-
 ### Screen 2: `add_transaction_page.dart`
 
-**Two modes — passed via constructor or route params:**
+**Two modes:**
 
-| Mode | Trigger | Pre-filled data | AppBar right icon |
+| Mode | Trigger | Pre-filled | AppBar right |
 |---|---|---|---|
-| `create` | Tapping category icon or action button | type + optional category | none |
-| `edit` | Tapping a transaction in the list | all fields from existing Transaction | 🗑 delete icon |
+| `create` | Category icon tap / action button | type + optional category | none |
+| `edit` | Transaction list item tap | all fields | 🗑 delete icon |
 
-**Route:**
+**Routes:**
 - Create: `/add?type=expense&categoryKey=food`
 - Edit: `/edit/:transactionId`
 
+**Layout:**
 ```
-┌────────────────────────────────────────┐
-│  ←   Новый расход / Редактировать  [🗑]│  AppBar — delete icon only in edit mode
-├────────────────────────────────────────┤
-│  📅  Среда, 25 марта                   │  Tappable row → showDatePicker
-├────────────────────────────────────────┤
-│ ┌────────────────────────────────────┐ │
-│ │  ₽  |  200 + 50             [⌫]  │ │  Amount display — primaryDark bg
-│ │  RUB                               │ │  Shows live expression string while typing
-│ └────────────────────────────────────┘ │  Evaluates on = press
-│                                        │
-│  ✏  Примечание ______________________ │  Optional TextField, no border, pen icon
-│                                        │
-├────────────────────────────────────────┤
-│  [1]  [2]  [3]  [+]                   │
-│  [4]  [5]  [6]  [−]                   │  calculator_keypad.dart
-│  [7]  [8]  [9]  [×]                   │
-│  [.]  [0]  [=]  [÷]                   │
-├────────────────────────────────────────┤
-│       [ ВЫБРАТЬ КАТЕГОРИЮ  ▼ ]        │  → opens CategoryPickerSheet
-└────────────────────────────────────────┘
+AppBar: ← title [🗑 edit mode only]
+📅 date row → showDatePicker
+Amount display box (primaryDark bg): ₽ | expression | ⌫
+Note TextField: pen icon + optional input
+Calculator keypad 4×4
+[ ВЫБРАТЬ КАТЕГОРИЮ ▼ ] button → CategoryPickerSheet
 ```
 
-**Calculator behavior (`calculator_keypad.dart`):**
-- Amount display shows the **raw expression string** as the user types: `"200 + 50"`
-- On `=` press: evaluate the expression → replace display with result: `"250"`
-- On `⌫` press: remove the last character from the expression string
-- Operator buttons (`+ − × ÷`) are highlighted: `AppColors.primaryLight` bg,
-  `AppColors.primary` text
-- After `=` evaluates, pressing a digit starts a new expression
-- Store expression in `setState` (`String _expression`) during Phase 1
+**Calculator:** expression string in setState. `=` evaluates. `⌫` removes last char.
+Operators highlighted: primaryLight bg, primary text.
 
-**Date row:**
-- Tap → `showDatePicker` with `initialDate: DateTime.now()`
-- Display format: `"EEEE, d MMMM"` in Russian locale (e.g. `"Среда, 25 марта"`)
-
-**Category picker (`category_picker_sheet.dart`):**
-- `showModalBottomSheet` with drag handle
-- `GridView` 4 columns of `CategoryIconButton`
-- Selected category highlighted: `AppColors.primaryLight` background,
-  `AppColors.primary` border
-- Income transactions (`TransactionType.income`) skip category — button label
-  shows `"Доход"` and sheet does not open
-
-**On save — create mode (Phase 1):**
-- Validate: expression must evaluate to `> 0` and a category must be selected
-  (for expenses)
-- Pop and show `SnackBar`: `"Расход добавлен"` / `"Доход добавлен"`
-
-**On save — edit mode (Phase 1):**
-- Same validation, pop and show `SnackBar`: `"Изменения сохранены"`
-
-**On delete — edit mode (Phase 1):**
-- Tap 🗑 → `showDialog` confirmation: `"Удалить транзакцию?"` with
-  `"Отмена"` / `"Удалить"` buttons
-- On confirm: pop and show `SnackBar`: `"Транзакция удалена"`
+**Save (create):** validate amount > 0 + category selected → SnackBar `"Расход добавлен"`
+**Save (edit):** same validation → SnackBar `"Изменения сохранены"`
+**Delete:** confirm dialog → SnackBar `"Транзакция удалена"`
 
 ---
 
 ### Screen 3: `transaction_list_page.dart`
 
-**Trigger:** Tapping a donut chart segment on the home screen.
 **Route:** `/transactions/:categoryKey`
+**Trigger:** tap donut chart segment
 
 ```
-┌────────────────────────────────────────┐
-│  ←   [Category Icon]  Еда и продукты  │  AppBar — category icon + Russian name
-├────────────────────────────────────────┤
-│  Итого расходы:  ₽ 5 320,00           │  Summary bar — total for this category
-├────────────────────────────────────────┤
-│  ┌──────────────────────────────────┐  │
-│  │ [🍔] Еда и продукты  Пн, 24 мар │  │
-│  │       Мясо 🍗           −₽320,00│  │  TransactionListItem
-│  └──────────────────────────────────┘  │
-│  ┌──────────────────────────────────┐  │
-│  │ [🍔] Еда и продукты  Вт, 25 мар │  │
-│  │       Кофе               −₽90,00│  │
-│  └──────────────────────────────────┘  │
-│  ...                                   │
-└────────────────────────────────────────┘
+AppBar: ← [CategoryIcon] CategoryRussianName
+Summary bar: total for this category
+ListView.separated — TransactionListItem widgets
+  sorted: most recent first
+  filtered: categoryKey + selectedPeriod
+Empty state: centered icon + "Нет транзакций в этой категории"
 ```
 
-**`TransactionListItem` widget (`transaction_list_item.dart`):**
-- Left: category `Icon` in a colored circular avatar (`AppColors.primaryLight` bg)
-- Middle: category Russian label (top, `textSecondary`), note text (bottom, `textPrimary`)
-- Right: amount formatted in Russian locale, colored red for expense / green for income
-- Sub-info: date formatted as `"Пн, 24 мар"` (`"EEE, d MMM"` Russian locale)
-- Tap → navigates to `add_transaction_page.dart` in **edit mode** passing the
-  `transactionId`
-
-**List:**
-- `ListView.separated` with `Divider` separator
-- Sorted: most recent date first
-- Filtered: only transactions matching `categoryKey` and selected `period`
-
-**Empty state for this screen:**
-- Centered icon + text: `"Нет транзакций в этой категории"`
+**TransactionListItem:**
+- Left: circular avatar (primaryLight bg) with category icon
+- Middle: category label (textSecondary) + note (textPrimary)
+- Right: amount (red=expense, green=income) + date `"Пн, 24 мар"`
+- Tap → `add_transaction_page.dart` edit mode
 
 ---
 
 ### Drawer: `AppLeftDrawer`
-
 ```
-┌───────────────────────────┐
-│ [Avatar]   Spendo User    │  Mock in Phase 1
-│            user@mail.com  │
-├───────────────────────────┤
-│ 📅  Период                │  → sub-items: Сегодня / Неделя / Месяц / Свой
-│ 💰  Все счета             │  → TBD (single account in v1)
-│ 📊  Бюджет                │  → TBD
-├───────────────────────────┤
-│ ☁  Синхронизация: Офлайн  │  Static in Phase 1 — live in Phase 3
-└───────────────────────────┘
+Header: mock avatar + "Spendo User" + email
+Items:  📅 Период | 💰 Все счета (TBD) | 📊 Бюджет (TBD)
+Footer: ☁ Синхронизация: Офлайн
 ```
 
 ### Drawer: `AppRightDrawer`
-
 ```
-┌───────────────────────────┐
-│ ⚙  Настройки              │
-├───────────────────────────┤
-│ 🏷  Категории             │  → TBD manage categories page
-│ 🌙  Тёмная тема           │  → Toggle widget (non-functional Phase 1)
-│ 📤  Экспорт               │  → TBD (PDF / CSV)
-│ 🔐  Войти                 │  → Auth flow — Phase 3
-├───────────────────────────┤
-│ ℹ️  О приложении          │  → Static AlertDialog
-└───────────────────────────┘
+Items: ⚙ Настройки | 🏷 Категории (TBD) | 🌙 Тёмная тема (toggle, P1 non-functional)
+       📤 Экспорт (TBD) | 🔐 Войти (Phase 3)
+Footer: ℹ️ О приложении → AlertDialog
 ```
 
 ---
 
-## 🗂️ Categories — v1 Predefined Set
+## 🗂️ Categories — v1
 
-| Index | Flutter Icon | Key | Russian Label | Hex Color |
+| Index | Icon | Key | Russian Label | Color |
 |---|---|---|---|---|
 | 0 | `Icons.restaurant` | `food` | Еда и продукты | `0xFF7C3AED` |
 | 1 | `Icons.directions_car` | `transport` | Транспорт | `0xFF2563EB` |
@@ -480,33 +476,25 @@ Display always goes through `CurrencyFormatter` — never format inline in widge
 | 8 | `Icons.card_giftcard` | `gifts` | Подарки | `0xFF65A30D` |
 | 9 | `Icons.fitness_center` | `sport` | Спорт | `0xFFF59E0B` |
 
-Categories are defined as a static list in `lib/core/mock/mock_data.dart` during
-Phase 1, then migrated to `CategoryRepository` in Phase 2.
-
 ---
 
 ## 🧱 Domain Entities
 
 ```dart
 // lib/features/transactions/domain/entities/transaction.dart
-
 enum TransactionType { expense, income }
 
 class Transaction extends Equatable {
   final String id;
-  final double amount;          // stored in full units (e.g. 1250.50)
-  final String? categoryKey;    // null for income in v1
+  final double amount;
+  final String? categoryKey;   // null for income in v1
   final TransactionType type;
   final DateTime date;
   final String? note;
 
   const Transaction({
-    required this.id,
-    required this.amount,
-    this.categoryKey,
-    required this.type,
-    required this.date,
-    this.note,
+    required this.id, required this.amount, this.categoryKey,
+    required this.type, required this.date, this.note,
   });
 
   @override
@@ -516,18 +504,15 @@ class Transaction extends Equatable {
 
 ```dart
 // lib/features/categories/domain/entities/category.dart
-
 class Category extends Equatable {
   final String key;
-  final String labelKey;   // l10n key → Russian label
+  final String labelKey;
   final IconData icon;
   final Color color;
 
   const Category({
-    required this.key,
-    required this.labelKey,
-    required this.icon,
-    required this.color,
+    required this.key, required this.labelKey,
+    required this.icon, required this.color,
   });
 
   @override
@@ -537,25 +522,285 @@ class Category extends Equatable {
 
 ---
 
+## ⚙️ Phase 2 — Full Specification
+
+### 2.1 BLoC Architecture
+
+#### TransactionBloc
+
+```dart
+// Events
+class LoadTransactionsEvent extends TransactionEvent {
+  final TransactionPeriod period;  // today / week / month
+}
+class AddTransactionEvent extends TransactionEvent {
+  final Transaction transaction;
+}
+class UpdateTransactionEvent extends TransactionEvent {
+  final Transaction transaction;
+}
+class DeleteTransactionEvent extends TransactionEvent {
+  final String id;
+}
+
+// States
+class TransactionInitial extends TransactionState {}
+class TransactionLoading extends TransactionState {}
+class TransactionLoaded extends TransactionState {
+  final List<Transaction> transactions;
+  final double totalIncome;
+  final double totalExpense;
+  // categoryTotals: Map<String, double> for donut chart segments
+  final Map<String, double> categoryTotals;
+}
+class TransactionError extends TransactionState {
+  final String message;
+}
+```
+
+#### KeypadCubit (replaces Phase 1 setState)
+
+```dart
+// State: String expression
+// Methods: appendChar(String c), evaluate(), backspace(), clear()
+// Lives in: lib/features/transactions/presentation/bloc/keypad_cubit.dart
+```
+
+#### PeriodCubit
+
+```dart
+// State: TransactionPeriod enum { today, week, month }
+// Lives in: lib/features/transactions/presentation/bloc/period_cubit.dart
+// home_page.dart listens to this and re-dispatches LoadTransactionsEvent
+```
+
+### 2.2 Isar Database Schema
+
+```dart
+// lib/features/transactions/data/models/transaction_model.dart
+
+@collection
+class TransactionModel {
+  Id isarId = Isar.autoIncrement;
+
+  @Index()
+  late String id;           // UUID string
+
+  late double amount;
+
+  @Index()
+  String? categoryKey;
+
+  @Enumerated(EnumType.name)
+  late TransactionType type;
+
+  @Index()
+  late DateTime date;
+
+  String? note;
+
+  // Conversion methods
+  Transaction toEntity() => Transaction(
+    id: id, amount: amount, categoryKey: categoryKey,
+    type: type, date: date, note: note,
+  );
+
+  static TransactionModel fromEntity(Transaction t) => TransactionModel()
+    ..id = t.id ..amount = t.amount ..categoryKey = t.categoryKey
+    ..type = t.type ..date = t.date ..note = t.note;
+}
+```
+
+### 2.3 Repository Interface
+
+```dart
+// lib/features/transactions/domain/repositories/transaction_repository.dart
+
+abstract class TransactionRepository {
+  Future<Either<Failure, List<Transaction>>> getTransactionsByPeriod(
+    DateTime start, DateTime end,
+  );
+  Future<Either<Failure, List<Transaction>>> getTransactionsByCategory(
+    String categoryKey, DateTime start, DateTime end,
+  );
+  Future<Either<Failure, double>> getBalance();
+  Future<Either<Failure, Unit>> addTransaction(Transaction transaction);
+  Future<Either<Failure, Unit>> updateTransaction(Transaction transaction);
+  Future<Either<Failure, Unit>> deleteTransaction(String id);
+}
+```
+
+### 2.4 Local Datasource (Isar)
+
+```dart
+// lib/features/transactions/data/datasources/transaction_local_datasource.dart
+
+abstract class TransactionLocalDatasource {
+  Future<List<TransactionModel>> getByPeriod(DateTime start, DateTime end);
+  Future<List<TransactionModel>> getByCategory(String key, DateTime start, DateTime end);
+  Future<void> save(TransactionModel model);
+  Future<void> update(TransactionModel model);
+  Future<void> delete(String id);
+}
+
+class TransactionLocalDatasourceImpl implements TransactionLocalDatasource {
+  final Isar _isar;
+  // Use _isar.writeTxn() for mutations
+  // Use _isar.txn() for reads
+  // Filter dates with: .filter().dateBetween(start, end)
+}
+```
+
+### 2.5 Dependency Injection (get_it)
+
+```dart
+// lib/injection_container.dart
+
+Future<void> init() async {
+  // Isar
+  final isar = await Isar.open([TransactionModelSchema], directory: dir);
+  sl.registerSingleton<Isar>(isar);
+
+  // Datasources
+  sl.registerLazySingleton<TransactionLocalDatasource>(
+    () => TransactionLocalDatasourceImpl(sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<TransactionRepository>(
+    () => TransactionRepositoryImpl(localDatasource: sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => AddTransaction(sl()));
+  sl.registerLazySingleton(() => GetTransactionsByPeriod(sl()));
+  // ... other use cases
+
+  // BLoC
+  sl.registerFactory(() => TransactionBloc(
+    addTransaction: sl(),
+    getTransactionsByPeriod: sl(),
+    // ...
+  ));
+  sl.registerFactory(() => KeypadCubit());
+  sl.registerFactory(() => PeriodCubit());
+}
+```
+
+### 2.6 Wiring Phase 1 UI to Phase 2 BLoC
+
+**home_page.dart changes:**
+- Replace mock data calls with `BlocBuilder<TransactionBloc, TransactionState>`
+- `TransactionLoaded` → pass `categoryTotals` to `DonutChartWidget`
+- `TransactionLoading` → show `CircularProgressIndicator` in chart center
+- `TransactionError` → show error `SnackBar`
+- `PeriodCubit` drives the `FilterChip` selection
+
+**add_transaction_page.dart changes:**
+- Replace `setState _expression` with `BlocProvider<KeypadCubit>`
+- On save → dispatch `AddTransactionEvent` or `UpdateTransactionEvent`
+- On delete → dispatch `DeleteTransactionEvent`
+
+**transaction_list_page.dart changes:**
+- Replace mock list with `BlocBuilder<TransactionBloc, TransactionState>`
+- Filter `TransactionLoaded.transactions` by `categoryKey`
+
+### 2.7 Period Date Ranges
+
+```dart
+// lib/core/utils/date_utils.dart
+
+DateTimeRange getPeriodRange(TransactionPeriod period) {
+  final now = DateTime.now();
+  return switch (period) {
+    TransactionPeriod.today => DateTimeRange(
+        start: DateTime(now.year, now.month, now.day),
+        end: DateTime(now.year, now.month, now.day, 23, 59, 59),
+      ),
+    TransactionPeriod.week => DateTimeRange(
+        start: now.subtract(Duration(days: now.weekday - 1)),
+        end: now,
+      ),
+    TransactionPeriod.month => DateTimeRange(
+        start: DateTime(now.year, now.month, 1),
+        end: now,
+      ),
+  };
+}
+```
+
+### 2.8 Phase 2 Session Prompt (use when starting)
+
+```
+Read CLAUDE.md fully. We are in Phase 2.
+
+Phase 1 UI is complete and must not be visually changed.
+Do not modify any widget layout, colors, or sizes.
+
+Task 1: Set up get_it injection_container.dart per the Phase 2 spec.
+Task 2: Implement TransactionModel with Isar @collection annotation.
+Task 3: Implement TransactionLocalDatasourceImpl using Isar.
+Task 4: Implement TransactionRepositoryImpl wrapping the datasource,
+        returning Either<Failure, T> — never throwing.
+Task 5: Implement all use cases (AddTransaction, GetTransactionsByPeriod,
+        GetTransactionsByCategory, UpdateTransaction, DeleteTransaction, GetBalance).
+Task 6: Implement TransactionBloc with events and states from CLAUDE.md.
+Task 7: Wire home_page.dart to TransactionBloc — replace mock data only,
+        do not change any layout code.
+
+Run flutter analyze after each task. Zero warnings before moving to next task.
+```
+
+---
+
+## 🗄️ Data Strategy
+
+```
+User action
+    │
+    ▼
+[Isar — local DB]    Primary source of truth. Always offline.
+    │
+    ▼  (Phase 3 — only when authenticated)
+[Cloud Firestore]    Cloud backup & multi-device sync.
+
+Firestore path:
+  users/{uid}/transactions/{transactionId}
+  users/{uid}/categories/{categoryId}
+```
+
+---
+
+## 🔐 Auth Plan (Phase 3)
+
+- Email/Password + Google Sign-In via `firebase_auth`
+- Unauthenticated = full local-only mode, zero login gate
+- First login = upload all Isar data to Firestore
+- Auth state drives `go_router` redirect guards
+
+---
+
 ## 🧩 Code Standards
 
 ```
 DO:
-  - Extract any widget exceeding ~40 lines into its own dedicated file
+  - Extract any widget over ~40 lines into its own file
   - Use const constructors everywhere possible
-  - Use Either<Failure, T> for all repository return types (Phase 2+)
-  - Check `mounted` before using BuildContext across any async gap
-  - Route with go_router named routes exclusively
+  - Use Either<Failure, T> for all repository returns (Phase 2+)
+  - Check mounted before using BuildContext across async gaps
+  - Use go_router named routes exclusively
   - Use debugPrint() — never print()
   - Format all monetary values through CurrencyFormatter only
 
 DON'T:
-  - Hardcode Russian / Cyrillic strings in widget code — always use l10n
-  - Place business logic inside widgets or pages
-  - Throw exceptions from repositories — catch and return Failure
+  - Hardcode Russian strings — always l10n
+  - Put business logic in widgets
+  - Throw exceptions from repositories — return Failure
   - Use global variables or static singletons for services
   - Import data/ from presentation/ or domain/
-  - Format currency inline in widgets
+  - Wrap the chart SizedBox(360,360) in Expanded or Flexible
+  - Use MediaQuery to size the donut chart
+  - Use Spacer() between the chart and the balance bar
 ```
 
 ### Naming Conventions
@@ -574,51 +819,22 @@ DON'T:
 
 ---
 
-## 🗄️ Data Strategy (Phase 2+ reference)
-
-```
-User action
-    │
-    ▼
-[Isar — local DB]    Primary source of truth. Always offline-capable.
-    │
-    ▼  (only when authenticated)
-[Cloud Firestore]    Cloud backup & multi-device sync.
-
-Firestore path structure:
-  users/{uid}/transactions/{transactionId}
-  users/{uid}/categories/{categoryId}      ← custom categories only (Phase 2+)
-```
-
-Repository returns `Either<Failure, T>` — domain layer never sees exceptions.
-
----
-
-## 🔐 Auth Plan (Phase 3)
-
-- Providers: **Email/Password** + **Google Sign-In** via `firebase_auth`
-- Unauthenticated users: full app in **local-only mode**, zero login gate
-- First successful login: upload all Isar data to Firestore
-- Auth state drives `go_router` redirect guards on protected routes
-
----
-
 ## 🎓 Thesis Reference
 
-When the developer asks for a thesis explanation, structure the answer:
+When asked for thesis explanation, structure as:
 1. What was chosen + alternatives considered
 2. Why — technical justification
-3. Trade-offs — what is given up
-4. How it applies specifically to this project
+3. Trade-offs
+4. How it applies to this project
 
 | Topic | Thesis angle |
 |---|---|
-| Clean Architecture layers | SOLID, testability, separation of concerns |
-| Offline-first strategy | Resilience, UX, swappable data layer |
+| Clean Architecture | SOLID, testability, separation of concerns |
+| Offline-first (Isar) | Resilience, UX, swappable data layer |
 | Repository pattern | Datasource abstraction, domain independence |
 | BLoC pattern | Predictable state machine, testability, explicit events |
-| Flutter cross-platform | Single codebase trade-offs vs native development |
-| Firebase Auth + Firestore | Managed BaaS trade-offs vs self-hosted backend |
+| Flutter cross-platform | Single codebase trade-offs vs native |
+| Firebase Auth + Firestore | Managed BaaS vs self-hosted backend |
 
 ---
 
@@ -626,19 +842,26 @@ When the developer asks for a thesis explanation, structure the answer:
 
 | Feature | Phase | Status |
 |---|---|---|
-| Home screen — donut chart + category orbit | 1 | 🔲 Not started |
-| Home screen — period filter chips | 1 | 🔲 Not started |
-| Home screen — balance bar | 1 | 🔲 Not started |
-| Home screen — empty state (grey donut) | 1 | 🔲 Not started |
-| Add transaction screen — create mode | 1 | 🔲 Not started |
-| Add transaction screen — edit mode + delete | 1 | 🔲 Not started |
-| Calculator keypad with expression display | 1 | 🔲 Not started |
-| Category picker bottom sheet | 1 | 🔲 Not started |
-| Transaction list screen (filtered by category) | 1 | 🔲 Not started |
-| Left drawer | 1 | 🔲 Not started |
-| Right drawer | 1 | 🔲 Not started |
-| Russian locale currency formatting | 1 | 🔲 Not started |
-| BLoC wiring + Isar integration | 2 | 🔲 Not started |
+| Home screen — donut chart + category orbit | 1 | ✅ Done |
+| Home screen — period filter chips | 1 | ✅ Done |
+| Home screen — balance bar | 1 | ✅ Done |
+| Home screen — empty state (grey donut) | 1 | ✅ Done |
+| Home screen — action buttons (circle, symbol only) | 1 | ✅ Done |
+| Connector lines (icon → segment) | 1 | ✅ Done |
+| Add transaction screen — create mode | 1 | ✅ Done |
+| Add transaction screen — edit mode + delete | 1 | ✅ Done |
+| Calculator keypad with expression display | 1 | ✅ Done |
+| Category picker bottom sheet | 1 | ✅ Done |
+| Transaction list screen (filtered by category) | 1 | ✅ Done |
+| Left drawer | 1 | ✅ Done |
+| Right drawer | 1 | ✅ Done |
+| Russian locale currency formatting | 1 | ✅ Done |
+| Isar DB + TransactionModel | 2 | 🔲 Not started |
+| TransactionBloc wiring | 2 | 🔲 Not started |
+| KeypadCubit | 2 | 🔲 Not started |
+| PeriodCubit | 2 | 🔲 Not started |
+| get_it DI setup | 2 | 🔲 Not started |
+| Use cases (all 6) | 2 | 🔲 Not started |
 | Firebase Auth | 3 | 🔲 Not started |
 | Firestore sync | 3 | 🔲 Not started |
 | Dark mode | TBD | — |
@@ -648,35 +871,11 @@ When the developer asks for a thesis explanation, structure the answer:
 
 ---
 
-## 🔲 Still To Decide (discuss before Phase 2)
+## 🔲 Still To Decide
 
-- [ ] Minimum Android SDK version (default assumption: API 21 / Android 5.0)
-- [ ] Splash screen design (current assumption: violet bg + white "S" wordmark)
-- [ ] App icon design
-- [ ] Whether the `[↺]` recurring icon is a real planned feature or removed from v1
-- [ ] Income category support (v1 has no category for income — confirm this)
-- [ ] Dark mode: Phase 2 or TBD?
-
----
-
-## 🚀 Phase 1 — First Claude Code Session Prompt
-
-Copy and paste this verbatim to start the first session:
-
-```
-Read CLAUDE.md fully before writing any code.
-
-We are in Phase 1: UI only, mock data, setState for local interactions only.
-No BLoC, no Isar, no Firebase.
-
-Task 1: Scaffold the complete folder structure from CLAUDE.md.
-Task 2: Implement app_colors.dart and app_theme.dart from the design system.
-Task 3: Implement mock_data.dart with at least 10 sample transactions
-        spread across at least 5 categories.
-Task 4: Implement home_page.dart — donut chart, category icon orbit using
-        polar coordinates, period filter chips, balance bar, and the two
-        action buttons. Use mock data. Handle the empty state (grey donut).
-
-Do not add BLoC, Isar, or Firebase code. Do not skip extracting widgets
-into their own files.
-```
+- [ ] Minimum Android SDK (assumption: API 21 / Android 5.0)
+- [ ] Splash screen design (assumption: violet bg + white "S")
+- [ ] App icon
+- [ ] Dark mode — Phase 2 or TBD?
+- [ ] Income category support (currently none in v1 — confirm)
+- [ ] Whether `[↺]` recurring icon is a real Phase 2 feature or removed
