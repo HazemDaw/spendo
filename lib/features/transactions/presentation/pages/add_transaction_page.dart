@@ -66,19 +66,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     if (_isEditMode) {
       final TransactionState state = context.read<TransactionBloc>().state;
       if (state is TransactionLoaded) {
-        for (final Transaction transaction in state.transactions) {
-          if (transaction.id == widget.transactionId) {
-            _editingTransaction = transaction;
-            break;
-          }
-        }
-      }
-
-      if (_editingTransaction != null) {
-        _selectedDate = _editingTransaction!.date;
-        _selectedCategoryKey = _editingTransaction!.categoryKey;
-        _noteController.text = _editingTransaction!.note ?? '';
-        _keypadCubit.setExpression(_formatInitialAmount(_editingTransaction!.amount));
+        _initializeEditingTransaction(state.transactions);
       }
     }
 
@@ -95,12 +83,26 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final TransactionState transactionState = context.watch<TransactionBloc>().state;
     final category = MockData.categoryByKey(_selectedCategoryKey);
+    final bool isResolvingEditTransaction =
+        _isEditMode &&
+        _editingTransaction == null &&
+        (transactionState is TransactionInitial ||
+            transactionState is TransactionLoading);
+    final bool isMissingEditTransaction =
+        _isEditMode &&
+        _editingTransaction == null &&
+        transactionState is TransactionLoaded;
+    final bool canSubmit =
+        _pendingAction == null && (!_isEditMode || _editingTransaction != null);
 
-    return BlocProvider<KeypadCubit>.value(
-      value: _keypadCubit,
-      child: BlocListener<TransactionBloc, TransactionState>(
+    return BlocListener<TransactionBloc, TransactionState>(
         listener: (BuildContext context, TransactionState state) {
+          if (_isEditMode && state is TransactionLoaded) {
+            _hydrateEditingTransaction(state.transactions);
+          }
+
           if (_pendingAction == null) {
             return;
           }
@@ -132,61 +134,129 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             actions: <Widget>[
               if (_isEditMode)
                 IconButton(
-                  onPressed: _pendingAction == null ? _confirmDelete : null,
+                  onPressed:
+                      _pendingAction == null && _editingTransaction != null
+                      ? _confirmDelete
+                      : null,
                   icon: const Icon(Icons.delete_outline_rounded),
                 ),
               TextButton(
-                onPressed: _pendingAction == null ? _save : null,
+                onPressed: canSubmit ? _save : null,
                 child: Text(l10n.saveAction),
               ),
               const SizedBox(width: 8),
             ],
           ),
           body: SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.all(24),
-              children: <Widget>[
-                _buildDateCard(context, l10n),
-                const SizedBox(height: 16),
-                _buildAmountCard(),
-                const SizedBox(height: 16),
-                _buildNoteField(l10n),
-                const SizedBox(height: 16),
-                CalculatorKeypad(
-                  onKeyTap: (String value) {
-                    context.read<KeypadCubit>().appendChar(value);
-                  },
-                ),
-                if (_requiresCategory) ...<Widget>[
-                  const SizedBox(height: 24),
-                  OutlinedButton(
-                    onPressed: _showCategoryPicker,
-                    child: Text(l10n.pickCategoryAction),
-                  ),
-                  if (category != null) ...<Widget>[
-                    const SizedBox(height: 12),
-                    Row(
-                      children: <Widget>[
-                        Icon(category.icon, color: category.color),
-                        const SizedBox(width: 12),
-                        Text(
-                          CategoryLocalizer.label(l10n, category),
-                          style: Theme.of(context).textTheme.titleMedium,
+            child: isResolvingEditTransaction
+                ? const Center(child: CircularProgressIndicator())
+                : isMissingEditTransaction
+                ? _buildMissingTransactionState(l10n)
+                : ListView(
+                    padding: const EdgeInsets.all(24),
+                    children: <Widget>[
+                      _buildDateCard(context, l10n),
+                      const SizedBox(height: 16),
+                      _buildAmountCard(),
+                      const SizedBox(height: 16),
+                      _buildNoteField(l10n),
+                      const SizedBox(height: 16),
+                      CalculatorKeypad(onKeyTap: _keypadCubit.appendChar),
+                      if (_requiresCategory) ...<Widget>[
+                        const SizedBox(height: 24),
+                        OutlinedButton(
+                          onPressed: _showCategoryPicker,
+                          child: Text(l10n.pickCategoryAction),
                         ),
+                        if (category != null) ...<Widget>[
+                          const SizedBox(height: 12),
+                          Row(
+                            children: <Widget>[
+                              Icon(category.icon, color: category.color),
+                              const SizedBox(width: 12),
+                              Text(
+                                CategoryLocalizer.label(l10n, category),
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
-                    ),
-                  ],
-                ],
-                if (_pendingAction != null) ...<Widget>[
-                  const SizedBox(height: 24),
-                  const LinearProgressIndicator(),
-                ],
-              ],
-            ),
+                      if (_pendingAction != null) ...<Widget>[
+                        const SizedBox(height: 24),
+                        const LinearProgressIndicator(),
+                      ],
+                    ],
+                  ),
           ),
+        ),
+      );
+  }
+
+  Widget _buildMissingTransactionState(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(
+              Icons.receipt_long_outlined,
+              size: 48,
+              color: AppColors.textSecondary,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Transaction unavailable',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () => context.pop(),
+              child: Text(l10n.cancelAction),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  void _initializeEditingTransaction(List<Transaction> transactions) {
+    final Transaction? transaction = _findEditingTransaction(transactions);
+    if (transaction == null) {
+      return;
+    }
+
+    _editingTransaction = transaction;
+    _selectedDate = transaction.date;
+    _selectedCategoryKey = transaction.categoryKey;
+    _noteController.text = transaction.note ?? '';
+    _keypadCubit.setExpression(_formatInitialAmount(transaction.amount));
+  }
+
+  void _hydrateEditingTransaction(List<Transaction> transactions) {
+    if (_editingTransaction != null) {
+      return;
+    }
+
+    final Transaction? transaction = _findEditingTransaction(transactions);
+    if (transaction == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _initializeEditingTransaction(transactions);
+    });
+  }
+
+  Transaction? _findEditingTransaction(List<Transaction> transactions) {
+    for (final Transaction transaction in transactions) {
+      if (transaction.id == widget.transactionId) {
+        return transaction;
+      }
+    }
+
+    return null;
   }
 
   Widget _buildDateCard(BuildContext context, AppLocalizations l10n) {
@@ -207,6 +277,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         child: BlocBuilder<KeypadCubit, String>(
+          bloc: _keypadCubit,
           builder: (BuildContext context, String expression) {
             return Row(
               children: <Widget>[
@@ -230,7 +301,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => context.read<KeypadCubit>().backspace(),
+                  onPressed: _keypadCubit.backspace,
                   icon: const Icon(Icons.backspace_outlined),
                 ),
               ],
