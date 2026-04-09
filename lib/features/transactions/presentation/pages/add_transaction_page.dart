@@ -315,7 +315,15 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   Widget _buildNoteField(AppLocalizations l10n) {
     return TextField(
       controller: _noteController,
+      keyboardType: TextInputType.text,
       textInputAction: TextInputAction.done,
+      enableSuggestions: true,
+      autocorrect: false,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textPrimary,
+      ),
       decoration: InputDecoration(
         labelText: l10n.noteLabel,
         prefixIcon: const Icon(Icons.edit_note_outlined),
