@@ -3,13 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import 'core/mock/mock_data.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/date_utils.dart';
 import 'features/auth/presentation/pages/login_page.dart';
+import 'features/transactions/domain/entities/transaction.dart';
 import 'features/transactions/presentation/bloc/transaction_bloc.dart';
 import 'features/transactions/presentation/bloc/transaction_event.dart';
 import 'features/auth/presentation/pages/register_page.dart';
 import 'features/transactions/presentation/pages/add_transaction_page.dart';
+import 'features/transactions/presentation/pages/all_transactions_page.dart';
 import 'features/transactions/presentation/pages/home_page.dart';
 import 'features/transactions/presentation/pages/transaction_list_page.dart';
 import 'injection_container.dart' as di;
@@ -79,6 +82,20 @@ final GoRouter _router = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         return TransactionListPage(
           categoryKey: state.pathParameters['categoryKey']!,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/all-transactions',
+      name: 'allTransactions',
+      builder: (BuildContext context, GoRouterState state) {
+        final Object? extra = state.extra;
+        final List<Transaction> initialTransactions = extra is List
+            ? extra.whereType<Transaction>().toList()
+            : MockData.sampleTransactions;
+
+        return AllTransactionsPage(
+          initialTransactions: initialTransactions,
         );
       },
     ),

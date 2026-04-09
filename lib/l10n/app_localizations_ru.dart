@@ -115,6 +115,17 @@ class AppLocalizationsRu extends AppLocalizations {
   String get totalExpenseLabel => 'Итого расходы';
 
   @override
+  String get allTransactionsTitle =>
+      '\u0412\u0441\u0435 \u0442\u0440\u0430\u043d\u0437\u0430\u043a\u0446\u0438\u0438';
+
+  @override
+  String get incomeSectionTitle => '\u0414\u043e\u0445\u043e\u0434';
+
+  @override
+  String get noTransactions =>
+      '\u041d\u0435\u0442 \u0442\u0440\u0430\u043d\u0437\u0430\u043a\u0446\u0438\u0439';
+
+  @override
   String get drawerStub => 'Фаза 1, скоро';
 
   @override

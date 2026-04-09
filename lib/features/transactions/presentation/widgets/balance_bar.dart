@@ -4,9 +4,11 @@ class BalanceBar extends StatelessWidget {
   const BalanceBar({
     super.key,
     required this.balanceText,
+    this.onTap,
   });
 
   final String balanceText;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -14,31 +16,34 @@ class BalanceBar extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         const _BalanceHandle(),
-        Container(
-          width: 410,
-          height: 76,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFE817F),
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: const Color(0x88764340),
-              width: 2,
-            ),
-            boxShadow: const <BoxShadow>[
-              BoxShadow(
-                color: Color(0x332D2E2D),
-                blurRadius: 8,
-                offset: Offset(0, 4),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 410,
+            height: 76,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFE817F),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: const Color(0x88764340),
+                width: 2,
               ),
-            ],
-          ),
-          child: Text(
-            'Balance  $balanceText',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 30,
-              fontWeight: FontWeight.w500,
+              boxShadow: const <BoxShadow>[
+                BoxShadow(
+                  color: Color(0x332D2E2D),
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Text(
+              'Balance  $balanceText',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 30,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ),

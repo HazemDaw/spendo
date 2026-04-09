@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:spendo/features/transactions/domain/entities/transaction.dart';
 
 import '../../../../core/mock/mock_data.dart';
 import '../../../../core/utils/date_utils.dart';
@@ -100,6 +101,9 @@ class _HomePageState extends State<HomePage> {
     final Map<String, double> expenseTotals = transactionState is TransactionLoaded
         ? transactionState.categoryTotals
         : const <String, double>{};
+    final List<Transaction> allTransactions = transactionState is TransactionLoaded
+        ? transactionState.transactions
+        : MockData.sampleTransactions;
     final List<DonutCategorySlice> slices = _buildSlices(expenseTotals);
     final List<_OrbitNode> orbitNodes = _buildOrbitNodes(expenseTotals);
     final List<OrbitConnector> connectors = _buildConnectors(
@@ -231,6 +235,10 @@ class _HomePageState extends State<HomePage> {
                       top: 1248,
                       child: BalanceBar(
                         balanceText: _formatSignedHomeAmount(income - expense),
+                        onTap: () => context.push(
+                          '/all-transactions',
+                          extra: allTransactions,
+                        ),
                       ),
                     ),
                     Positioned(
