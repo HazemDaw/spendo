@@ -91,6 +91,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final String selectedPeriodLabel = _selectedPeriodLabel();
     final TransactionState transactionState = context.watch<TransactionBloc>().state;
     final double income = transactionState is TransactionLoaded
         ? transactionState.totalIncome
@@ -164,7 +165,7 @@ class _HomePageState extends State<HomePage> {
                       left: 6,
                       top: 190,
                       child: Text(
-                        '10 Mar',
+                        selectedPeriodLabel,
                         style: GoogleFonts.inter(
                           color: const Color(0xFFBAC9C1),
                           fontSize: 22,
@@ -178,7 +179,7 @@ class _HomePageState extends State<HomePage> {
                       child: GestureDetector(
                         onTap: _cyclePeriod,
                         child: Text(
-                          '11 Mar - 25 Mar',
+                          selectedPeriodLabel,
                           style: GoogleFonts.inter(
                             color: const Color(0xFF96A69C),
                             fontSize: 24,
@@ -565,6 +566,26 @@ class _HomePageState extends State<HomePage> {
   String _formatSignedHomeAmount(double amount) {
     final String formatted = _homeAmountFormatter.format(amount.abs());
     return amount.isNegative ? '-$formatted' : formatted;
+  }
+
+  String _selectedPeriodLabel() {
+    final DateTime now = DateTime.now();
+    return switch (_selectedPeriod) {
+      TransactionPeriod.day =>
+        DateFormat('d MMM yyyy', 'ru_RU').format(now),
+      TransactionPeriod.week => _currentWeekLabel(now),
+      TransactionPeriod.month =>
+        DateFormat('MMM yyyy', 'ru_RU').format(now),
+    };
+  }
+
+  String _currentWeekLabel(DateTime now) {
+    final DateTime weekStart = AppDateUtils.getPeriodRange(
+      TransactionPeriod.week,
+      now: now,
+    ).start;
+    final DateFormat formatter = DateFormat('d MMM', 'ru_RU');
+    return '${formatter.format(weekStart)} — ${formatter.format(now)}';
   }
 
   void _cyclePeriod() {
