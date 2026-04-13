@@ -91,11 +91,30 @@ class _HomePageState extends State<HomePage> {
       ];
 
   TransactionPeriod _selectedPeriod = TransactionPeriod.month;
+  DateTime _referenceDate = DateTime.now();
+  double _slideDirection = 0;
 
   @override
   Widget build(BuildContext context) {
-    final String selectedPeriodLabel = _selectedPeriodLabel();
     final TransactionState transactionState = context.watch<TransactionBloc>().state;
+    final DateTime now = DateTime.now();
+    final DateTime oldestTransactionDate = _oldestTransactionDate(
+      transactionState,
+      now,
+    );
+    final TransactionDateRange displayedRange = AppDateUtils.getPeriodRange(
+      _selectedPeriod,
+      referenceDate: _referenceDate,
+    );
+    final bool isAtOldestBoundary = _containsDate(
+      displayedRange,
+      oldestTransactionDate,
+    );
+    final bool isAtFutureBoundary = _containsDate(displayedRange, now);
+    final String selectedPeriodLabel = _buildDateLabel(
+      displayedRange: displayedRange,
+      now: now,
+    );
     final double income = transactionState is TransactionLoaded
         ? transactionState.totalIncome
         : 0;
@@ -171,30 +190,46 @@ class _HomePageState extends State<HomePage> {
                     ),
                     _buildHeader(),
                     Positioned(
-                      left: 6,
-                      top: 190,
-                      child: Text(
-                        selectedPeriodLabel,
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFFBAC9C1),
-                          fontSize: 22,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 288,
-                      top: 190,
-                      child: GestureDetector(
-                        onTap: _cyclePeriod,
-                        child: Text(
-                          selectedPeriodLabel,
-                          style: GoogleFonts.inter(
-                            color: const Color(0xFF96A69C),
-                            fontSize: 24,
-                            fontWeight: FontWeight.w500,
+                      left: 0,
+                      right: 0,
+                      top: 128,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          GestureDetector(
+                            onTap: () => _navigatePeriod(-1, oldestTransactionDate),
+                            child: Icon(
+                              Icons.chevron_left,
+                              color: isAtOldestBoundary
+                                  ? Colors.transparent
+                                  : Colors.white54,
+                              size: 28,
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: _cyclePeriod,
+                            child: Text(
+                              selectedPeriodLabel,
+                              style: GoogleFonts.inter(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => _navigatePeriod(1, oldestTransactionDate),
+                            child: Icon(
+                              Icons.chevron_right,
+                              color: isAtFutureBoundary
+                                  ? Colors.transparent
+                                  : Colors.white54,
+                              size: 28,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     Positioned.fill(
@@ -207,34 +242,68 @@ class _HomePageState extends State<HomePage> {
                     Positioned(
                       left: _chartCenter.dx - _donutOuterRadius,
                       top: _chartCenter.dy - _donutOuterRadius,
-                      child: SizedBox.square(
-                        dimension: _donutOuterRadius * 2,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: <Widget>[
-                            DonutChartWidget(
-                              slices: slices,
-                              incomeText: _homeAmountFormatter.format(income),
-                              expenseText: _homeAmountFormatter.format(expense),
-                              startAngleDegrees: _donutStartAngle,
-                              outerRadius: _donutOuterRadius,
-                              innerRadius: _donutInnerRadius,
-                              onSliceTap: (String categoryKey) {
-                                context.pushNamed(
-                                  'transactionList',
-                                  pathParameters: <String, String>{
-                                    'categoryKey': categoryKey,
-                                  },
-                                );
-                              },
-                            ),
-                            if (isLoading)
-                              const SizedBox(
-                                width: 36,
-                                height: 36,
-                                child: CircularProgressIndicator(strokeWidth: 2.5),
+                      child: GestureDetector(
+                        onHorizontalDragEnd: (DragEndDetails details) {
+                          if (details.primaryVelocity == null) {
+                            return;
+                          }
+                          if (details.primaryVelocity! > 200) {
+                            _navigatePeriod(-1, oldestTransactionDate);
+                          }
+                          if (details.primaryVelocity! < -200) {
+                            _navigatePeriod(1, oldestTransactionDate);
+                          }
+                        },
+                        child: SizedBox.square(
+                          dimension: _donutOuterRadius * 2,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: <Widget>[
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                transitionBuilder: (
+                                  Widget child,
+                                  Animation<double> animation,
+                                ) {
+                                  return SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: Offset(_slideDirection, 0),
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: child,
+                                  );
+                                },
+                                child: SizedBox.square(
+                                  key: ValueKey<DateTime>(_referenceDate),
+                                  dimension: _donutOuterRadius * 2,
+                                  child: DonutChartWidget(
+                                    slices: slices,
+                                    incomeText: _homeAmountFormatter.format(income),
+                                    expenseText: _homeAmountFormatter.format(
+                                      expense,
+                                    ),
+                                    startAngleDegrees: _donutStartAngle,
+                                    outerRadius: _donutOuterRadius,
+                                    innerRadius: _donutInnerRadius,
+                                    onSliceTap: (String categoryKey) {
+                                      context.pushNamed(
+                                        'transactionList',
+                                        pathParameters: <String, String>{
+                                          'categoryKey': categoryKey,
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
                               ),
-                          ],
+                              if (isLoading)
+                                const SizedBox(
+                                  width: 36,
+                                  height: 36,
+                                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -382,8 +451,12 @@ class _HomePageState extends State<HomePage> {
             ),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-          
-         
+          ),
+          const SizedBox(width: 34),
+          const Icon(
+            Icons.swap_horiz_rounded,
+            color: Colors.white,
+            size: 38,
           ),
           const SizedBox(width: 6),
           Builder(
@@ -601,24 +674,104 @@ class _HomePageState extends State<HomePage> {
     return amount.isNegative ? '-$formatted' : formatted;
   }
 
-  String _selectedPeriodLabel() {
-    final DateTime now = DateTime.now();
+  String _buildDateLabel({
+    required TransactionDateRange displayedRange,
+    required DateTime now,
+  }) {
+    final DateFormat dayFormatter = DateFormat('d MMM yyyy', 'ru_RU');
+    final DateFormat monthFormatter = DateFormat('MMMM yyyy', 'ru_RU');
+
     return switch (_selectedPeriod) {
-      TransactionPeriod.day =>
-        DateFormat('d MMM yyyy', 'ru_RU').format(now),
-      TransactionPeriod.week => _currentWeekLabel(now),
-      TransactionPeriod.month =>
-        DateFormat('MMM yyyy', 'ru_RU').format(now),
+      TransactionPeriod.day => _isSameDay(_referenceDate, now)
+          ? 'Сегодня'
+          : dayFormatter.format(_referenceDate),
+      TransactionPeriod.week => _containsDate(displayedRange, now)
+          ? 'Эта неделя'
+          : _currentWeekLabel(displayedRange.end),
+      TransactionPeriod.month => _isSameMonth(_referenceDate, now)
+          ? 'Этот месяц'
+          : monthFormatter.format(_referenceDate),
     };
   }
 
   String _currentWeekLabel(DateTime now) {
     final DateTime weekStart = AppDateUtils.getPeriodRange(
       TransactionPeriod.week,
-      now: now,
+      referenceDate: now,
     ).start;
     final DateFormat formatter = DateFormat('d MMM', 'ru_RU');
     return '${formatter.format(weekStart)} — ${formatter.format(now)}';
+  }
+
+  DateTime _oldestTransactionDate(
+    TransactionState transactionState,
+    DateTime now,
+  ) {
+    if (transactionState is TransactionLoaded &&
+        transactionState.oldestTransactionDate != null) {
+      final DateTime oldest = transactionState.oldestTransactionDate!;
+      return DateTime(oldest.year, oldest.month, oldest.day);
+    }
+
+    return DateTime(now.year, now.month - 12, now.day);
+  }
+
+  bool _containsDate(TransactionDateRange range, DateTime date) {
+    return !date.isBefore(range.start) && !date.isAfter(range.end);
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  bool _isSameMonth(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month;
+  }
+
+  void _navigatePeriod(int direction, DateTime oldestTransactionDate) {
+    final DateTime now = DateTime.now();
+    final TransactionDateRange currentRange = AppDateUtils.getPeriodRange(
+      _selectedPeriod,
+      referenceDate: _referenceDate,
+    );
+    if (direction > 0 && _containsDate(currentRange, now)) {
+      return;
+    }
+
+    final DateTime candidate = switch (_selectedPeriod) {
+      TransactionPeriod.day => _referenceDate.add(Duration(days: direction)),
+      TransactionPeriod.week => _referenceDate.add(
+          Duration(days: direction * 7),
+        ),
+      TransactionPeriod.month => DateTime(
+          _referenceDate.year,
+          _referenceDate.month + direction,
+          1,
+        ),
+    };
+    final TransactionDateRange candidateRange = AppDateUtils.getPeriodRange(
+      _selectedPeriod,
+      referenceDate: candidate,
+    );
+    if (candidateRange.end.isBefore(oldestTransactionDate)) {
+      return;
+    }
+
+    DateTime nextReferenceDate = candidate;
+    if (candidate.isAfter(now) || _containsDate(candidateRange, now)) {
+      nextReferenceDate = now;
+    }
+
+    setState(() {
+      _slideDirection = direction > 0 ? -1.0 : 1.0;
+      _referenceDate = nextReferenceDate;
+    });
+    context.read<TransactionBloc>().add(
+      LoadTransactionsEvent(
+        _selectedPeriod,
+        referenceDate: nextReferenceDate,
+      ),
+    );
   }
 
   void _cyclePeriod() {
@@ -638,7 +791,12 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedPeriod = period;
     });
-    context.read<TransactionBloc>().add(LoadTransactionsEvent(period));
+    context.read<TransactionBloc>().add(
+      LoadTransactionsEvent(
+        period,
+        referenceDate: _referenceDate,
+      ),
+    );
   }
 
   void _showAddResult(Object? result) {

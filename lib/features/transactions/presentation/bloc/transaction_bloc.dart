@@ -32,25 +32,53 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   final DeleteTransaction _deleteTransaction;
 
   TransactionPeriod _currentPeriod = TransactionPeriod.month;
+  DateTime _currentReferenceDate = DateTime.now();
 
   Future<void> _onLoadTransactions(
     LoadTransactionsEvent event,
     Emitter<TransactionState> emit,
   ) async {
     _currentPeriod = event.period;
+    _currentReferenceDate = event.referenceDate ?? DateTime.now();
     emit(const TransactionLoading());
 
-    final TransactionDateRange range = AppDateUtils.getPeriodRange(event.period);
-    final result = await _getTransactionsByPeriod(
+    final TransactionDateRange range = AppDateUtils.getPeriodRange(
+      event.period,
+      referenceDate: _currentReferenceDate,
+    );
+    final periodResult = await _getTransactionsByPeriod(
       GetTransactionsByPeriodParams(
         start: range.start,
         end: range.end,
       ),
     );
+    final oldestResult = await _getTransactionsByPeriod(
+      GetTransactionsByPeriodParams(
+        start: DateTime.fromMillisecondsSinceEpoch(0),
+        end: DateTime(9999, 12, 31, 23, 59, 59, 999),
+      ),
+    );
 
-    result.fold(
+    periodResult.fold(
       (failure) => emit(TransactionError(failure.message)),
-      (transactions) => emit(_buildLoadedState(transactions)),
+      (transactions) {
+        oldestResult.fold(
+          (failure) => emit(TransactionError(failure.message)),
+          (allTransactions) => emit(
+            _buildLoadedState(
+              transactions,
+              oldestTransactionDate: allTransactions.isEmpty
+                  ? null
+                  : allTransactions
+                      .map((Transaction transaction) => transaction.date)
+                      .reduce(
+                        (DateTime oldest, DateTime current) =>
+                            current.isBefore(oldest) ? current : oldest,
+                      ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -63,7 +91,12 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     final result = await _addTransaction(event.transaction);
     result.fold(
       (failure) => emit(TransactionError(failure.message)),
-      (_) => add(LoadTransactionsEvent(_currentPeriod)),
+      (_) => add(
+        LoadTransactionsEvent(
+          _currentPeriod,
+          referenceDate: _currentReferenceDate,
+        ),
+      ),
     );
   }
 
@@ -76,7 +109,12 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     final result = await _updateTransaction(event.transaction);
     result.fold(
       (failure) => emit(TransactionError(failure.message)),
-      (_) => add(LoadTransactionsEvent(_currentPeriod)),
+      (_) => add(
+        LoadTransactionsEvent(
+          _currentPeriod,
+          referenceDate: _currentReferenceDate,
+        ),
+      ),
     );
   }
 
@@ -89,11 +127,19 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     final result = await _deleteTransaction(event.id);
     result.fold(
       (failure) => emit(TransactionError(failure.message)),
-      (_) => add(LoadTransactionsEvent(_currentPeriod)),
+      (_) => add(
+        LoadTransactionsEvent(
+          _currentPeriod,
+          referenceDate: _currentReferenceDate,
+        ),
+      ),
     );
   }
 
-  TransactionLoaded _buildLoadedState(List<Transaction> transactions) {
+  TransactionLoaded _buildLoadedState(
+    List<Transaction> transactions, {
+    required DateTime? oldestTransactionDate,
+  }) {
     double totalIncome = 0;
     double totalExpense = 0;
     final Map<String, double> categoryTotals = <String, double>{};
@@ -119,6 +165,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
       totalIncome: totalIncome,
       totalExpense: totalExpense,
       categoryTotals: categoryTotals,
+      oldestTransactionDate: oldestTransactionDate,
     );
   }
 }

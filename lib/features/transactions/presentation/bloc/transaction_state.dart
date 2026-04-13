@@ -23,12 +23,14 @@ class TransactionLoaded extends TransactionState {
     required this.totalIncome,
     required this.totalExpense,
     required this.categoryTotals,
+    required this.oldestTransactionDate,
   });
 
   final List<Transaction> transactions;
   final double totalIncome;
   final double totalExpense;
   final Map<String, double> categoryTotals;
+  final DateTime? oldestTransactionDate;
 
   @override
   List<Object?> get props => <Object?>[
@@ -36,6 +38,7 @@ class TransactionLoaded extends TransactionState {
         totalIncome,
         totalExpense,
         categoryTotals,
+        oldestTransactionDate,
       ];
 }
 

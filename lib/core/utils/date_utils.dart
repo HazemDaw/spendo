@@ -36,9 +36,9 @@ class AppDateUtils {
 
   static TransactionDateRange getPeriodRange(
     TransactionPeriod period, {
-    DateTime? now,
+    DateTime? referenceDate,
   }) {
-    final DateTime reference = now ?? DateTime.now();
+    final DateTime reference = referenceDate ?? DateTime.now();
 
     switch (period) {
       case TransactionPeriod.day:
@@ -58,9 +58,9 @@ class AppDateUtils {
         return TransactionDateRange(
           start: start,
           end: DateTime(
-            reference.year,
-            reference.month,
-            reference.day,
+            start.year,
+            start.month,
+            start.day + 6,
             23,
             59,
             59,
@@ -71,8 +71,8 @@ class AppDateUtils {
           start: DateTime(reference.year, reference.month, 1),
           end: DateTime(
             reference.year,
-            reference.month,
-            reference.day,
+            reference.month + 1,
+            0,
             23,
             59,
             59,
