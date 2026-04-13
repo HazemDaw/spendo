@@ -20,6 +20,7 @@ import '../widgets/balance_bar.dart';
 import '../widgets/connector_lines_painter.dart';
 import '../widgets/donut_chart_widget.dart';
 import '../widgets/home_action_buttons.dart';
+import '../widgets/transaction_list_item.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -141,7 +142,9 @@ class _HomePageState extends State<HomePage> {
             currentPeriodLabel: selectedPeriodLabel,
             onPeriodSelected: _selectPeriod,
           ),
+          drawerEnableOpenDragGesture: false,
           endDrawer: const AppRightDrawer(),
+          endDrawerEnableOpenDragGesture: false,
           body: Align(
             alignment: Alignment.topCenter,
             child: FittedBox(
@@ -357,22 +360,45 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const Spacer(),
-          const Icon(
-            Icons.search_rounded,
-            color: Colors.white,
-            size: 38,
+          IconButton(
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: _TransactionSearchDelegate(
+                  transactions:
+                      (context.read<TransactionBloc>().state
+                              is TransactionLoaded)
+                          ? (context.read<TransactionBloc>().state
+                                  as TransactionLoaded)
+                              .transactions
+                          : <Transaction>[],
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.search_rounded,
+              color: Colors.white,
+              size: 38,
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          
+         
           ),
-          const SizedBox(width: 34),
-          const Icon(
-            Icons.swap_horiz_rounded,
-            color: Colors.white,
-            size: 38,
-          ),
-          const SizedBox(width: 22),
-          const Icon(
-            Icons.more_vert_rounded,
-            color: Colors.white,
-            size: 38,
+          const SizedBox(width: 6),
+          Builder(
+            builder: (BuildContext scaffoldContext) {
+              return IconButton(
+                onPressed: () => Scaffold.of(scaffoldContext).openEndDrawer(),
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  color: Colors.white,
+                  size: 38,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              );
+            },
           ),
         ],
       ),
@@ -688,4 +714,65 @@ enum _OrbitSlot {
   bottomCenter,
   bottomLeft,
   left,
+}
+
+class _TransactionSearchDelegate extends SearchDelegate<Transaction?> {
+  _TransactionSearchDelegate({required this.transactions});
+
+  final List<Transaction> transactions;
+
+  @override
+  String get searchFieldLabel => 'Поиск транзакций...';
+
+  @override
+  List<Widget> buildActions(BuildContext context) => <Widget>[
+    IconButton(
+      icon: const Icon(Icons.clear),
+      onPressed: () => query = '',
+    ),
+  ];
+
+  @override
+  Widget buildLeading(BuildContext context) => IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () => close(context, null),
+  );
+
+  @override
+  Widget buildResults(BuildContext context) => _buildList(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) => _buildList(context);
+
+  Widget _buildList(BuildContext context) {
+    final List<Transaction> results = transactions.where((Transaction t) {
+      final String q = query.toLowerCase();
+      return t.note?.toLowerCase().contains(q) == true ||
+          (t.categoryKey?.toLowerCase().contains(q) == true) ||
+          t.amount.toString().contains(q);
+    }).toList()..sort((Transaction a, Transaction b) => b.date.compareTo(a.date));
+
+    if (results.isEmpty) {
+      return const Center(child: Text('Ничего не найдено'));
+    }
+
+    return ListView.separated(
+      itemCount: results.length,
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemBuilder: (BuildContext context, int index) {
+        return TransactionListItem(
+          transaction: results[index],
+          onTap: () {
+            close(context, results[index]);
+            context.pushNamed(
+              'editTransaction',
+              pathParameters: <String, String>{
+                'transactionId': results[index].id,
+              },
+            );
+          },
+        );
+      },
+    );
+  }
 }
