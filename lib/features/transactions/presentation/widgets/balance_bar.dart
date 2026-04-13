@@ -5,10 +5,12 @@ class BalanceBar extends StatelessWidget {
     super.key,
     required this.balanceText,
     this.onTap,
+    this.onMenuTap,
   });
 
   final String balanceText;
   final VoidCallback? onTap;
+  final VoidCallback? onMenuTap;
 
   @override
   Widget build(BuildContext context) {
@@ -47,27 +49,33 @@ class BalanceBar extends StatelessWidget {
             ),
           ),
         ),
-        const _BalanceHandle(),
+        _BalanceHandle(onTap: onMenuTap),
       ],
     );
   }
 }
 
 class _BalanceHandle extends StatelessWidget {
-  const _BalanceHandle();
+  const _BalanceHandle({this.onTap});
+
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
-      width: 76,
-      child: Column(
-        children: <Widget>[
-          _HandleLine(width: 74),
-          SizedBox(height: 8),
-          _HandleLine(width: 58),
-          SizedBox(height: 8),
-          _HandleLine(width: 74),
-        ],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: const SizedBox(
+        width: 76,
+        child: Column(
+          children: <Widget>[
+            _HandleLine(width: 74),
+            SizedBox(height: 8),
+            _HandleLine(width: 58),
+            SizedBox(height: 8),
+            _HandleLine(width: 74),
+          ],
+        ),
       ),
     );
   }

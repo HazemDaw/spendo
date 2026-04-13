@@ -14,6 +14,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../bloc/transaction_bloc.dart';
 import '../bloc/transaction_event.dart';
 import '../bloc/transaction_state.dart';
+import '../widgets/app_left_drawer.dart';
+import '../widgets/app_right_drawer.dart';
 import '../widgets/balance_bar.dart';
 import '../widgets/connector_lines_painter.dart';
 import '../widgets/donut_chart_widget.dart';
@@ -134,8 +136,12 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Scaffold(
           backgroundColor: const Color(0xFFF2FFF6),
-          drawer: const _PhaseDrawer(icon: Icons.menu_rounded),
-          endDrawer: const _PhaseDrawer(icon: Icons.more_vert_rounded),
+          drawer: AppLeftDrawer(
+            selectedPeriod: _selectedPeriod,
+            currentPeriodLabel: selectedPeriodLabel,
+            onPeriodSelected: _selectPeriod,
+          ),
+          endDrawer: const AppRightDrawer(),
           body: Align(
             alignment: Alignment.topCenter,
             child: FittedBox(
@@ -234,12 +240,20 @@ class _HomePageState extends State<HomePage> {
                       left: 44,
                       right: 44,
                       top: 1248,
-                      child: BalanceBar(
-                        balanceText: _formatSignedHomeAmount(income - expense),
-                        onTap: () => context.push(
-                          '/all-transactions',
-                          extra: allTransactions,
-                        ),
+                      child: Builder(
+                        builder: (BuildContext scaffoldContext) {
+                          return BalanceBar(
+                            balanceText: _formatSignedHomeAmount(
+                              income - expense,
+                            ),
+                            onTap: () => context.push(
+                              '/all-transactions',
+                              extra: allTransactions,
+                            ),
+                            onMenuTap: () =>
+                                Scaffold.of(scaffoldContext).openEndDrawer(),
+                          );
+                        },
                       ),
                     ),
                     Positioned(
@@ -355,17 +369,10 @@ class _HomePageState extends State<HomePage> {
             size: 38,
           ),
           const SizedBox(width: 22),
-          Builder(
-            builder: (BuildContext scaffoldContext) {
-              return IconButton(
-                onPressed: () => Scaffold.of(scaffoldContext).openEndDrawer(),
-                icon: const Icon(
-                  Icons.more_vert_rounded,
-                  color: Colors.white,
-                  size: 38,
-                ),
-              );
-            },
+          const Icon(
+            Icons.more_vert_rounded,
+            color: Colors.white,
+            size: 38,
           ),
         ],
       ),
@@ -589,14 +596,23 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _cyclePeriod() {
-    setState(() {
-      _selectedPeriod = switch (_selectedPeriod) {
+    _selectPeriod(
+      switch (_selectedPeriod) {
         TransactionPeriod.day => TransactionPeriod.week,
         TransactionPeriod.week => TransactionPeriod.month,
         TransactionPeriod.month => TransactionPeriod.day,
-      };
+      },
+    );
+  }
+
+  void _selectPeriod(TransactionPeriod period) {
+    if (_selectedPeriod == period) {
+      return;
+    }
+    setState(() {
+      _selectedPeriod = period;
     });
-    context.read<TransactionBloc>().add(LoadTransactionsEvent(_selectedPeriod));
+    context.read<TransactionBloc>().add(LoadTransactionsEvent(period));
   }
 
   void _showAddResult(Object? result) {
@@ -672,32 +688,4 @@ enum _OrbitSlot {
   bottomCenter,
   bottomLeft,
   left,
-}
-
-class _PhaseDrawer extends StatelessWidget {
-  const _PhaseDrawer({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Icon(icon, color: const Color(0xFF7AC793), size: 32),
-              const SizedBox(height: 16),
-              Text(
-                'Phase 1 drawer stub',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
