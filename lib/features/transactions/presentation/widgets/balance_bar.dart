@@ -92,7 +92,7 @@ class _HandleLine extends StatelessWidget {
       width: width,
       height: 3,
       decoration: BoxDecoration(
-        color: const Color(0xFFA7D0C3),
+        color: const Color.fromARGB(255, 175, 60, 221),
         borderRadius: BorderRadius.circular(999),
       ),
     );

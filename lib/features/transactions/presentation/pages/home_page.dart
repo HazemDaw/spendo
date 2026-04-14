@@ -150,12 +150,12 @@ class _HomePageState extends State<HomePage> {
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: const SystemUiOverlayStyle(
-          statusBarColor: Color(0xFF7AC793),
+          statusBarColor: Color(0xFF7C3AED),
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark,
         ),
         child: Scaffold(
-          backgroundColor: const Color(0xFFF2FFF6),
+          backgroundColor: const Color(0xFFF5F3FF),
           drawer: AppLeftDrawer(
             selectedPeriod: _selectedPeriod,
             currentPeriodLabel: selectedPeriodLabel,
@@ -176,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                   children: <Widget>[
                     const Positioned.fill(
                       child: ColoredBox(
-                        color: Color(0xFFF2FFF6),
+                        color: Color.fromARGB(255, 252, 243, 255),
                       ),
                     ),
                     const Positioned(
@@ -185,7 +185,7 @@ class _HomePageState extends State<HomePage> {
                       right: 0,
                       child: SizedBox(
                         height: 156,
-                        child: ColoredBox(color: Color(0xFF7AC793)),
+                        child: ColoredBox(color: Color(0xFF7C3AED)),
                       ),
                     ),
                     _buildHeader(),
@@ -202,7 +202,7 @@ class _HomePageState extends State<HomePage> {
                               Icons.chevron_left,
                               color: isAtOldestBoundary
                                   ? Colors.transparent
-                                  : Colors.white54,
+                                  : const Color(0xFF7C3AED),
                               size: 28,
                             ),
                           ),
@@ -212,7 +212,7 @@ class _HomePageState extends State<HomePage> {
                             child: Text(
                               selectedPeriodLabel,
                               style: GoogleFonts.inter(
-                                color: Colors.white,
+                                color: const Color.fromARGB(255, 241, 234, 234),
                                 fontSize: 20,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -225,7 +225,7 @@ class _HomePageState extends State<HomePage> {
                               Icons.chevron_right,
                               color: isAtFutureBoundary
                                   ? Colors.transparent
-                                  : Colors.white54,
+                                  : const Color(0xFF7C3AED),
                               size: 28,
                             ),
                           ),
@@ -361,18 +361,7 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                     ),
-                    const Positioned(
-                      left: 175,
-                      right: 175,
-                      bottom: 18,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Color(0xFF808582),
-                          borderRadius: BorderRadius.all(Radius.circular(999)),
-                        ),
-                        child: SizedBox(height: 8),
-                      ),
-                    ),
+                   
                   ],
                 ),
               ),
@@ -452,12 +441,7 @@ class _HomePageState extends State<HomePage> {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
-          const SizedBox(width: 34),
-          const Icon(
-            Icons.swap_horiz_rounded,
-            color: Colors.white,
-            size: 38,
-          ),
+      
           const SizedBox(width: 6),
           Builder(
             builder: (BuildContext scaffoldContext) {
@@ -598,7 +582,7 @@ class _HomePageState extends State<HomePage> {
         OrbitConnector(
           start: chartEdge,
           end: node.position,
-          color: node.color,
+          color: Colors.grey,
           chartCenter: _chartCenter,
           routeRadius: _routeRadiusFor(node.slot),
         ),
