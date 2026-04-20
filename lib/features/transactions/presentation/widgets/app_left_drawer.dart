@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_utils.dart';
@@ -27,40 +28,87 @@ class AppLeftDrawer extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: <Widget>[
-            DrawerHeader(
-              margin: EdgeInsets.zero,
-              decoration: const BoxDecoration(color: AppColors.primary),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const CircleAvatar(
-                    radius: 30,
-                    backgroundColor: AppColors.primaryLight,
-                    child: Icon(
-                      Icons.person,
-                      color: AppColors.primary,
-                      size: 30,
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (BuildContext context, AuthState state) {
+                if (state is AuthAuthenticated) {
+                  final String emailPrefix = state.email.split('@').first;
+
+                  return DrawerHeader(
+                    margin: EdgeInsets.zero,
+                    decoration: const BoxDecoration(color: AppColors.primary),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: AppColors.primaryLight,
+                          child: Text(
+                            state.email[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          state.displayName?.isNotEmpty == true
+                              ? state.displayName!
+                              : emailPrefix,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          state.email,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
+                  );
+                }
+
+                return DrawerHeader(
+                  margin: EdgeInsets.zero,
+                  decoration: const BoxDecoration(color: AppColors.primary),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const CircleAvatar(
+                        radius: 30,
+                        backgroundColor: AppColors.primaryLight,
+                        child: Icon(
+                          Icons.person,
+                          color: AppColors.primary,
+                          size: 30,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          context.push('/login');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: const Text('Войдите для синхронизации'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.drawerUserName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.drawerUserEmail,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
             Expanded(
               child: ListView(
