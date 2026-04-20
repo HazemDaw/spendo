@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_utils.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 
 class AppLeftDrawer extends StatelessWidget {
   const AppLeftDrawer({
@@ -17,17 +21,19 @@ class AppLeftDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+
     return Drawer(
       child: SafeArea(
         child: Column(
           children: <Widget>[
-            const DrawerHeader(
+            DrawerHeader(
               margin: EdgeInsets.zero,
-              decoration: BoxDecoration(color: AppColors.primary),
+              decoration: const BoxDecoration(color: AppColors.primary),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 30,
                     backgroundColor: AppColors.primaryLight,
                     child: Icon(
@@ -36,19 +42,19 @@ class AppLeftDrawer extends StatelessWidget {
                       size: 30,
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'Spendo User',
-                    style: TextStyle(
+                    l10n.drawerUserName,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'user@spendo.app',
-                    style: TextStyle(
+                    l10n.drawerUserEmail,
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 13,
                     ),
@@ -78,7 +84,7 @@ class AppLeftDrawer extends StatelessWidget {
                                 left: 24,
                                 right: 16,
                               ),
-                              title: Text(_periodLabel(period)),
+                              title: Text(_periodLabel(period, l10n)),
                               trailing: period == selectedPeriod
                                   ? const Icon(
                                       Icons.check,
@@ -99,11 +105,12 @@ class AppLeftDrawer extends StatelessWidget {
                       Icons.account_balance_wallet,
                       color: AppColors.primary,
                     ),
-                    title: const Text('Все счета'),
+                    title: Text(l10n.drawerAllAccounts),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => _showPlaceholderDialog(
                       context,
-                      'Функция будет доступна позже',
+                      message: l10n.featureComingSoonMessage,
+                      okLabel: l10n.commonOk,
                     ),
                   ),
                   ListTile(
@@ -111,24 +118,36 @@ class AppLeftDrawer extends StatelessWidget {
                       Icons.pie_chart,
                       color: AppColors.primary,
                     ),
-                    title: const Text('Бюджет'),
+                    title: Text(l10n.drawerBudget),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => _showPlaceholderDialog(
                       context,
-                      'Функция будет доступна позже',
+                      message: l10n.featureComingSoonMessage,
+                      okLabel: l10n.commonOk,
                     ),
                   ),
                 ],
               ),
             ),
             const Divider(height: 1),
-            const ListTile(
-              leading: Icon(
-                Icons.cloud_off,
-                color: AppColors.textSecondary,
-              ),
-              title: Text('Синхронизация'),
-              subtitle: Text('Только локально'),
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (BuildContext context, AuthState state) {
+                final bool isAuthenticated = state is AuthAuthenticated;
+                return ListTile(
+                  leading: Icon(
+                    isAuthenticated ? Icons.cloud_done : Icons.cloud_off,
+                    color: isAuthenticated
+                        ? AppColors.income
+                        : AppColors.textSecondary,
+                  ),
+                  title: Text(l10n.syncTitle),
+                  subtitle: Text(
+                    isAuthenticated
+                        ? l10n.syncSyncedSubtitle
+                        : l10n.syncLocalOnlySubtitle,
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -136,15 +155,22 @@ class AppLeftDrawer extends StatelessWidget {
     );
   }
 
-  static String _periodLabel(TransactionPeriod period) {
+  static String _periodLabel(
+    TransactionPeriod period,
+    AppLocalizations l10n,
+  ) {
     return switch (period) {
-      TransactionPeriod.day => 'Сегодня',
-      TransactionPeriod.week => 'Неделя',
-      TransactionPeriod.month => 'Месяц',
+      TransactionPeriod.day => l10n.periodToday,
+      TransactionPeriod.week => l10n.periodWeek,
+      TransactionPeriod.month => l10n.periodMonth,
     };
   }
 
-  Future<void> _showPlaceholderDialog(BuildContext context, String message) {
+  Future<void> _showPlaceholderDialog(
+    BuildContext context, {
+    required String message,
+    required String okLabel,
+  }) {
     return showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -153,7 +179,7 @@ class AppLeftDrawer extends StatelessWidget {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('OK'),
+              child: Text(okLabel),
             ),
           ],
         );

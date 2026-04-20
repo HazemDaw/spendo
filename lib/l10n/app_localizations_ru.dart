@@ -115,15 +115,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get totalExpenseLabel => 'Итого расходы';
 
   @override
-  String get allTransactionsTitle =>
-      '\u0412\u0441\u0435 \u0442\u0440\u0430\u043d\u0437\u0430\u043a\u0446\u0438\u0438';
+  String get allTransactionsTitle => 'Все транзакции';
 
   @override
-  String get incomeSectionTitle => '\u0414\u043e\u0445\u043e\u0434';
+  String get incomeSectionTitle => 'Доход';
 
   @override
-  String get noTransactions =>
-      '\u041d\u0435\u0442 \u0442\u0440\u0430\u043d\u0437\u0430\u043a\u0446\u0438\u0439';
+  String get noTransactions => 'Нет транзакций';
 
   @override
   String get drawerStub => 'Фаза 1, скоро';
@@ -136,6 +134,104 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get authRegisterPhase3 => 'Регистрация, этап 3';
+
+  @override
+  String get authLoginTitle => 'Вход';
+
+  @override
+  String get authRegisterTitle => 'Регистрация';
+
+  @override
+  String get authEmailLabel => 'Email';
+
+  @override
+  String get authPasswordLabel => 'Пароль';
+
+  @override
+  String get authConfirmPasswordLabel => 'Подтвердите пароль';
+
+  @override
+  String get authSignInAction => 'Войти';
+
+  @override
+  String get authSignInWithGoogleAction => 'Войти через Google';
+
+  @override
+  String get authRegisterAction => 'Зарегистрироваться';
+
+  @override
+  String get authLoginOrRegisterAction => 'Войти / Зарегистрироваться';
+
+  @override
+  String get authNoAccountPrompt => 'Нет аккаунта? Зарегистрироваться';
+
+  @override
+  String get authHaveAccountPrompt => 'Уже есть аккаунт? Войти';
+
+  @override
+  String get authSignOutAction => 'Выйти';
+
+  @override
+  String get authOrDivider => 'или';
+
+  @override
+  String get authEmailRequiredMessage => 'Введите email';
+
+  @override
+  String get authPasswordRequiredMessage => 'Введите пароль';
+
+  @override
+  String get authPasswordTooShortMessage =>
+      'Пароль должен содержать минимум 6 символов';
+
+  @override
+  String get authPasswordsDoNotMatchMessage => 'Пароли не совпадают';
+
+  @override
+  String get drawerUserName => 'Spendo User';
+
+  @override
+  String get drawerUserEmail => 'user@spendo.app';
+
+  @override
+  String get drawerAllAccounts => 'Все счета';
+
+  @override
+  String get drawerBudget => 'Бюджет';
+
+  @override
+  String get drawerCategories => 'Категории';
+
+  @override
+  String get drawerDarkTheme => 'Тёмная тема';
+
+  @override
+  String get drawerExportData => 'Экспорт данных';
+
+  @override
+  String get drawerAbout => 'О приложении';
+
+  @override
+  String get drawerAboutDescription =>
+      'Приложение для отслеживания личных расходов.';
+
+  @override
+  String get drawerSettingsTitle => 'Настройки';
+
+  @override
+  String get featureComingSoonMessage => 'Функция будет доступна позже';
+
+  @override
+  String get syncTitle => 'Синхронизация';
+
+  @override
+  String get syncSyncedSubtitle => 'Синхронизировано';
+
+  @override
+  String get syncLocalOnlySubtitle => 'Только локально';
+
+  @override
+  String get commonOk => 'OK';
 
   @override
   String get chartOther => 'Прочее';

@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'core/mock/mock_data.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/date_utils.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/transactions/domain/entities/transaction.dart';
 import 'features/transactions/presentation/bloc/transaction_bloc.dart';
@@ -15,13 +18,17 @@ import 'features/transactions/presentation/pages/add_transaction_page.dart';
 import 'features/transactions/presentation/pages/all_transactions_page.dart';
 import 'features/transactions/presentation/pages/home_page.dart';
 import 'features/transactions/presentation/pages/transaction_list_page.dart';
-import 'injection_container.dart' as di;
+import 'firebase_options.dart';
+import 'injection_container.dart';
 import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Intl.defaultLocale = 'ru_RU';
-  await di.init();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await initDependencies();
   runApp(const SpendoApp());
 }
 
@@ -30,9 +37,16 @@ class SpendoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<TransactionBloc>(
-      create: (_) => di.sl<TransactionBloc>()
-        ..add(const LoadTransactionsEvent(TransactionPeriod.month)),
+    return MultiBlocProvider(
+      providers: <BlocProvider<dynamic>>[
+        BlocProvider<AuthBloc>(
+          create: (_) => sl<AuthBloc>()..add(const CheckAuthStatusEvent()),
+        ),
+        BlocProvider<TransactionBloc>(
+          create: (_) => sl<TransactionBloc>()
+            ..add(const LoadTransactionsEvent(TransactionPeriod.month)),
+        ),
+      ],
       child: MaterialApp.router(
         title: 'Spendo',
         debugShowCheckedModeBanner: false,

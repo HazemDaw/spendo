@@ -5,6 +5,7 @@ import '../models/transaction_model.dart';
 abstract class TransactionLocalDatasource {
   const TransactionLocalDatasource();
 
+  Future<List<TransactionModel>> getAll();
   Future<List<TransactionModel>> getByPeriod(DateTime start, DateTime end);
   Future<List<TransactionModel>> getByCategory(
     String key,
@@ -20,6 +21,20 @@ class TransactionLocalDatasourceImpl implements TransactionLocalDatasource {
   const TransactionLocalDatasourceImpl(this.isar);
 
   final Isar isar;
+
+  @override
+  Future<List<TransactionModel>> getAll() async {
+    return isar.txn<List<TransactionModel>>(
+      () async {
+        final List<TransactionModel> models =
+            await isar.transactionModels.where().findAll();
+        models.sort(
+          (TransactionModel a, TransactionModel b) => b.date.compareTo(a.date),
+        );
+        return models;
+      },
+    );
+  }
 
   @override
   Future<List<TransactionModel>> getByPeriod(DateTime start, DateTime end) {

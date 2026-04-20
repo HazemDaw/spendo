@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 
 class AppRightDrawer extends StatefulWidget {
   const AppRightDrawer({super.key});
@@ -15,19 +20,21 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+
     return Drawer(
       child: SafeArea(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const DrawerHeader(
+            DrawerHeader(
               margin: EdgeInsets.zero,
-              decoration: BoxDecoration(color: AppColors.primaryDark),
+              decoration: const BoxDecoration(color: AppColors.primaryDark),
               child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Text(
-                  'Настройки',
-                  style: TextStyle(
+                  l10n.drawerSettingsTitle,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -37,11 +44,12 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
             ),
             ListTile(
               leading: const Icon(Icons.label, color: AppColors.primary),
-              title: const Text('Категории'),
+              title: Text(l10n.drawerCategories),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _showPlaceholderDialog(
                 context,
-                'Управление категориями будет доступно позже',
+                message: l10n.featureComingSoonMessage,
+                okLabel: l10n.commonOk,
               ),
             ),
             const Divider(height: 1),
@@ -50,7 +58,7 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
                 Icons.dark_mode,
                 color: AppColors.primary,
               ),
-              title: const Text('Тёмная тема'),
+              title: Text(l10n.drawerDarkTheme),
               value: _darkMode,
               onChanged: (bool value) {
                 setState(() => _darkMode = value);
@@ -62,21 +70,41 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
                 Icons.upload_file,
                 color: AppColors.primary,
               ),
-              title: const Text('Экспорт данных'),
+              title: Text(l10n.drawerExportData),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _showPlaceholderDialog(
                 context,
-                'Экспорт будет доступен позже',
+                message: l10n.featureComingSoonMessage,
+                okLabel: l10n.commonOk,
               ),
             ),
             const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.login, color: AppColors.primary),
-              title: const Text('Войти / Зарегистрироваться'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.of(context).pop();
-                context.push('/login');
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (BuildContext context, AuthState state) {
+                if (state is AuthAuthenticated) {
+                  return ListTile(
+                    leading: const Icon(
+                      Icons.logout,
+                      color: AppColors.expense,
+                    ),
+                    title: Text(l10n.authSignOutAction),
+                    subtitle: Text(state.email),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      context.read<AuthBloc>().add(const SignOutEvent());
+                    },
+                  );
+                }
+
+                return ListTile(
+                  leading: const Icon(Icons.login, color: AppColors.primary),
+                  title: Text(l10n.authLoginOrRegisterAction),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push('/login');
+                  },
+                );
               },
             ),
             const Divider(height: 1),
@@ -85,13 +113,13 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
                 Icons.info_outline,
                 color: AppColors.textSecondary,
               ),
-              title: const Text('О приложении'),
+              title: Text(l10n.drawerAbout),
               onTap: () => showAboutDialog(
                 context: context,
                 applicationName: 'Spendo',
                 applicationVersion: '1.0.0',
-                children: const <Widget>[
-                  Text('Приложение для отслеживания личных расходов.'),
+                children: <Widget>[
+                  Text(l10n.drawerAboutDescription),
                 ],
               ),
             ),
@@ -101,7 +129,11 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
     );
   }
 
-  Future<void> _showPlaceholderDialog(BuildContext context, String message) {
+  Future<void> _showPlaceholderDialog(
+    BuildContext context, {
+    required String message,
+    required String okLabel,
+  }) {
     return showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -110,7 +142,7 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('OK'),
+              child: Text(okLabel),
             ),
           ],
         );

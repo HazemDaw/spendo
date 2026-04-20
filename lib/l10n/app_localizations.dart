@@ -76,6 +76,38 @@ abstract class AppLocalizations {
   String get categoryPickerStub;
   String get authLoginPhase3;
   String get authRegisterPhase3;
+  String get authLoginTitle;
+  String get authRegisterTitle;
+  String get authEmailLabel;
+  String get authPasswordLabel;
+  String get authConfirmPasswordLabel;
+  String get authSignInAction;
+  String get authSignInWithGoogleAction;
+  String get authRegisterAction;
+  String get authLoginOrRegisterAction;
+  String get authNoAccountPrompt;
+  String get authHaveAccountPrompt;
+  String get authSignOutAction;
+  String get authOrDivider;
+  String get authEmailRequiredMessage;
+  String get authPasswordRequiredMessage;
+  String get authPasswordTooShortMessage;
+  String get authPasswordsDoNotMatchMessage;
+  String get drawerUserName;
+  String get drawerUserEmail;
+  String get drawerAllAccounts;
+  String get drawerBudget;
+  String get drawerCategories;
+  String get drawerDarkTheme;
+  String get drawerExportData;
+  String get drawerAbout;
+  String get drawerAboutDescription;
+  String get drawerSettingsTitle;
+  String get featureComingSoonMessage;
+  String get syncTitle;
+  String get syncSyncedSubtitle;
+  String get syncLocalOnlySubtitle;
+  String get commonOk;
   String get chartOther;
 }
 
