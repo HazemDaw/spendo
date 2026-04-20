@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import 'core/mock/mock_data.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_cubit.dart';
 import 'core/utils/date_utils.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
@@ -37,25 +38,41 @@ class SpendoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: <BlocProvider<dynamic>>[
-        BlocProvider<AuthBloc>(
-          create: (_) => sl<AuthBloc>()..add(const CheckAuthStatusEvent()),
-        ),
-        BlocProvider<TransactionBloc>(
-          create: (_) => sl<TransactionBloc>()
-            ..add(const LoadTransactionsEvent(TransactionPeriod.month)),
-        ),
-      ],
-      child: MaterialApp.router(
-        title: 'Spendo',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        routerConfig: _router,
-        locale: const Locale('ru'),
-        supportedLocales: AppLocalizations.supportedLocales,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+    return BlocProvider<ThemeCubit>(
+      create: (_) => sl<ThemeCubit>(),
+      child: MultiBlocProvider(
+        providers: <BlocProvider<dynamic>>[
+          BlocProvider<AuthBloc>(
+            create: (_) => sl<AuthBloc>()..add(const CheckAuthStatusEvent()),
+          ),
+          BlocProvider<TransactionBloc>(
+            create: (_) => sl<TransactionBloc>()
+              ..add(const LoadTransactionsEvent(TransactionPeriod.month)),
+          ),
+        ],
+        child: const _SpendoMaterialApp(),
       ),
+    );
+  }
+}
+
+class _SpendoMaterialApp extends StatelessWidget {
+  const _SpendoMaterialApp();
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeMode themeMode = context.watch<ThemeCubit>().state;
+
+    return MaterialApp.router(
+      title: 'Spendo',
+      debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      routerConfig: _router,
+      locale: const Locale('ru'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
     );
   }
 }

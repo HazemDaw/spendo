@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:spendo/features/transactions/domain/entities/transaction.dart';
 
 import '../../../../core/mock/mock_data.dart';
+import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../bloc/transaction_bloc.dart';
@@ -16,7 +17,6 @@ import '../bloc/transaction_event.dart';
 import '../bloc/transaction_state.dart';
 import '../widgets/app_left_drawer.dart';
 import '../widgets/app_right_drawer.dart';
-import '../widgets/balance_bar.dart';
 import '../widgets/connector_lines_painter.dart';
 import '../widgets/donut_chart_widget.dart';
 import '../widgets/home_action_buttons.dart';
@@ -96,6 +96,24 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = context.watch<ThemeCubit>().state == ThemeMode.dark;
+    const Color headerBg = Color(0xFF7C3AED);
+    final Color canvasBg =
+        isDark ? const Color(0xFF1E1B2E) : const Color(0xFFF5F3FF);
+    const Color balanceBarBg = Color(0xFF7C3AED);
+    final Color textOnCanvas =
+        isDark ? Colors.white : const Color(0xFF1E1B4B);
+    final Color textSecondary =
+        isDark ? const Color(0xFFB0A8CC) : const Color(0xFF6B7280);
+    // ignore: unused_local_variable
+    const Color periodChipSelected = Color(0xFF7C3AED);
+    // ignore: unused_local_variable
+    final Color periodChipUnselected =
+        isDark ? const Color(0xFF2D2640) : Colors.transparent;
+    const Color periodChipLabelSelected = Colors.white;
+    // ignore: unused_local_variable
+    final Color periodChipLabelUnselected =
+        isDark ? Colors.white70 : const Color(0xFF7C3AED);
     final TransactionState transactionState = context.watch<TransactionBloc>().state;
     final DateTime now = DateTime.now();
     final DateTime oldestTransactionDate = _oldestTransactionDate(
@@ -155,7 +173,7 @@ class _HomePageState extends State<HomePage> {
           statusBarBrightness: Brightness.dark,
         ),
         child: Scaffold(
-          backgroundColor: const Color(0xFFF5F3FF),
+          backgroundColor: canvasBg,
           drawer: AppLeftDrawer(
             selectedPeriod: _selectedPeriod,
             currentPeriodLabel: selectedPeriodLabel,
@@ -175,9 +193,10 @@ class _HomePageState extends State<HomePage> {
                 child: Stack(
                   children: <Widget>[
                     const Positioned.fill(
-                      child: ColoredBox(
-                        color: Color.fromARGB(255, 252, 243, 255),
-                      ),
+                      child: SizedBox.shrink(),
+                    ),
+                    Positioned.fill(
+                      child: ColoredBox(color: canvasBg),
                     ),
                     const Positioned(
                       left: 0,
@@ -185,10 +204,13 @@ class _HomePageState extends State<HomePage> {
                       right: 0,
                       child: SizedBox(
                         height: 156,
-                        child: ColoredBox(color: Color(0xFF7C3AED)),
+                        child: ColoredBox(color: headerBg),
                       ),
                     ),
-                    _buildHeader(),
+                    _buildHeader(
+                      titleColor: periodChipLabelSelected,
+                      subtitleColor: textSecondary,
+                    ),
                     Positioned(
                       left: 0,
                       right: 0,
@@ -202,7 +224,7 @@ class _HomePageState extends State<HomePage> {
                               Icons.chevron_left,
                               color: isAtOldestBoundary
                                   ? Colors.transparent
-                                  : const Color(0xFF7C3AED),
+                                  : (isDark ? Colors.white54 : headerBg),
                               size: 28,
                             ),
                           ),
@@ -212,7 +234,7 @@ class _HomePageState extends State<HomePage> {
                             child: Text(
                               selectedPeriodLabel,
                               style: GoogleFonts.inter(
-                                color: const Color.fromARGB(255, 241, 234, 234),
+                                color: textOnCanvas,
                                 fontSize: 20,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -225,7 +247,7 @@ class _HomePageState extends State<HomePage> {
                               Icons.chevron_right,
                               color: isAtFutureBoundary
                                   ? Colors.transparent
-                                  : const Color(0xFF7C3AED),
+                                  : (isDark ? Colors.white54 : headerBg),
                               size: 28,
                             ),
                           ),
@@ -314,10 +336,11 @@ class _HomePageState extends State<HomePage> {
                       top: 1248,
                       child: Builder(
                         builder: (BuildContext scaffoldContext) {
-                          return BalanceBar(
+                          return _HomeBalanceBar(
                             balanceText: _formatSignedHomeAmount(
                               income - expense,
                             ),
+                            backgroundColor: balanceBarBg,
                             onTap: () => context.push(
                               '/all-transactions',
                               extra: allTransactions,
@@ -372,7 +395,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader({
+    required Color titleColor,
+    required Color subtitleColor,
+  }) {
     return Positioned(
       left: 20,
       right: 10,
@@ -399,7 +425,7 @@ class _HomePageState extends State<HomePage> {
               Text(
                 'Spendo',
                 style: GoogleFonts.parisienne(
-                  color: Colors.white,
+                  color: titleColor,
                   fontSize: 52,
                   fontWeight: FontWeight.w700,
                 ),
@@ -409,7 +435,7 @@ class _HomePageState extends State<HomePage> {
                 child: Text(
                   'All accounts',
                   style: GoogleFonts.inter(
-                    color: const Color(0xE6FFFFFF),
+                    color: subtitleColor,
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
                   ),
@@ -814,6 +840,117 @@ class _HomePageState extends State<HomePage> {
           ),
         );
     }
+  }
+}
+
+class _HomeBalanceBar extends StatelessWidget {
+  const _HomeBalanceBar({
+    required this.balanceText,
+    required this.backgroundColor,
+    this.onTap,
+    this.onMenuTap,
+  });
+
+  final String balanceText;
+  final Color backgroundColor;
+  final VoidCallback? onTap;
+  final VoidCallback? onMenuTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        _HomeBalanceHandle(color: backgroundColor),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 410,
+            height: 76,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: const Color(0x88764340),
+                width: 2,
+              ),
+              boxShadow: const <BoxShadow>[
+                BoxShadow(
+                  color: Color(0x332D2E2D),
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Text(
+              'Balance  $balanceText',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 30,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+        _HomeBalanceHandle(
+          color: backgroundColor,
+          onTap: onMenuTap,
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeBalanceHandle extends StatelessWidget {
+  const _HomeBalanceHandle({
+    required this.color,
+    this.onTap,
+  });
+
+  final Color color;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: SizedBox(
+        width: 76,
+        child: Column(
+          children: <Widget>[
+            _HomeHandleLine(width: 74, color: color),
+            const SizedBox(height: 8),
+            _HomeHandleLine(width: 58, color: color),
+            const SizedBox(height: 8),
+            _HomeHandleLine(width: 74, color: color),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeHandleLine extends StatelessWidget {
+  const _HomeHandleLine({
+    required this.width,
+    required this.color,
+  });
+
+  final double width;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: 3,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999),
+      ),
+    );
   }
 }
 

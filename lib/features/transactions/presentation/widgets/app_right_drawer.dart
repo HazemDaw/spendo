@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/theme_cubit.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
@@ -16,8 +17,6 @@ class AppRightDrawer extends StatefulWidget {
 }
 
 class _AppRightDrawerState extends State<AppRightDrawer> {
-  bool _darkMode = false;
-
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
@@ -53,17 +52,19 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
               ),
             ),
             const Divider(height: 1),
-            SwitchListTile(
-              secondary: const Icon(
-                Icons.dark_mode,
-                color: AppColors.primary,
-              ),
-              title: Text(l10n.drawerDarkTheme),
-              value: _darkMode,
-              onChanged: (bool value) {
-                setState(() => _darkMode = value);
+            BlocBuilder<ThemeCubit, ThemeMode>(
+              builder: (BuildContext context, ThemeMode themeMode) {
+                return SwitchListTile(
+                  secondary: const Icon(
+                    Icons.dark_mode,
+                    color: AppColors.primary,
+                  ),
+                  title: Text(l10n.drawerDarkTheme),
+                  value: themeMode == ThemeMode.dark,
+                  onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
+                  activeThumbColor: AppColors.primary,
+                );
               },
-              activeThumbColor: AppColors.primary,
             ),
             ListTile(
               leading: const Icon(

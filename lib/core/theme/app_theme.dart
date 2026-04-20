@@ -54,12 +54,19 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: colorScheme,
       textTheme: textTheme,
-      appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
-        foregroundColor: AppColors.textPrimary,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF7C3AED),
+        foregroundColor: Colors.white,
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        actionsIconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
-        titleTextStyle: textTheme.titleLarge,
+        titleTextStyle: TextStyle(
+          inherit: true,
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       cardTheme: CardThemeData(
         color: AppColors.surface,
@@ -89,10 +96,105 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          textStyle: textTheme.titleMedium,
+          textStyle: const TextStyle(
+            inherit: true,
+            fontSize: 16.0,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.0,
+          ),
         ),
       ),
       dividerColor: AppColors.divider,
+    );
+  }
+
+  static ThemeData get darkTheme {
+    final TextTheme baseTextTheme = ThemeData.dark().textTheme.copyWith(
+      labelLarge: const TextStyle(
+        inherit: true,
+        fontSize: 14.0,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.1,
+      ),
+      bodyMedium: const TextStyle(
+        inherit: true,
+        fontSize: 14.0,
+        fontWeight: FontWeight.w400,
+      ),
+      bodyLarge: const TextStyle(
+        inherit: true,
+        fontSize: 16.0,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+
+    final TextTheme textTheme = baseTextTheme.copyWith(
+      displaySmall: GoogleFonts.inter(
+        fontSize: 36,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+      ).copyWith(inherit: true),
+      titleLarge: GoogleFonts.inter(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+      ).copyWith(inherit: true),
+      titleMedium: GoogleFonts.inter(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ).copyWith(inherit: true),
+      bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+        inherit: true,
+        color: Colors.white,
+      ),
+      bodySmall: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: const Color(0xFFC4B5FD),
+      ).copyWith(inherit: true),
+      labelSmall: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: const Color(0xFFC4B5FD),
+      ).copyWith(inherit: true),
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: const Color(0xFF1E1B2E),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF2D2640),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        actionsIconTheme: IconThemeData(color: Colors.white),
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          inherit: true,
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.primary,
+        brightness: Brightness.dark,
+      ),
+      textTheme: textTheme,
+      cardColor: const Color(0xFF2D2640),
+      dividerColor: const Color(0xFF3D3560),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          textStyle: const TextStyle(
+            inherit: true,
+            fontSize: 16.0,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.0,
+          ),
+        ),
+      ),
     );
   }
 }

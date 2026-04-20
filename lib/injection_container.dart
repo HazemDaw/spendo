@@ -3,6 +3,7 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/theme/theme_cubit.dart';
 import 'features/auth/data/datasources/firebase_auth_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
@@ -112,6 +113,9 @@ Future<void> initDependencies() async {
   }
   if (!sl.isRegistered<PeriodCubit>()) {
     sl.registerFactory<PeriodCubit>(PeriodCubit.new);
+  }
+  if (!sl.isRegistered<ThemeCubit>()) {
+    sl.registerFactory<ThemeCubit>(() => ThemeCubit(sl<SharedPreferences>()));
   }
 }
 
