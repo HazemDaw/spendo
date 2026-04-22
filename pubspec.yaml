@@ -39,6 +39,9 @@ dependencies:
 
   # Utils
   intl: ^0.20.2
+  pdf: ^3.10.0
+  share_plus: ^7.2.0
+  csv: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -50,3 +53,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true   # enables l10n generation
+
+  assets:
+    - assets/fonts/Roboto-Regular.ttf

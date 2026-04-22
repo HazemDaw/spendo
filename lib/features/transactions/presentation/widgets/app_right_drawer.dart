@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import 'export_bottom_sheet.dart';
 
 class AppRightDrawer extends StatefulWidget {
   const AppRightDrawer({super.key});
@@ -73,11 +74,13 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
               ),
               title: Text(l10n.drawerExportData),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showPlaceholderDialog(
-                context,
-                message: l10n.featureComingSoonMessage,
-                okLabel: l10n.commonOk,
-              ),
+              onTap: () {
+                Navigator.pop(context);
+                showModalBottomSheet<void>(
+                  context: context,
+                  builder: (_) => const ExportBottomSheet(),
+                );
+              },
             ),
             const Divider(height: 1),
             BlocBuilder<AuthBloc, AuthState>(
