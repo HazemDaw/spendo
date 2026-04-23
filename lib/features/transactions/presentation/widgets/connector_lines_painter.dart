@@ -25,12 +25,11 @@ class ConnectorLinesPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = Colors.grey.withValues(alpha: 0.4)
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round;
-
     for (final OrbitConnector connector in connectors) {
+      final Paint paint = Paint()
+        ..color = connector.color.withValues(alpha: 0.6)
+        ..strokeWidth = 0.8
+        ..strokeCap = StrokeCap.round;
       canvas.drawLine(connector.start, connector.end, paint);
     }
   }

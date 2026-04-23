@@ -149,6 +149,7 @@ class _HomePageState extends State<HomePage> {
     final List<DonutCategorySlice> slices = _buildSlices(expenseTotals);
     final List<_OrbitNode> orbitNodes = _buildOrbitNodes(expenseTotals);
     final List<OrbitConnector> connectors = _buildConnectors(
+      slices: slices,
       orbitNodes: orbitNodes,
       startAngle: dynamicStartAngle,
     );
@@ -542,7 +543,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<DonutCategorySlice> _buildSlices(Map<String, double> totals) {
-    return _sliceOrder
+    final List<DonutCategorySlice> slices = _sliceOrder
         .where((String key) => (totals[key] ?? 0) > 0)
         .map(
           (String key) => DonutCategorySlice(
@@ -552,6 +553,12 @@ class _HomePageState extends State<HomePage> {
           ),
         )
         .toList();
+
+    slices.sort(
+      (DonutCategorySlice a, DonutCategorySlice b) =>
+          b.value.compareTo(a.value),
+    );
+    return slices;
   }
 
   List<_OrbitNode> _buildOrbitNodes(Map<String, double> totals) {
@@ -580,10 +587,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Map<String, _OrbitSlot> _assignSlots(Map<String, double> totals) {
-    final double total = _sliceOrder.fold<double>(
-      0,
-      (double sum, String key) => sum + (totals[key] ?? 0),
-    );
     const Map<_OrbitSlot, double> slotAngles = <_OrbitSlot, double>{
       _OrbitSlot.topCenter: -math.pi / 2,
       _OrbitSlot.topRight: -math.pi / 4,
@@ -594,6 +597,10 @@ class _HomePageState extends State<HomePage> {
       _OrbitSlot.left: math.pi,
       _OrbitSlot.topLeft: -3 * math.pi / 4,
     };
+    final double total = _sliceOrder.fold<double>(
+      0,
+      (double sum, String key) => sum + (totals[key] ?? 0),
+    );
 
     if (total <= 0) {
       return <String, _OrbitSlot>{
@@ -602,35 +609,41 @@ class _HomePageState extends State<HomePage> {
       };
     }
 
+    final List<String> sortedKeys = _sliceOrder
+        .where((String key) => (totals[key] ?? 0) > 0)
+        .toList()
+      ..sort(
+          (String a, String b) =>
+              (totals[b] ?? 0).compareTo(totals[a] ?? 0),
+        );
+
     double currentAngle = _computeStartAngle(totals) * math.pi / 180;
     final Map<String, double> segmentMidAngles = <String, double>{};
-    for (final String key in _sliceOrder) {
-      final double amount = totals[key] ?? 0;
-      if (amount <= 0) {
-        continue;
+    for (final String key in sortedKeys) {
+      final double sweep = ((totals[key] ?? 0) / total) * 2 * math.pi;
+      double midpointAngle = currentAngle + (sweep / 2);
+      while (midpointAngle > math.pi) {
+        midpointAngle -= 2 * math.pi;
       }
-      final double sweep = (amount / total) * 2 * math.pi;
-      segmentMidAngles[key] = currentAngle + (sweep / 2);
+      while (midpointAngle < -math.pi) {
+        midpointAngle += 2 * math.pi;
+      }
+      segmentMidAngles[key] = midpointAngle;
       currentAngle += sweep;
     }
 
     final Map<String, _OrbitSlot> assignment = <String, _OrbitSlot>{};
     final Set<_OrbitSlot> usedSlots = <_OrbitSlot>{};
-    final List<MapEntry<String, double>> sortedCategories =
-        segmentMidAngles.entries.toList()
-          ..sort(
-            (MapEntry<String, double> a, MapEntry<String, double> b) =>
-                a.value.compareTo(b.value),
-          );
 
-    for (final MapEntry<String, double> entry in sortedCategories) {
+    for (final String key in sortedKeys) {
+      final double segmentAngle = segmentMidAngles[key]!;
       _OrbitSlot? bestSlot;
       double bestDiff = double.infinity;
       for (final MapEntry<_OrbitSlot, double> slot in slotAngles.entries) {
         if (usedSlots.contains(slot.key)) {
           continue;
         }
-        double diff = (slot.value - entry.value).abs();
+        double diff = (slot.value - segmentAngle).abs();
         if (diff > math.pi) {
           diff = (2 * math.pi) - diff;
         }
@@ -640,22 +653,21 @@ class _HomePageState extends State<HomePage> {
         }
       }
       if (bestSlot != null) {
-        assignment[entry.key] = bestSlot;
+        assignment[key] = bestSlot;
         usedSlots.add(bestSlot);
       }
     }
 
-    for (final _OrbitAssignment defaultAssignment in _orbitAssignments) {
-      if (assignment.containsKey(defaultAssignment.categoryKey)) {
+    final List<_OrbitSlot> remainingSlots = slotAngles.keys
+        .where(( _OrbitSlot slot) => !usedSlots.contains(slot))
+        .toList();
+    int slotIndex = 0;
+    for (final _OrbitAssignment assignmentEntry in _orbitAssignments) {
+      if (assignment.containsKey(assignmentEntry.categoryKey)) {
         continue;
       }
-      for (final _OrbitSlot slot in slotAngles.keys) {
-        if (usedSlots.contains(slot)) {
-          continue;
-        }
-        assignment[defaultAssignment.categoryKey] = slot;
-        usedSlots.add(slot);
-        break;
+      if (slotIndex < remainingSlots.length) {
+        assignment[assignmentEntry.categoryKey] = remainingSlots[slotIndex++];
       }
     }
 
@@ -671,44 +683,79 @@ class _HomePageState extends State<HomePage> {
       return _donutStartAngle;
     }
 
-    const double targetMidAngle = -90.0 * (math.pi / 180);
-    final double sweep0 = ((totals[_sliceOrder[0]] ?? 0) / total) * 2 * math.pi;
+    String? largestKey;
+    double largestValue = 0;
+    for (final String key in _sliceOrder) {
+      final double value = totals[key] ?? 0;
+      if (value > largestValue) {
+        largestValue = value;
+        largestKey = key;
+      }
+    }
+    if (largestKey == null) {
+      return _donutStartAngle;
+    }
+
+    const double targetMidAngle = -math.pi / 2;
+    final double sweep0 = (largestValue / total) * 2 * math.pi;
     final double startAngleRadians = targetMidAngle - (sweep0 / 2);
     return startAngleRadians * (180 / math.pi);
   }
 
   List<OrbitConnector> _buildConnectors({
+    required List<DonutCategorySlice> slices,
     required List<_OrbitNode> orbitNodes,
     required double startAngle,
   }) {
-    final double currentAngle = startAngle * (math.pi / 180);
-    assert(currentAngle.isFinite);
+    if (slices.isEmpty) {
+      return const <OrbitConnector>[];
+    }
+
+    final Map<String, _OrbitNode> nodeByKey = <String, _OrbitNode>{
+      for (final _OrbitNode node in orbitNodes) node.categoryKey: node,
+    };
+    final double total = slices.fold<double>(
+      0,
+      (double sum, DonutCategorySlice slice) => sum + slice.value,
+    );
+
+    double currentAngle = startAngle * (math.pi / 180);
     final List<OrbitConnector> connectors = <OrbitConnector>[];
-    for (final _OrbitNode node in orbitNodes) {
-      if (!node.active) {
+    for (final DonutCategorySlice slice in slices) {
+      final _OrbitNode? node = nodeByKey[slice.categoryKey];
+      if (node == null || !node.active) {
+        currentAngle += (slice.value / total) * 2 * math.pi;
         continue;
       }
 
-      final Offset direction = _chartCenter - node.position;
+      final double sweep = (slice.value / total) * 2 * math.pi;
+      final double midAngle = currentAngle + sweep / 2;
+      final Offset segmentEdge = Offset(
+        _chartCenter.dx + math.cos(midAngle) * _donutOuterRadius,
+        _chartCenter.dy + math.sin(midAngle) * _donutOuterRadius,
+      );
+
+      final Offset direction = segmentEdge - node.position;
       final double distance = direction.distance;
       if (distance == 0) {
+        currentAngle += sweep;
         continue;
       }
       final Offset normalized = direction / distance;
-      final Offset lineStart = node.position + (normalized * 60);
-      final Offset lineEnd = _chartCenter - (normalized * _donutOuterRadius);
+      final Offset lineStart = node.position + (normalized * 55);
 
       assert(_routeRadiusFor(node.slot) >= 0);
 
-      connectors.add(
-        OrbitConnector(
-          start: lineStart,
-          end: lineEnd,
-          color: Colors.grey,
-          chartCenter: _chartCenter,
-          routeRadius: 0,
-        ),
-      );
+        connectors.add(
+          OrbitConnector(
+            start: lineStart,
+            end: segmentEdge,
+            color: node.color,
+            chartCenter: _chartCenter,
+            routeRadius: 0,
+          ),
+        );
+      currentAngle += sweep;
     }
     return connectors;
   }
