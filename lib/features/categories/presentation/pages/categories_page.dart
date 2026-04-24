@@ -6,7 +6,9 @@ import '../../../../core/utils/category_localizer.dart';
 import '../../../../injection_container.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/custom_category_store.dart';
+import '../../data/datasources/orbit_slot_datasource.dart';
 import '../../data/models/custom_category_model.dart';
+import '../../data/models/orbit_slot_model.dart';
 import '../../domain/entities/category.dart';
 
 class CategoriesPage extends StatefulWidget {
@@ -31,26 +33,15 @@ class _CategoriesPageState extends State<CategoriesPage> {
     Icons.movie,
     Icons.beach_access,
   ];
-  static const Set<String> _builtInCategoryKeys = <String>{
-    'food',
-    'transport',
-    'housing',
-    'health',
-    'clothing',
-    'entertainment',
-    'communication',
-    'sport',
-  };
 
   final CustomCategoryStore _categoryStore = sl<CustomCategoryStore>();
+  final OrbitSlotDatasource _orbitSlotDatasource = sl<OrbitSlotDatasource>();
 
   bool _isLoading = true;
 
-  List<Category> get _builtInCategories {
-    return MockData.categories
-        .where((Category category) => _builtInCategoryKeys.contains(category.key))
-        .toList();
-  }
+  List<Category> get _builtInCategories => defaultOrbitSlotCategoryKeys
+      .map((String key) => MockData.categoryByKey(key)!)
+      .toList();
 
   @override
   void initState() {
@@ -93,8 +84,22 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   children: <Widget>[
-                    const _SectionHeader(title: 'Встроенные'),
-                    ..._builtInCategories.map(_buildBuiltInTile),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+                      child: Text(
+                        'Встроенные (нажмите чтобы заменить)',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    ..._builtInCategories.asMap().entries.map(
+                      (MapEntry<int, Category> entry) => _buildBuiltInTile(
+                        entry.value,
+                        entry.key,
+                      ),
+                    ),
                     const SizedBox(height: 20),
                     const _SectionHeader(title: 'Пользовательские'),
                     if (customCategories.isEmpty)
@@ -115,7 +120,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
     );
   }
 
-  Widget _buildBuiltInTile(Category category) {
+  Widget _buildBuiltInTile(Category category, int slotIndex) {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: category.color.withValues(alpha: 0.15),
@@ -123,10 +128,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
       ),
       title: Text(CategoryLocalizer.label(_l10n, category)),
       trailing: const Icon(
-        Icons.lock_outline,
-        color: AppColors.textSecondary,
-        size: 18,
+        Icons.swap_horiz,
+        color: AppColors.primary,
       ),
+      onTap: () => _showSwapDialog(slotIndex, category),
     );
   }
 
@@ -185,8 +190,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
     String? existingId,
   }) async {
     final CustomCategoryModel model = CustomCategoryModel()
-      ..id = existingId ??
-          'custom_${DateTime.now().microsecondsSinceEpoch}'
+      ..id = existingId ?? 'custom_${DateTime.now().microsecondsSinceEpoch}'
       ..label = result.label
       ..colorValue = result.color.toARGB32()
       ..iconCodePoint = result.icon.codePoint
@@ -230,12 +234,130 @@ class _CategoriesPageState extends State<CategoriesPage> {
       return;
     }
 
+    final bool affectsOrbit = (await _orbitSlotDatasource.getSlots()).any(
+      (OrbitSlotModel slot) => slot.isCustom && slot.categoryKey == category.id,
+    );
     await _categoryStore.delete(category.id);
+    await _orbitSlotDatasource.getSlots();
     if (!mounted) {
       return;
     }
 
+    if (affectsOrbit) {
+      Navigator.pop(context, 'updated');
+      return;
+    }
+
     setState(() {});
+  }
+
+  Future<void> _showSwapDialog(int slotIndex, Category currentCategory) async {
+    final List<CustomCategoryModel> customCategories = _categoryStore.models;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: SizedBox(
+              height: 420,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    "Заменить '${CategoryLocalizer.label(_l10n, currentCategory)}'",
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Выберите пользовательскую категорию',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: customCategories.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'Нет пользовательских категорий.\nСоздайте их с помощью кнопки +',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          )
+                        : ListView(
+                            children: customCategories.map(
+                              (CustomCategoryModel category) {
+                                final Color color = Color(category.colorValue);
+                                final IconData icon = IconData(
+                                  category.iconCodePoint,
+                                  fontFamily: category.fontFamily,
+                                );
+
+                                return ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor:
+                                        color.withValues(alpha: 0.15),
+                                    child: Icon(
+                                      icon,
+                                      color: color,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  title: Text(category.label),
+                                  trailing: const Icon(
+                                    Icons.arrow_forward,
+                                    color: AppColors.primary,
+                                  ),
+                                  onTap: () async {
+                                    await _orbitSlotDatasource.setSlot(
+                                      slotIndex,
+                                      category.id,
+                                      true,
+                                    );
+                                    if (!mounted ||
+                                        !sheetContext.mounted ||
+                                        !context.mounted) {
+                                      return;
+                                    }
+                                    setState(() {});
+                                    Navigator.pop(sheetContext);
+                                    Navigator.pop(context, 'updated');
+                                  },
+                                );
+                              },
+                            ).toList(),
+                          ),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(
+                      Icons.restore,
+                      color: AppColors.textSecondary,
+                    ),
+                    title: const Text('Восстановить по умолчанию'),
+                    onTap: () async {
+                      await _orbitSlotDatasource.resetSlot(slotIndex);
+                      if (!mounted ||
+                          !sheetContext.mounted ||
+                          !context.mounted) {
+                        return;
+                      }
+                      setState(() {});
+                      Navigator.pop(sheetContext);
+                      Navigator.pop(context, 'updated');
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<_CategoryDialogResult?> _showCategoryDialog({
@@ -261,92 +383,91 @@ class _CategoriesPageState extends State<CategoriesPage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
+              scrollable: true,
               title: Text(
                 initialCategory == null ? 'Новая категория' : 'Редактировать',
               ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    TextField(
-                      controller: controller,
-                      decoration: InputDecoration(
-                        labelText: 'Название',
-                        errorText: errorText,
-                      ),
-                      textInputAction: TextInputAction.done,
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  TextField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      labelText: 'Название',
+                      errorText: errorText,
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Цвет:',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: AppColors.categoryPalette.map((Color color) {
-                        final bool isSelected =
-                            color.toARGB32() == selectedColor.toARGB32();
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(999),
+                    textInputAction: TextInputAction.done,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Цвет:',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: AppColors.categoryPalette.map((Color color) {
+                      final bool isSelected =
+                          color.toARGB32() == selectedColor.toARGB32();
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(999),
+                        onTap: () {
+                          setState(() {
+                            selectedColor = color;
+                          });
+                        },
+                        child: CircleAvatar(
+                          backgroundColor: color,
+                          child: isSelected
+                              ? const Icon(Icons.check, color: Colors.white)
+                              : null,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Иконка:',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _iconChoices.map((IconData icon) {
+                      final bool isSelected =
+                          icon.codePoint == selectedIcon.codePoint;
+                      return SizedBox(
+                        width: 52,
+                        height: 52,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
                           onTap: () {
                             setState(() {
-                              selectedColor = color;
+                              selectedIcon = icon;
                             });
                           },
-                          child: CircleAvatar(
-                            backgroundColor: color,
-                            child: isSelected
-                                ? const Icon(Icons.check, color: Colors.white)
-                                : null,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Иконка:',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _iconChoices.map((IconData icon) {
-                        final bool isSelected =
-                            icon.codePoint == selectedIcon.codePoint;
-                        return SizedBox(
-                          width: 52,
-                          height: 52,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () {
-                              setState(() {
-                                selectedIcon = icon;
-                              });
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : AppColors.divider,
-                                ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
                                 color: isSelected
-                                    ? AppColors.primaryLight
-                                    : Colors.transparent,
+                                    ? AppColors.primary
+                                    : AppColors.divider,
                               ),
-                              child: Icon(icon, color: selectedColor),
+                              color: isSelected
+                                  ? AppColors.primaryLight
+                                  : Colors.transparent,
                             ),
+                            child: Icon(icon, color: selectedColor),
                           ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
               actions: <Widget>[
                 TextButton(

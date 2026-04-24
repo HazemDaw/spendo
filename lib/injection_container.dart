@@ -11,6 +11,7 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/categories/data/custom_category_store.dart';
 import 'features/categories/data/datasources/custom_category_local_datasource.dart';
 import 'features/categories/data/datasources/custom_category_remote_datasource.dart';
+import 'features/categories/data/datasources/orbit_slot_datasource.dart';
 import 'features/categories/data/models/custom_category_model.dart';
 import 'features/budget/data/datasources/budget_local_datasource.dart';
 import 'features/budget/data/models/budget_model.dart';
@@ -72,6 +73,15 @@ Future<void> initDependencies() async {
   if (!sl.isRegistered<CustomCategoryLocalDatasource>()) {
     sl.registerLazySingleton<CustomCategoryLocalDatasource>(
       () => CustomCategoryLocalDatasourceImpl(sl()),
+    );
+  }
+
+  if (!sl.isRegistered<OrbitSlotDatasource>()) {
+    sl.registerLazySingleton<OrbitSlotDatasource>(
+      () => OrbitSlotDatasourceImpl(
+        sharedPreferences: sl(),
+        customCategoryDatasource: sl(),
+      ),
     );
   }
 

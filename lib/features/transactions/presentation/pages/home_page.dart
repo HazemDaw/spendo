@@ -13,6 +13,11 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/utils/category_localizer.dart';
 import '../../../../core/utils/date_utils.dart';
+import '../../../../injection_container.dart';
+import '../../../categories/data/datasources/custom_category_local_datasource.dart';
+import '../../../categories/data/datasources/orbit_slot_datasource.dart';
+import '../../../categories/data/models/custom_category_model.dart';
+import '../../../categories/data/models/orbit_slot_model.dart';
 import '../../../budget/domain/entities/budget.dart';
 import '../../../budget/presentation/bloc/budget_bloc.dart';
 import '../../../budget/presentation/bloc/budget_state.dart';
@@ -49,55 +54,136 @@ class _HomePageState extends State<HomePage> {
     symbol: 'RUB',
     decimalDigits: 2,
   );
-  static const List<String> _sliceOrder = <String>[
-    'clothing',
-    'communication',
-    'housing',
-    'transport',
-    'food',
-    'sport',
-    'health',
-    'entertainment',
-  ];
-  static const List<_OrbitAssignment> _orbitAssignments =
+  static const List<_OrbitAssignment> _defaultOrbitAssignments =
       <_OrbitAssignment>[
         _OrbitAssignment(
+          slotIndex: 0,
           categoryKey: 'entertainment',
           slot: _OrbitSlot.topLeft,
+          isCustom: false,
         ),
         _OrbitAssignment(
+          slotIndex: 1,
           categoryKey: 'clothing',
           slot: _OrbitSlot.topCenter,
+          isCustom: false,
         ),
         _OrbitAssignment(
+          slotIndex: 2,
           categoryKey: 'communication',
           slot: _OrbitSlot.topRight,
+          isCustom: false,
         ),
         _OrbitAssignment(
+          slotIndex: 3,
           categoryKey: 'housing',
           slot: _OrbitSlot.right,
+          isCustom: false,
         ),
         _OrbitAssignment(
+          slotIndex: 4,
           categoryKey: 'transport',
           slot: _OrbitSlot.bottomRight,
+          isCustom: false,
         ),
         _OrbitAssignment(
+          slotIndex: 5,
           categoryKey: 'food',
           slot: _OrbitSlot.bottomCenter,
+          isCustom: false,
         ),
         _OrbitAssignment(
+          slotIndex: 6,
           categoryKey: 'sport',
           slot: _OrbitSlot.bottomLeft,
+          isCustom: false,
         ),
         _OrbitAssignment(
+          slotIndex: 7,
           categoryKey: 'health',
           slot: _OrbitSlot.left,
+          isCustom: false,
         ),
       ];
 
   TransactionPeriod _selectedPeriod = TransactionPeriod.month;
   DateTime _referenceDate = DateTime.now();
   double _slideDirection = 0;
+  List<_OrbitAssignment> _orbitAssignments =
+      List<_OrbitAssignment>.from(_defaultOrbitAssignments);
+  Map<String, CustomCategoryModel> _customOrbitCategories =
+      <String, CustomCategoryModel>{};
+
+  List<String> get _sliceOrder => _orbitAssignments
+      .map(( _OrbitAssignment assignment) => assignment.categoryKey)
+      .toList();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrbitSlots();
+  }
+
+  Future<void> _loadOrbitSlots() async {
+    final List<OrbitSlotModel> slots = await sl<OrbitSlotDatasource>().getSlots();
+    final CustomCategoryLocalDatasource customCategoryDatasource =
+        sl<CustomCategoryLocalDatasource>();
+    final List<_OrbitAssignment> mappedAssignments = <_OrbitAssignment>[];
+    final Map<String, CustomCategoryModel> customCategories =
+        <String, CustomCategoryModel>{};
+
+    for (final OrbitSlotModel slot in slots) {
+      final _OrbitAssignment defaultAssignment =
+          _defaultOrbitAssignments[slot.slotIndex];
+      if (slot.isCustom) {
+        final CustomCategoryModel? customCategory =
+            await customCategoryDatasource.getById(slot.categoryKey);
+        if (customCategory == null) {
+          await sl<OrbitSlotDatasource>().resetSlot(slot.slotIndex);
+          mappedAssignments.add(defaultAssignment);
+          continue;
+        }
+
+        customCategories[customCategory.id] = customCategory;
+        mappedAssignments.add(
+          _OrbitAssignment(
+            slotIndex: slot.slotIndex,
+            categoryKey: customCategory.id,
+            slot: defaultAssignment.slot,
+            isCustom: true,
+          ),
+        );
+        continue;
+      }
+
+      mappedAssignments.add(
+        _OrbitAssignment(
+          slotIndex: slot.slotIndex,
+          categoryKey: slot.categoryKey,
+          slot: defaultAssignment.slot,
+          isCustom: false,
+        ),
+      );
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _orbitAssignments = mappedAssignments;
+      _customOrbitCategories = customCategories;
+    });
+  }
+
+  Future<void> _openCategoriesPage() async {
+    final Object? result = await context.push('/categories');
+    if (!mounted || result != 'updated') {
+      return;
+    }
+
+    await _loadOrbitSlots();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -187,7 +273,7 @@ class _HomePageState extends State<HomePage> {
             onPeriodSelected: _selectPeriod,
           ),
           drawerEnableOpenDragGesture: false,
-          endDrawer: const AppRightDrawer(),
+          endDrawer: AppRightDrawer(onCategoriesTap: _openCategoriesPage),
           endDrawerEnableOpenDragGesture: false,
           body: Align(
             alignment: Alignment.topCenter,
@@ -563,7 +649,7 @@ class _HomePageState extends State<HomePage> {
           (String key) => DonutCategorySlice(
             categoryKey: key,
             value: totals[key]!,
-            color: MockData.categoryByKey(key)!.color,
+            color: _colorForOrbitCategory(key),
           ),
         )
         .toList();
@@ -581,11 +667,29 @@ class _HomePageState extends State<HomePage> {
       (double sum, double value) => sum + value,
     );
     final Map<String, _OrbitSlot> slotAssignment = _assignSlots(totals);
-    return _orbitAssignments.map((_OrbitAssignment assignment) {
+    return _orbitAssignments.map(
+      (_OrbitAssignment assignment) => _buildNodeForSlot(
+        assignment,
+        slotAssignment,
+        totals,
+        totalExpense,
+      ),
+    ).toList();
+  }
+
+  _OrbitNode _buildNodeForSlot(
+    _OrbitAssignment assignment,
+    Map<String, _OrbitSlot> slotAssignment,
+    Map<String, double> totals,
+    double totalExpense,
+  ) {
+    final _OrbitSlot slot =
+        slotAssignment[assignment.categoryKey] ?? assignment.slot;
+
+    if (!assignment.isCustom) {
       final category = MockData.categoryByKey(assignment.categoryKey)!;
-      final _OrbitSlot slot =
-          slotAssignment[assignment.categoryKey] ?? assignment.slot;
       final bool active = (totals[assignment.categoryKey] ?? 0) > 0;
+
       return _OrbitNode(
         position: _slotPosition(slot),
         slot: slot,
@@ -597,7 +701,48 @@ class _HomePageState extends State<HomePage> {
             : null,
         active: active,
       );
-    }).toList();
+    }
+
+    final CustomCategoryModel? customCategory =
+        _customOrbitCategories[assignment.categoryKey];
+    if (customCategory == null) {
+      final _OrbitAssignment fallbackAssignment =
+          _defaultOrbitAssignments[assignment.slotIndex];
+      return _buildNodeForSlot(
+        fallbackAssignment,
+        slotAssignment,
+        totals,
+        totalExpense,
+      );
+    }
+
+    final bool active = (totals[customCategory.id] ?? 0) > 0;
+    return _OrbitNode(
+      position: _slotPosition(slot),
+      slot: slot,
+      icon: IconData(
+        customCategory.iconCodePoint,
+        fontFamily: customCategory.fontFamily,
+      ),
+      color: Color(customCategory.colorValue),
+      categoryKey: customCategory.id,
+      label: active ? _percentLabel(totals, totalExpense, customCategory.id) : null,
+      active: active,
+    );
+  }
+
+  Color _colorForOrbitCategory(String categoryKey) {
+    final category = MockData.categoryByKey(categoryKey);
+    if (category != null) {
+      return category.color;
+    }
+
+    final CustomCategoryModel? customCategory = _customOrbitCategories[categoryKey];
+    if (customCategory != null) {
+      return Color(customCategory.colorValue);
+    }
+
+    return AppColors.primary;
   }
 
   Map<String, _OrbitSlot> _assignSlots(Map<String, double> totals) {
@@ -1225,12 +1370,16 @@ class _OrbitNode {
 
 class _OrbitAssignment {
   const _OrbitAssignment({
+    required this.slotIndex,
     required this.categoryKey,
     required this.slot,
+    required this.isCustom,
   });
 
+  final int slotIndex;
   final String categoryKey;
   final _OrbitSlot slot;
+  final bool isCustom;
 }
 
 enum _OrbitSlot {

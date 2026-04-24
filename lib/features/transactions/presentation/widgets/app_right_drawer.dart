@@ -11,7 +11,12 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 import 'export_bottom_sheet.dart';
 
 class AppRightDrawer extends StatefulWidget {
-  const AppRightDrawer({super.key});
+  const AppRightDrawer({
+    super.key,
+    this.onCategoriesTap,
+  });
+
+  final Future<void> Function()? onCategoriesTap;
 
   @override
   State<AppRightDrawer> createState() => _AppRightDrawerState();
@@ -46,8 +51,15 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
               leading: const Icon(Icons.label, color: AppColors.primary),
               title: Text(l10n.drawerCategories),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
+                if (widget.onCategoriesTap != null) {
+                  await widget.onCategoriesTap!();
+                  return;
+                }
+                if (!context.mounted) {
+                  return;
+                }
                 context.push('/categories');
               },
             ),
