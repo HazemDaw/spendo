@@ -11,6 +11,9 @@ import 'core/utils/date_utils.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/pages/login_page.dart';
+import 'features/budget/presentation/bloc/budget_bloc.dart';
+import 'features/budget/presentation/bloc/budget_event.dart';
+import 'features/budget/presentation/pages/budget_page.dart';
 import 'features/transactions/domain/entities/transaction.dart';
 import 'features/transactions/presentation/bloc/transaction_bloc.dart';
 import 'features/transactions/presentation/bloc/transaction_event.dart';
@@ -48,6 +51,15 @@ class SpendoApp extends StatelessWidget {
           BlocProvider<TransactionBloc>(
             create: (_) => sl<TransactionBloc>()
               ..add(const LoadTransactionsEvent(TransactionPeriod.month)),
+          ),
+          BlocProvider<BudgetBloc>(
+            create: (_) => sl<BudgetBloc>()
+              ..add(
+                LoadBudgetsEvent(
+                  month: DateTime.now().month,
+                  year: DateTime.now().year,
+                ),
+              ),
           ),
         ],
         child: const _SpendoMaterialApp(),
@@ -129,6 +141,11 @@ final GoRouter _router = GoRouter(
           initialTransactions: initialTransactions,
         );
       },
+    ),
+    GoRoute(
+      path: '/budget',
+      name: 'budget',
+      builder: (BuildContext context, GoRouterState state) => const BudgetPage(),
     ),
     GoRoute(
       path: '/login',

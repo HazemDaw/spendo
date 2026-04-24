@@ -9,8 +9,13 @@ import 'package:intl/intl.dart';
 import 'package:spendo/features/transactions/domain/entities/transaction.dart';
 
 import '../../../../core/mock/mock_data.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_cubit.dart';
+import '../../../../core/utils/category_localizer.dart';
 import '../../../../core/utils/date_utils.dart';
+import '../../../budget/domain/entities/budget.dart';
+import '../../../budget/presentation/bloc/budget_bloc.dart';
+import '../../../budget/presentation/bloc/budget_state.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../bloc/transaction_bloc.dart';
 import '../bloc/transaction_event.dart';
@@ -254,6 +259,15 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                    Positioned(
+                      left: 32,
+                      right: 32,
+                      top: 176,
+                      child: _buildBudgetWarningBanner(
+                        expenseTotals: expenseTotals,
+                        totalSpent: expense,
                       ),
                     ),
                     Positioned.fill(
@@ -806,6 +820,99 @@ class _HomePageState extends State<HomePage> {
       _OrbitSlot.bottomRight ||
       _OrbitSlot.bottomLeft => _donutOuterRadius + 86,
     };
+  }
+
+  Widget _buildBudgetWarningBanner({
+    required Map<String, double> expenseTotals,
+    required double totalSpent,
+  }) {
+    return BlocBuilder<BudgetBloc, BudgetState>(
+      builder: (BuildContext context, BudgetState state) {
+        if (state is! BudgetLoaded) {
+          return const SizedBox.shrink();
+        }
+
+        final List<String> exceededLabels = <String>[];
+        final List<String> warningLabels = <String>[];
+        for (final Budget budget in state.budgets) {
+          if (budget.limitAmount <= 0) {
+            continue;
+          }
+
+          final double spent = budget.isTotalBudget
+              ? totalSpent
+              : (expenseTotals[budget.categoryKey] ?? 0);
+          if (spent >= budget.limitAmount) {
+            exceededLabels.add(_budgetWarningLabel(context, budget.categoryKey));
+          } else if (spent >= budget.limitAmount * 0.8) {
+            warningLabels.add(_budgetWarningLabel(context, budget.categoryKey));
+          }
+        }
+
+        if (exceededLabels.isEmpty && warningLabels.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final bool isExceeded = exceededLabels.isNotEmpty;
+        final String warningMessage = isExceeded
+            ? 'Превышен бюджет: ${exceededLabels.join(', ')}'
+            : 'Близко к лимиту: ${warningLabels.join(', ')}';
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isExceeded
+                ? AppColors.expenseLight
+                : const Color(0xFFFFF3CD),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isExceeded ? AppColors.expense : Colors.orange,
+            ),
+          ),
+          child: Row(
+            children: <Widget>[
+              Icon(
+                isExceeded ? Icons.warning : Icons.info_outline,
+                color: isExceeded ? AppColors.expense : Colors.orange,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  warningMessage,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => context.push('/budget'),
+                child: const Text(
+                  'Подробнее',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _budgetWarningLabel(BuildContext context, String? categoryKey) {
+    if (categoryKey == null) {
+      return 'общий';
+    }
+
+    final category = MockData.categoryByKey(categoryKey);
+    if (category == null) {
+      return categoryKey;
+    }
+
+    return CategoryLocalizer.label(AppLocalizations.of(context)!, category);
   }
 
   String? _percentLabel(

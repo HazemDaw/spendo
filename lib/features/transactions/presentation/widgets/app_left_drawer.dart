@@ -168,11 +168,10 @@ class AppLeftDrawer extends StatelessWidget {
                     ),
                     title: Text(l10n.drawerBudget),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _showPlaceholderDialog(
-                      context,
-                      message: l10n.featureComingSoonMessage,
-                      okLabel: l10n.commonOk,
-                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push('/budget');
+                    },
                   ),
                 ],
               ),

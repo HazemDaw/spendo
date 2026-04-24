@@ -8,6 +8,14 @@ import 'features/auth/data/datasources/firebase_auth_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/budget/data/datasources/budget_local_datasource.dart';
+import 'features/budget/data/models/budget_model.dart';
+import 'features/budget/data/repositories/budget_repository_impl.dart';
+import 'features/budget/domain/repositories/budget_repository.dart';
+import 'features/budget/domain/usecases/delete_budget.dart';
+import 'features/budget/domain/usecases/get_budgets.dart';
+import 'features/budget/domain/usecases/set_budget.dart';
+import 'features/budget/presentation/bloc/budget_bloc.dart';
 import 'features/transactions/data/datasources/transaction_local_datasource.dart';
 import 'features/transactions/data/datasources/transaction_remote_datasource.dart';
 import 'features/transactions/data/models/transaction_model.dart';
@@ -29,7 +37,10 @@ Future<void> initDependencies() async {
   if (!sl.isRegistered<Isar>()) {
     final directory = await getApplicationDocumentsDirectory();
     final isar = await Isar.open(
-      <CollectionSchema<dynamic>>[TransactionModelSchema],
+      <CollectionSchema<dynamic>>[
+        TransactionModelSchema,
+        BudgetModelSchema,
+      ],
       directory: directory.path,
     );
     sl.registerSingleton<Isar>(isar);
@@ -44,6 +55,12 @@ Future<void> initDependencies() async {
   if (!sl.isRegistered<TransactionLocalDatasource>()) {
     sl.registerLazySingleton<TransactionLocalDatasource>(
       () => TransactionLocalDatasourceImpl(sl()),
+    );
+  }
+
+  if (!sl.isRegistered<BudgetLocalDatasource>()) {
+    sl.registerLazySingleton<BudgetLocalDatasource>(
+      () => BudgetLocalDatasourceImpl(sl()),
     );
   }
 
@@ -75,6 +92,12 @@ Future<void> initDependencies() async {
     );
   }
 
+  if (!sl.isRegistered<BudgetRepository>()) {
+    sl.registerLazySingleton<BudgetRepository>(
+      () => BudgetRepositoryImpl(localDatasource: sl()),
+    );
+  }
+
   if (!sl.isRegistered<AddTransaction>()) {
     sl.registerLazySingleton<AddTransaction>(() => AddTransaction(sl()));
     sl.registerLazySingleton<GetTransactionsByPeriod>(
@@ -88,6 +111,12 @@ Future<void> initDependencies() async {
     sl.registerLazySingleton<DeleteTransaction>(() => DeleteTransaction(sl()));
   }
 
+  if (!sl.isRegistered<GetBudgets>()) {
+    sl.registerLazySingleton<GetBudgets>(() => GetBudgets(sl()));
+    sl.registerLazySingleton<SetBudget>(() => SetBudget(sl()));
+    sl.registerLazySingleton<DeleteBudget>(() => DeleteBudget(sl()));
+  }
+
   if (!sl.isRegistered<TransactionBloc>()) {
     sl.registerFactory<TransactionBloc>(
       () => TransactionBloc(
@@ -95,6 +124,15 @@ Future<void> initDependencies() async {
         getTransactionsByPeriod: sl(),
         updateTransaction: sl(),
         deleteTransaction: sl(),
+      ),
+    );
+  }
+  if (!sl.isRegistered<BudgetBloc>()) {
+    sl.registerFactory<BudgetBloc>(
+      () => BudgetBloc(
+        getBudgets: sl(),
+        setBudget: sl(),
+        deleteBudget: sl(),
       ),
     );
   }
