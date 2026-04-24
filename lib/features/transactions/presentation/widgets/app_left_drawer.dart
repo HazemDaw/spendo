@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../bloc/transaction_bloc.dart';
+import '../bloc/transaction_state.dart';
 
 class AppLeftDrawer extends StatelessWidget {
   const AppLeftDrawer({
@@ -155,11 +158,61 @@ class AppLeftDrawer extends StatelessWidget {
                     ),
                     title: Text(l10n.drawerAllAccounts),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _showPlaceholderDialog(
-                      context,
-                      message: l10n.featureComingSoonMessage,
-                      okLabel: l10n.commonOk,
-                    ),
+                    onTap: () {
+                      final TransactionState state =
+                          context.read<TransactionBloc>().state;
+                      final double income = state is TransactionLoaded
+                          ? state.totalIncome
+                          : 0;
+                      final double expense = state is TransactionLoaded
+                          ? state.totalExpense
+                          : 0;
+                      final int count = state is TransactionLoaded
+                          ? state.transactions.length
+                          : 0;
+                      final double balance = income - expense;
+
+                      Navigator.pop(context);
+                      showDialog<void>(
+                        context: context,
+                        builder: (BuildContext dialogContext) => AlertDialog(
+                          title: const Text('Личный счёт'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              _AccountRow('Доходы', income, AppColors.income),
+                              _AccountRow(
+                                'Расходы',
+                                expense,
+                                AppColors.expense,
+                              ),
+                              const Divider(),
+                              _AccountRow(
+                                'Баланс',
+                                balance,
+                                balance >= 0
+                                    ? AppColors.income
+                                    : AppColors.expense,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Транзакций: $count',
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(),
+                              child: const Text('Закрыть'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                   ListTile(
                     leading: const Icon(
@@ -212,25 +265,32 @@ class AppLeftDrawer extends StatelessWidget {
       TransactionPeriod.month => l10n.periodMonth,
     };
   }
+}
 
-  Future<void> _showPlaceholderDialog(
-    BuildContext context, {
-    required String message,
-    required String okLabel,
-  }) {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(okLabel),
+class _AccountRow extends StatelessWidget {
+  const _AccountRow(this.label, this.amount, this.color);
+
+  final String label;
+  final double amount;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(label),
+          Text(
+            CurrencyFormatter.format(amount),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
     );
   }
 }
