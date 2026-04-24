@@ -3,10 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/mock/mock_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_localizer.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../categories/data/custom_category_access.dart';
+import '../../../categories/data/custom_category_store.dart';
+import '../../../categories/domain/entities/category.dart';
 import '../../domain/entities/transaction.dart';
 import '../bloc/keypad_cubit.dart';
 import '../bloc/transaction_bloc.dart';
@@ -34,6 +36,7 @@ class AddTransactionPage extends StatefulWidget {
 class _AddTransactionPageState extends State<AddTransactionPage> {
   final TextEditingController _noteController = TextEditingController();
   late final KeypadCubit _keypadCubit = KeypadCubit();
+  final CustomCategoryStore? _categoryStore = maybeCustomCategoryStore();
 
   DateTime _selectedDate = DateTime.now();
   String? _selectedCategoryKey;
@@ -62,6 +65,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       return;
     }
 
+    _categoryStore?.ensureLoaded();
     _selectedCategoryKey = widget.initialCategoryKey;
     if (_isEditMode) {
       final TransactionState state = context.read<TransactionBloc>().state;
@@ -84,7 +88,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final TransactionState transactionState = context.watch<TransactionBloc>().state;
-    final category = MockData.categoryByKey(_selectedCategoryKey);
+    final Category? category =
+        _categoryStore?.resolveCategory(_selectedCategoryKey);
     final bool isResolvingEditTransaction =
         _isEditMode &&
         _editingTransaction == null &&

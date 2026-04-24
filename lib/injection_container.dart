@@ -8,6 +8,10 @@ import 'features/auth/data/datasources/firebase_auth_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/categories/data/custom_category_store.dart';
+import 'features/categories/data/datasources/custom_category_local_datasource.dart';
+import 'features/categories/data/datasources/custom_category_remote_datasource.dart';
+import 'features/categories/data/models/custom_category_model.dart';
 import 'features/budget/data/datasources/budget_local_datasource.dart';
 import 'features/budget/data/models/budget_model.dart';
 import 'features/budget/data/repositories/budget_repository_impl.dart';
@@ -40,6 +44,7 @@ Future<void> initDependencies() async {
       <CollectionSchema<dynamic>>[
         TransactionModelSchema,
         BudgetModelSchema,
+        CustomCategoryModelSchema,
       ],
       directory: directory.path,
     );
@@ -64,9 +69,21 @@ Future<void> initDependencies() async {
     );
   }
 
+  if (!sl.isRegistered<CustomCategoryLocalDatasource>()) {
+    sl.registerLazySingleton<CustomCategoryLocalDatasource>(
+      () => CustomCategoryLocalDatasourceImpl(sl()),
+    );
+  }
+
   if (!sl.isRegistered<TransactionRemoteDatasource>()) {
     sl.registerLazySingleton<TransactionRemoteDatasource>(
       FirestoreTransactionDatasource.new,
+    );
+  }
+
+  if (!sl.isRegistered<CustomCategoryRemoteDatasource>()) {
+    sl.registerLazySingleton<CustomCategoryRemoteDatasource>(
+      FirestoreCustomCategoryDatasource.new,
     );
   }
 
@@ -95,6 +112,16 @@ Future<void> initDependencies() async {
   if (!sl.isRegistered<BudgetRepository>()) {
     sl.registerLazySingleton<BudgetRepository>(
       () => BudgetRepositoryImpl(localDatasource: sl()),
+    );
+  }
+
+  if (!sl.isRegistered<CustomCategoryStore>()) {
+    sl.registerLazySingleton<CustomCategoryStore>(
+      () => CustomCategoryStore(
+        localDatasource: sl(),
+        remoteDatasource: sl(),
+        authRepository: sl(),
+      ),
     );
   }
 

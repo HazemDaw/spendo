@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/mock/mock_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_localizer.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../categories/data/custom_category_access.dart';
+import '../../../categories/domain/entities/category.dart';
 import '../../domain/entities/transaction.dart';
 import '../bloc/transaction_bloc.dart';
 import '../bloc/transaction_state.dart';
@@ -168,7 +169,8 @@ class _AllTransactionsPageState extends State<AllTransactionsPage> {
           );
         }
 
-        final category = MockData.categoryByKey(entry.key);
+        final Category? category =
+            maybeCustomCategoryStore()?.resolveCategory(entry.key);
 
         return _CategorySection(
           title: category == null

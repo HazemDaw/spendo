@@ -46,11 +46,10 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
               leading: const Icon(Icons.label, color: AppColors.primary),
               title: Text(l10n.drawerCategories),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showPlaceholderDialog(
-                context,
-                message: l10n.featureComingSoonMessage,
-                okLabel: l10n.commonOk,
-              ),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/categories');
+              },
             ),
             const Divider(height: 1),
             BlocBuilder<ThemeCubit, ThemeMode>(
@@ -130,27 +129,6 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
           ],
         ),
       ),
-    );
-  }
-
-  Future<void> _showPlaceholderDialog(
-    BuildContext context, {
-    required String message,
-    required String okLabel,
-  }) {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(okLabel),
-            ),
-          ],
-        );
-      },
     );
   }
 }

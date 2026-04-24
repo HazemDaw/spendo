@@ -14,6 +14,8 @@ import 'features/auth/presentation/pages/login_page.dart';
 import 'features/budget/presentation/bloc/budget_bloc.dart';
 import 'features/budget/presentation/bloc/budget_event.dart';
 import 'features/budget/presentation/pages/budget_page.dart';
+import 'features/categories/data/custom_category_store.dart';
+import 'features/categories/presentation/pages/categories_page.dart';
 import 'features/transactions/domain/entities/transaction.dart';
 import 'features/transactions/presentation/bloc/transaction_bloc.dart';
 import 'features/transactions/presentation/bloc/transaction_event.dart';
@@ -33,6 +35,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initDependencies();
+  await sl<CustomCategoryStore>().ensureLoaded();
   runApp(const SpendoApp());
 }
 
@@ -146,6 +149,12 @@ final GoRouter _router = GoRouter(
       path: '/budget',
       name: 'budget',
       builder: (BuildContext context, GoRouterState state) => const BudgetPage(),
+    ),
+    GoRoute(
+      path: '/categories',
+      name: 'categories',
+      builder: (BuildContext context, GoRouterState state) =>
+          const CategoriesPage(),
     ),
     GoRoute(
       path: '/login',

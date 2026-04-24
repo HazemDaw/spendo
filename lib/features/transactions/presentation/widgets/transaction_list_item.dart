@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/mock/mock_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_localizer.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../categories/data/custom_category_access.dart';
+import '../../../categories/domain/entities/category.dart';
 import '../../domain/entities/transaction.dart';
 
 class TransactionListItem extends StatelessWidget {
@@ -21,7 +22,8 @@ class TransactionListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final category = MockData.categoryByKey(transaction.categoryKey);
+    final Category? category =
+        maybeCustomCategoryStore()?.resolveCategory(transaction.categoryKey);
     final Color amountColor = transaction.type == TransactionType.expense
         ? AppColors.expense
         : AppColors.income;
@@ -40,7 +42,7 @@ class TransactionListItem extends StatelessWidget {
       ),
       title: Text(
         category == null
-            ? l10n.actionIncome
+            ? (transaction.categoryKey ?? l10n.actionIncome)
             : CategoryLocalizer.label(l10n, category),
         style: Theme.of(context).textTheme.bodySmall,
       ),
