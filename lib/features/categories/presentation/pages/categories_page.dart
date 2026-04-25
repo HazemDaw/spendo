@@ -38,6 +38,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   final OrbitSlotDatasource _orbitSlotDatasource = sl<OrbitSlotDatasource>();
 
   bool _isLoading = true;
+  Map<int, String> _slotAssignments = <int, String>{};
 
   List<Category> get _builtInCategories => defaultOrbitSlotCategoryKeys
       .map((String key) => MockData.categoryByKey(key)!)
@@ -51,12 +52,29 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   Future<void> _loadCategories() async {
     await _categoryStore.ensureLoaded();
+    final List<OrbitSlotModel> slots = await _orbitSlotDatasource.getSlots();
     if (!mounted) {
       return;
     }
 
     setState(() {
+      _slotAssignments = <int, String>{
+        for (final OrbitSlotModel slot in slots) slot.slotIndex: slot.categoryKey,
+      };
       _isLoading = false;
+    });
+  }
+
+  Future<void> _reloadSlotAssignments() async {
+    final List<OrbitSlotModel> slots = await _orbitSlotDatasource.getSlots();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _slotAssignments = <int, String>{
+        for (final OrbitSlotModel slot in slots) slot.slotIndex: slot.categoryKey,
+      };
     });
   }
 
@@ -121,12 +139,68 @@ class _CategoriesPageState extends State<CategoriesPage> {
   }
 
   Widget _buildBuiltInTile(Category category, int slotIndex) {
+    final String? replacedBy = _getReplacingCustomKey(category.key);
+    final CustomCategoryModel? customCategory = replacedBy == null
+        ? null
+        : _customCategoryById(replacedBy);
+
+    if (customCategory == null) {
+      return ListTile(
+        leading: CircleAvatar(
+          backgroundColor: category.color.withValues(alpha: 0.15),
+          child: Icon(category.icon, color: category.color, size: 20),
+        ),
+        title: Text(CategoryLocalizer.label(_l10n, category)),
+        trailing: const Icon(
+          Icons.swap_horiz,
+          color: AppColors.primary,
+        ),
+        onTap: () => _showSwapDialog(slotIndex, category),
+      );
+    }
+
+    final Color customColor = Color(customCategory.colorValue);
+    final IconData customIcon = IconData(
+      customCategory.iconCodePoint,
+      fontFamily: customCategory.fontFamily,
+    );
+
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: category.color.withValues(alpha: 0.15),
-        child: Icon(category.icon, color: category.color, size: 20),
+      leading: Stack(
+        children: <Widget>[
+          CircleAvatar(
+            backgroundColor: category.color.withValues(alpha: 0.15),
+            child: Icon(category.icon, color: category.color, size: 20),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: CircleAvatar(
+              radius: 10,
+              backgroundColor: customColor,
+              child: Icon(customIcon, size: 12, color: Colors.white),
+            ),
+          ),
+        ],
       ),
       title: Text(CategoryLocalizer.label(_l10n, category)),
+      subtitle: Row(
+        children: <Widget>[
+          const Icon(
+            Icons.arrow_forward,
+            size: 12,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            customCategory.label,
+            style: const TextStyle(
+              color: AppColors.primary,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
       trailing: const Icon(
         Icons.swap_horiz,
         color: AppColors.primary,
@@ -322,7 +396,12 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                         !context.mounted) {
                                       return;
                                     }
-                                    setState(() {});
+                                    await _reloadSlotAssignments();
+                                    if (!mounted ||
+                                        !sheetContext.mounted ||
+                                        !context.mounted) {
+                                      return;
+                                    }
                                     Navigator.pop(sheetContext);
                                     Navigator.pop(context, 'updated');
                                   },
@@ -346,7 +425,12 @@ class _CategoriesPageState extends State<CategoriesPage> {
                           !context.mounted) {
                         return;
                       }
-                      setState(() {});
+                      await _reloadSlotAssignments();
+                      if (!mounted ||
+                          !sheetContext.mounted ||
+                          !context.mounted) {
+                        return;
+                      }
                       Navigator.pop(sheetContext);
                       Navigator.pop(context, 'updated');
                     },
@@ -504,6 +588,31 @@ class _CategoriesPageState extends State<CategoriesPage> {
   }
 
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
+
+  String? _getReplacingCustomKey(String categoryKey) {
+    final int slotIndex = defaultOrbitSlotCategoryKeys.indexOf(categoryKey);
+    if (slotIndex == -1) {
+      return null;
+    }
+
+    final String assignedKey =
+        _slotAssignments[slotIndex] ?? defaultOrbitSlotCategoryKeys[slotIndex];
+    if (assignedKey == categoryKey) {
+      return null;
+    }
+
+    return assignedKey;
+  }
+
+  CustomCategoryModel? _customCategoryById(String id) {
+    for (final CustomCategoryModel category in _categoryStore.models) {
+      if (category.id == id) {
+        return category;
+      }
+    }
+
+    return null;
+  }
 }
 
 class _SectionHeader extends StatelessWidget {
