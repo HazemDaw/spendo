@@ -6,7 +6,10 @@ import '../../../../core/mock/mock_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_localizer.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../injection_container.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../categories/data/datasources/custom_category_local_datasource.dart';
+import '../../../categories/data/models/custom_category_model.dart';
 import '../../../transactions/presentation/bloc/transaction_bloc.dart';
 import '../../../transactions/presentation/bloc/transaction_state.dart';
 import '../../domain/entities/budget.dart';
@@ -34,11 +37,15 @@ class _BudgetPageState extends State<BudgetPage> {
   ];
 
   late final DateTime _currentMonth;
+  final CustomCategoryLocalDatasource _customCategoryDatasource =
+      sl<CustomCategoryLocalDatasource>();
+  List<CustomCategoryModel> _customCategories = <CustomCategoryModel>[];
 
   @override
   void initState() {
     super.initState();
     _currentMonth = DateTime.now();
+    _loadCustomCategories();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -79,6 +86,13 @@ class _BudgetPageState extends State<BudgetPage> {
           builder: (BuildContext context, BudgetState state) {
             final List<Budget> budgets =
                 state is BudgetLoaded ? state.budgets : const <Budget>[];
+            final List<CustomCategoryModel> customCategoriesWithSpending =
+                _customCategories
+                    .where(
+                      (CustomCategoryModel category) =>
+                          (categoryTotals[category.id] ?? 0) > 0,
+                    )
+                    .toList();
 
             if (state is BudgetLoading && budgets.isEmpty) {
               return const Center(child: CircularProgressIndicator());
@@ -107,6 +121,30 @@ class _BudgetPageState extends State<BudgetPage> {
                       ),
                     ),
                   ),
+                  if (customCategoriesWithSpending.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 16),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+                      child: Text(
+                        'Пользовательские категории',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    ...customCategoriesWithSpending.map(
+                      (CustomCategoryModel category) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _buildCustomCategoryBudgetCard(
+                          context: context,
+                          category: category,
+                          budgets: budgets,
+                          spentAmount: categoryTotals[category.id] ?? 0,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             );
@@ -114,6 +152,18 @@ class _BudgetPageState extends State<BudgetPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _loadCustomCategories() async {
+    final List<CustomCategoryModel> categories =
+        await _customCategoryDatasource.getAll();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _customCategories = categories;
+    });
   }
 
   Widget _buildTotalBudgetCard({
@@ -272,6 +322,87 @@ class _BudgetPageState extends State<BudgetPage> {
     );
   }
 
+  Widget _buildCustomCategoryBudgetCard({
+    required BuildContext context,
+    required CustomCategoryModel category,
+    required List<Budget> budgets,
+    required double spentAmount,
+  }) {
+    final Budget? budget = _findBudget(budgets, category.id);
+    final Color color = Color(category.colorValue);
+    final IconData icon = IconData(
+      category.iconCodePoint,
+      fontFamily: category.fontFamily,
+    );
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                CircleAvatar(
+                  backgroundColor: color.withValues(alpha: 0.15),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    category.label,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+                Text(
+                  CurrencyFormatter.format(spentAmount),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(budget != null ? Icons.edit : Icons.add),
+                  onPressed: () => _showBudgetDialog(
+                    context,
+                    category.id,
+                    budgets,
+                  ),
+                ),
+              ],
+            ),
+            if (budget != null) ...<Widget>[
+              const SizedBox(height: 8),
+              _buildProgressBar(
+                spent: spentAmount,
+                limit: budget.limitAmount,
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: <Widget>[
+                  Text(
+                    '${_usedPercent(spentAmount, budget.limitAmount)}% РёСЃРїРѕР»СЊР·РѕРІР°РЅРѕ',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Р›РёРјРёС‚: ${CurrencyFormatter.format(budget.limitAmount)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                        ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildProgressBar({
     required double spent,
     required double limit,
@@ -330,12 +461,27 @@ class _BudgetPageState extends State<BudgetPage> {
     return 'budget_${_currentMonth.year}_${_currentMonth.month}_${categoryKey ?? 'total'}';
   }
 
+  CustomCategoryModel? _customCategoryByKey(String? categoryKey) {
+    if (categoryKey == null) {
+      return null;
+    }
+
+    for (final CustomCategoryModel category in _customCategories) {
+      if (category.id == categoryKey) {
+        return category;
+      }
+    }
+
+    return null;
+  }
+
   Future<void> _showBudgetDialog(
     BuildContext context,
     String? categoryKey,
     List<Budget> budgets,
   ) async {
-    final category = MockData.categoryByKey(categoryKey);
+    final category = MockData.categoryByKey(categoryKey) ??
+        _customCategoryByKey(categoryKey)?.toCategory();
     final Budget? existingBudget = _findBudget(budgets, categoryKey);
     String amountInput = existingBudget?.limitAmount.toStringAsFixed(0) ?? '';
 
