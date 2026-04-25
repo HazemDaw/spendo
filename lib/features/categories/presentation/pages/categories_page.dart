@@ -559,6 +559,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
                   child: const Text('Отмена'),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(
+                      inherit: true,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   onPressed: () {
                     final String label = controller.text.trim();
                     if (label.isEmpty) {

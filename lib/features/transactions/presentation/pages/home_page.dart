@@ -194,8 +194,6 @@ class _HomePageState extends State<HomePage> {
     const Color balanceBarBg = Color(0xFF7C3AED);
     final Color textOnCanvas =
         isDark ? Colors.white : const Color(0xFF1E1B4B);
-    final Color textSecondary =
-        isDark ? const Color(0xFFB0A8CC) : const Color(0xFF6B7280);
     // ignore: unused_local_variable
     const Color periodChipSelected = Color(0xFF7C3AED);
     // ignore: unused_local_variable
@@ -302,7 +300,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                     _buildHeader(
                       titleColor: periodChipLabelSelected,
-                      subtitleColor: textSecondary,
                     ),
                     Positioned(
                       left: 0,
@@ -499,7 +496,6 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildHeader({
     required Color titleColor,
-    required Color subtitleColor,
   }) {
     return Positioned(
       left: 20,
@@ -522,6 +518,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(width: 18),
           Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
@@ -530,17 +527,6 @@ class _HomePageState extends State<HomePage> {
                   color: titleColor,
                   fontSize: 52,
                   fontWeight: FontWeight.w700,
-                ),
-              ),
-              Transform.translate(
-                offset: const Offset(4, -6),
-                child: Text(
-                  'All accounts',
-                  style: GoogleFonts.inter(
-                    color: subtitleColor,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
                 ),
               ),
             ],

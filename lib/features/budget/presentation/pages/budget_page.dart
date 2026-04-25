@@ -533,6 +533,14 @@ class _BudgetPageState extends State<BudgetPage> {
               child: const Text('Отмена'),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                textStyle: const TextStyle(
+                  inherit: true,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               onPressed: () {
                 final String rawValue = amountInput.trim().replaceAll(',', '.');
                 final double? amount = double.tryParse(rawValue);

@@ -34,7 +34,7 @@ class TransactionListItem extends StatelessWidget {
       onTap: onTap,
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
-        backgroundColor: AppColors.primaryLight,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         child: Icon(
           category?.icon ?? Icons.payments_outlined,
           color: category?.color ?? AppColors.primary,

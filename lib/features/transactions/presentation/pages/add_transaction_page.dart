@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/utils/category_localizer.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../categories/data/custom_category_access.dart';
@@ -88,6 +89,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final TransactionState transactionState = context.watch<TransactionBloc>().state;
+    final bool isDark = context.watch<ThemeCubit>().state == ThemeMode.dark;
     final Category? category =
         _categoryStore?.resolveCategory(_selectedCategoryKey);
     final bool isResolvingEditTransaction =
@@ -164,7 +166,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                       const SizedBox(height: 16),
                       _buildAmountCard(),
                       const SizedBox(height: 16),
-                      _buildNoteField(l10n),
+                      _buildNoteField(l10n, isDark),
                       const SizedBox(height: 16),
                       CalculatorKeypad(onKeyTap: _keypadCubit.appendChar),
                       if (_requiresCategory) ...<Widget>[
@@ -317,26 +319,37 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
   }
 
-  Widget _buildNoteField(AppLocalizations l10n) {
+  Widget _buildNoteField(AppLocalizations l10n, bool isDark) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return TextField(
       controller: _noteController,
       keyboardType: TextInputType.text,
+      keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
       textInputAction: TextInputAction.done,
       enableSuggestions: true,
       autocorrect: false,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w400,
-        color: AppColors.textPrimary,
+        color: colorScheme.onSurface,
       ),
       decoration: InputDecoration(
         labelText: l10n.noteLabel,
         prefixIcon: const Icon(Icons.edit_note_outlined),
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: colorScheme.surface,
+        labelStyle: TextStyle(
+          color: colorScheme.onSurface.withValues(alpha: 0.7),
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
+        ),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: colorScheme.onSurface.withValues(alpha: 0.3),
+          ),
         ),
       ),
     );

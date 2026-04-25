@@ -42,6 +42,7 @@ class _AllTransactionsPageState extends State<AllTransactionsPage> {
         }
       },
       child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: Text(l10n.allTransactionsTitle),
         ),
@@ -91,7 +92,8 @@ class _AllTransactionsPageState extends State<AllTransactionsPage> {
                         horizontal: 16,
                         vertical: 12,
                       ),
-                      color: AppColors.primaryLight,
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       child: Row(
                         children: <Widget>[
                           Icon(section.icon, color: section.iconColor),
@@ -99,18 +101,21 @@ class _AllTransactionsPageState extends State<AllTransactionsPage> {
                           Expanded(
                             child: Text(
                               section.title,
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Text(
                             CurrencyFormatter.format(section.total),
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  color: section.isIncome
-                                      ? AppColors.income
-                                      : AppColors.expense,
-                                ),
+                            style: TextStyle(
+                              color: section.isIncome
+                                  ? AppColors.income
+                                  : AppColors.expense,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),
