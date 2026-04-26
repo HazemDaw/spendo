@@ -3,8 +3,7 @@
 This file is the working guide for future Claude/Codex sessions in this repo.
 
 If this document and the code disagree, the code is the source of truth. Update
-this file when architectural decisions, product direction, or implementation
-status changes.
+this file when architecture, product direction, or implementation status changes.
 
 ---
 
@@ -14,52 +13,92 @@ status changes.
 - Type: Flutter mobile app for personal expense tracking
 - Context: graduation project / thesis work
 - Platforms: Android and iOS
-- Current state: Phase 2 complete (offline-first with Isar + BLoC).
-  Pre-Phase 3 polish in progress. Auth and cloud sync not implemented yet.
+- Current state: complete thesis build. Phases 1, 2, and 3 are implemented.
+- Core direction: offline-first expense tracking with a custom Monefy-inspired
+  home screen, Isar persistence, BLoC state management, Firebase auth/sync,
+  Russian/English localization, persistent dark mode, budgets, export, and
+  custom categories.
 
 ---
 
-## Current Progression
+## Complete Feature Set
 
-### Phase 1 - UI foundation
-Completed. Core screens and custom Monefy-inspired visual direction in place.
+### Phase 1 - UI and Transaction Experience
 
-### Phase 2 - local state and persistence
-Completed. Implemented in the current codebase:
+Complete. The app includes the full user-facing transaction experience:
+
+- Custom home screen with fixed-reference `738 x 1600` canvas scaled by
+  `FittedBox`
+- Donut chart with category totals
+- Orbit category icons around the chart
+- Connector lines between orbit icons and chart slices
+- Swipe navigation between periods
+- Full-screen animated period transition
+- Adjacent period labels on the home screen
+- Six period types: day, week, month, year, all time, interval
+- Add, edit, and delete transactions
+- Calculator keypad for amount entry
+- Category picker
+- Category transaction list
+- All transactions screen
+- Search over transactions
+- Left drawer and right drawer
+- Balance bar navigation to all transactions
+- Date labels based on the selected period and current reference date
+- Localized home labels and actions
+
+### Phase 2 - Offline-First Data and State
+
+Complete. Local state and persistence are implemented with:
+
+- Isar offline-first database
+- Clean-architecture-style layers: presentation, domain, data
+- Repository APIs returning `Either<Failure, T>`
+- Transaction data model, datasource, repository, and use cases
+- `TransactionBloc` for loading, adding, updating, deleting, and reloading
+  transactions
+- `KeypadCubit` for calculator keypad state
+- `PeriodCubit` registered for period state support
 - `get_it` dependency injection
-- Isar transaction storage
-- transaction data model, datasource, repository, and use cases
-- `TransactionBloc` with load/add/update/delete events
-- `KeypadCubit`
-- add/edit/delete transaction flow backed by the bloc
-- transaction list screen backed by loaded state
-- startup load for the current month
-- widget and bloc tests for the implemented transaction flow
+- Local custom category storage
+- Budget storage
+- Widget and bloc tests for core transaction behavior
 
-Important nuance:
-- `PeriodCubit` is registered in DI but is not the current driver of the home
-  screen UI
-- the home screen still uses local widget state to cycle period and dispatches
-  `LoadTransactionsEvent` directly
+### Phase 3 - Auth and Cloud Sync
 
-### Pre-Phase 3 Polish (CURRENT)
-In progress. Must be fully verified before Phase 3 begins.
+Complete. Authentication and remote sync are implemented with:
 
-| Fix | Status |
-|---|---|
-| Note field restricted to English input only | 🔲 Not fixed |
-| Balance bar not tappable / no all-transactions screen | 🔲 Not built |
-| Date header hardcoded, not reflecting real current date | 🔲 Not fixed |
-| Left drawer is a stub | 🔲 Not built |
-| Right drawer is a stub | 🔲 Not built |
+- Firebase Auth
+- Email/password sign-in and registration
+- Google sign-in
+- Auth BLoC/state flow
+- Auth-aware drawer header
+- Google profile photo in the authenticated drawer header when available
+- Firestore transaction sync
+- First-login upload of local Isar transactions
+- Local-only mode for unauthenticated users
+- Sync status displayed in the left drawer
 
-### Phase 3 - auth and sync
-Not started. Do not begin until all Pre-Phase 3 items above are resolved.
+### Extra Features
 
-Current placeholder state:
-- `/login` and `/register` routes exist but pages are placeholders
-- remote datasource file exists as a placeholder
-- no Firebase packages in `pubspec.yaml`
+Complete. The app also includes:
+
+- Persistent dark mode via `ThemeCubit` and `SharedPreferences`
+- Russian and English language switching via `LocaleCubit` and
+  `SharedPreferences`
+- `flutter_localizations` and generated app localization classes
+- PDF export
+- CSV export
+- Budget limits
+- Budget warning banner on the home screen
+- Budget page with total and per-category limits
+- Custom categories
+- Categories page
+- Orbit slot swapping
+- Custom category picker support
+- Export bottom sheet
+- Right drawer settings/actions
+- Recurring transactions placeholder
 
 ---
 
@@ -73,469 +112,266 @@ Current placeholder state:
 - `get_it`
 - `isar` + `isar_flutter_libs`
 - `path_provider`
+- `shared_preferences`
 - `intl`
+- `flutter_localizations`
 - `google_fonts`
 - `fl_chart`
+- Firebase Core
+- Firebase Auth
+- Cloud Firestore
+- Google Sign-In
+- `pdf`
+- `csv`
+- `share_plus`
 
 Do not introduce a new state management or persistence stack unless explicitly
-requested. The current direction is BLoC + Isar.
+requested. The app direction is BLoC + Isar + Firebase sync.
 
 ---
 
 ## Architecture
 
-Clean-architecture-flavored:
+The app follows a clean-architecture-flavored structure:
+
 - `presentation` triggers events and renders state
 - `domain` defines entities, repositories, and use cases
-- `data` implements repositories and datasources
-- repositories return `Either<Failure, T>` instead of throwing upward
+- `data` implements repositories, datasources, models, and persistence details
+- Repositories return `Either<Failure, T>` instead of throwing upward for
+  expected failures
+- Dependency registration is centralized in `lib/injection_container.dart`
 
-Current transaction flow:
-```
+Transaction flow:
+
+```text
 UI -> TransactionBloc -> UseCases -> TransactionRepository
-   -> TransactionLocalDatasource -> Isar
+   -> Local/Remote Datasources -> Isar / Firestore
 ```
 
-Main files:
+Core files:
+
 - `lib/main.dart`
 - `lib/injection_container.dart`
+- `lib/core/theme/theme_cubit.dart`
+- `lib/core/locale/locale_cubit.dart`
+- `lib/core/utils/date_utils.dart`
 - `lib/features/transactions/presentation/bloc/transaction_bloc.dart`
 - `lib/features/transactions/data/datasources/transaction_local_datasource.dart`
+- `lib/features/transactions/data/datasources/transaction_remote_datasource.dart`
 - `lib/features/transactions/data/repositories/transaction_repository_impl.dart`
-- `lib/features/transactions/data/models/transaction_model.dart`
+- `lib/features/auth/presentation/bloc/auth_bloc.dart`
+- `lib/features/auth/data/datasources/firebase_auth_datasource.dart`
 
 ---
 
-## Current Routing
+## Routing
 
-Defined in `lib/main.dart`:
-- `/`                          -> home
-- `/add`                       -> add transaction
-- `/edit/:transactionId`       -> edit transaction
+Routes are defined in `lib/main.dart`.
+
+- `/` -> home
+- `/add` -> add transaction
+- `/edit/:transactionId` -> edit transaction
 - `/transactions/:categoryKey` -> category transaction list
-- `/all-transactions`          -> all transactions grouped by category (to be built)
-- `/login`                     -> placeholder
-- `/register`                  -> placeholder
+- `/all-transactions` -> all transactions grouped by category
+- `/budget` -> budget page
+- `/categories` -> categories page
+- `/login` -> login
+- `/register` -> registration
 
 At app startup:
-- `Intl.defaultLocale = 'ru_RU'`
-- DI is initialized
-- `TransactionBloc` is created at app level
-- app dispatches `LoadTransactionsEvent(TransactionPeriod.month)`
+
+- Dependency injection is initialized
+- `ThemeCubit` loads persisted dark/light preference
+- `LocaleCubit` loads persisted Russian/English preference
+- `Intl.defaultLocale` is kept in sync with the selected app locale
+- `TransactionBloc` loads the current period
+- Auth state is checked and sync behavior follows authentication status
 
 ---
 
-## UI Direction That Must Be Preserved
+## Home Screen Direction
 
-The home screen is a custom fixed-reference composition.
-Treat it as visually locked unless the user explicitly asks for redesign.
+The home screen is a custom fixed-reference composition. Treat it as visually
+locked unless the user explicitly asks for redesign.
 
 Preserve these characteristics:
-- `home_page.dart` uses a reference canvas of `738 x 1600`
-- the screen is scaled via `FittedBox`
-- layout is heavily position-based, not standard responsive column layout
-- the home screen uses a mint/green Monefy-like palette
-- the home screen intentionally overrides the general app theme colors
-- orbit icons and connectors are custom positioned around the donut chart
 
-Do not normalize the home screen into generic Material widgets or force it to
-match the shared `AppTheme` unless explicitly asked.
+- `home_page.dart` uses a `738 x 1600` reference canvas
+- The screen is scaled via `FittedBox`
+- Layout is heavily position-based, not a standard responsive column layout
+- The composition is fragile; do not normalize it into generic Material layout
+- The home screen uses a custom Monefy-inspired visual system
+- Standard screens rely on `AppTheme` and the purple token set in
+  `lib/core/theme`
+- Orbit icons, connector lines, donut geometry, balance bar, and action buttons
+  are visually sensitive
 
-Also note:
-- standard screens rely on `AppTheme` and the purple token set in `lib/core/theme`
-- the home screen and shared theme currently have different visual systems
-- that mismatch is intentional in the codebase — do not silently fix it
+Before changing category rendering, verify whether the change affects:
 
----
-
-## Pre-Phase 3 Fix Specs
-
-### Fix 1 — Note Field Language Bug
-
-File: `add_transaction_page.dart`
-
-The note TextField must accept all languages including Russian/Cyrillic.
-
-Required TextField properties:
-```dart
-keyboardType: TextInputType.text
-textInputAction: TextInputAction.done
-enableSuggestions: true
-autocorrect: false
-```
-
-Check that NO `inputFormatters` are attached to the note field.
-If any `FilteringTextInputFormatter` or custom formatter exists on the
-note field, remove it entirely.
-
-Do not touch the amount/expression display field — that is separate.
-
----
-
-### Fix 2 — Balance Bar → All Transactions Screen
-
-#### Balance bar change
-Wrap the existing balance bar Container in a GestureDetector:
-```dart
-onTap: () => context.push('/all-transactions')
-```
-Do not change the visual appearance of the balance bar.
-
-#### New screen: `all_transactions_page.dart`
-
-File: `lib/features/transactions/presentation/pages/all_transactions_page.dart`
-Route: `/all-transactions`
-
-AppBar:
-- title: "Все транзакции" (l10n)
-- leading: back arrow
-
-Layout: `ListView` of category sections.
-
-Each section:
-1. Category header row:
-   - `[CategoryIcon]  [Russian category name]  [total amount]`
-   - background: `AppColors.primaryLight`
-   - padding: 12px vertical, 16px horizontal
-   - total amount: red for expense categories, green for income
-2. `TransactionListItem` widgets for each transaction in that category
-   - reuse existing `TransactionListItem` exactly as-is
-   - sorted: most recent date first within each category
-3. `Divider` between sections
-
-Section ordering: sort by total absolute amount, largest section first.
-
-Income transactions (`categoryKey == null`) group under a section
-labeled "Доход" with `Icons.arrow_upward` in `AppColors.income` color.
-
-Empty state: centered icon + "Нет транзакций".
-
-Data source: reads from `TransactionBloc` loaded state — the same
-transactions already loaded on the home screen.
-
----
-
-### Fix 3 — Date Header Must Reflect Real Current Date
-
-The date text displayed above the donut chart must be computed from
-`DateTime.now()` and the currently selected period — never hardcoded.
-
-Rules:
-- "Сегодня" selected → `DateFormat('d MMM yyyy', 'ru_RU').format(DateTime.now())`
-  example: "9 апр 2026"
-- "Неделя" selected → "3 апр — 9 апр"
-  (Monday of current week → today, Russian locale)
-- "Месяц" selected → `DateFormat('MMM yyyy', 'ru_RU').format(DateTime.now())`
-  example: "апр 2026"
-
-Use `DateFormat` from the `intl` package with locale `'ru_RU'`.
-Remove all hardcoded date strings from the home screen.
-Do not touch the chart, icons, balance bar, or any other widget.
-
----
-
-### Fix 4 — Left Drawer (AppLeftDrawer)
-
-File: `lib/features/transactions/presentation/widgets/app_left_drawer.dart`
-
-Wire to Scaffold: `drawer: AppLeftDrawer(...)`
-Left hamburger icon in AppBar calls: `Scaffold.of(context).openDrawer()`
-
-Structure:
-
-**DrawerHeader:**
-- background: `AppColors.primary`
-- `CircleAvatar` (radius 30, bg: `AppColors.primaryLight`)
-  - child: `Icon(Icons.person, color: AppColors.primary, size: 30)`
-- "Spendo User" — white, w600, 16px
-- "user@spendo.app" — white70, 13px
-
-**Period section:**
-- `ListTile` showing current period label with `Icons.calendar_today`
-- Indented sub-list of 3 tappable items: Сегодня / Неделя / Месяц
-- Selected item shows a checkmark
-- Tapping updates the home screen period and closes the drawer
-
-**Accounts section:**
-```dart
-ListTile(
-  leading: Icon(Icons.account_balance_wallet, color: AppColors.primary),
-  title: Text("Все счета"),
-  trailing: Icon(Icons.chevron_right),
-  onTap: () => showDialog(... "Функция будет доступна позже"),
-)
-```
-
-**Budget section:**
-```dart
-ListTile(
-  leading: Icon(Icons.pie_chart, color: AppColors.primary),
-  title: Text("Бюджет"),
-  trailing: Icon(Icons.chevron_right),
-  onTap: () => showDialog(... "Функция будет доступна позже"),
-)
-```
-
-**Divider**
-
-**Sync status (bottom, non-interactive):**
-```dart
-ListTile(
-  leading: Icon(Icons.cloud_off, color: AppColors.textSecondary),
-  title: Text("Синхронизация"),
-  subtitle: Text("Только локально"),
-)
-```
-
----
-
-### Fix 5 — Right Drawer (AppRightDrawer)
-
-File: `lib/features/transactions/presentation/widgets/app_right_drawer.dart`
-
-Wire to Scaffold: `endDrawer: AppRightDrawer()`
-Right hamburger icon in balance bar calls: `Scaffold.of(context).openEndDrawer()`
-
-Structure:
-
-**DrawerHeader:**
-- background: `AppColors.primaryDark`
-- "Настройки" — white, w700, 20px
-
-**Categories:**
-```dart
-ListTile(
-  leading: Icon(Icons.label, color: AppColors.primary),
-  title: Text("Категории"),
-  trailing: Icon(Icons.chevron_right),
-  onTap: () => showDialog(... "Управление категориями будет доступно позже"),
-)
-```
-
-**Divider**
-
-**Dark mode toggle (local setState only — no real theme change):**
-```dart
-SwitchListTile(
-  secondary: Icon(Icons.dark_mode, color: AppColors.primary),
-  title: Text("Тёмная тема"),
-  value: _darkMode,
-  onChanged: (val) => setState(() => _darkMode = val),
-  activeColor: AppColors.primary,
-)
-```
-
-**Export:**
-```dart
-ListTile(
-  leading: Icon(Icons.upload_file, color: AppColors.primary),
-  title: Text("Экспорт данных"),
-  trailing: Icon(Icons.chevron_right),
-  onTap: () => showDialog(... "Экспорт будет доступен позже"),
-)
-```
-
-**Divider**
-
-**Sign In:**
-```dart
-ListTile(
-  leading: Icon(Icons.login, color: AppColors.primary),
-  title: Text("Войти / Зарегистрироваться"),
-  trailing: Icon(Icons.chevron_right),
-  onTap: () {
-    Navigator.pop(context);
-    context.push('/login');
-  },
-)
-```
-
-**Divider**
-
-**About:**
-```dart
-ListTile(
-  leading: Icon(Icons.info_outline, color: AppColors.textSecondary),
-  title: Text("О приложении"),
-  onTap: () => showAboutDialog(
-    context: context,
-    applicationName: 'Spendo',
-    applicationVersion: '1.0.0',
-    children: [Text('Приложение для отслеживания личных расходов.')],
-  ),
-)
-```
+- Orbit layout
+- Donut slices
+- Connector lines
+- List filtering
+- Category picker behavior
+- Budget warning labels
+- Custom category mapping
 
 ---
 
 ## Data and Domain Notes
 
-### Transaction entity
+### Transactions
+
 - `TransactionType` supports `expense` and `income`
-- income can have `categoryKey == null`
-- transactions are identified by string `id`
+- Income transactions can have `categoryKey == null`
+- Transactions are identified by string `id`
+- Mutations reload the active period after success
+- Transaction state is exposed through `TransactionBloc`
 
-### Period handling
-- supported periods: `day`, `week`, `month`
-- date-range logic lives in `lib/core/utils/date_utils.dart`
-- home screen cycles period locally and reloads bloc state
+### Periods
 
-### Category metadata
-`MockData` is still used for category definitions (keys, icons, colors, label keys).
-Do not remove `MockData` — transaction storage moved to Isar but category
-metadata remains here.
+Supported periods:
 
-Known limitation:
-- app defines 10 categories in `MockData`
-- orbit currently maps only 8 categories
-- `pets` and `gifts` exist in metadata but are not in the home orbit layout
-- do not assume all categories are rendered on the orbit without checking
+- `day`
+- `week`
+- `month`
+- `year`
+- `all`
+- `interval`
 
----
+Date-range logic lives in `lib/core/utils/date_utils.dart`. The home screen
+uses period state to dispatch `LoadTransactionsEvent` with reference date and,
+for intervals, optional start/end dates.
 
-## State Management Notes
+### Categories
 
-### Implemented
-- `TransactionBloc`
-- `KeypadCubit`
-- `TransactionState`: initial, loading, loaded, error
-- mutation events reload the current period after success
+- Built-in category metadata lives in `MockData`
+- Do not remove `MockData`; transaction storage moved to Isar, but category
+  metadata still depends on it
+- Custom categories are persisted locally
+- Category labels must go through `CategoryLocalizer` / `AppLocalizations`
+- Orbit slot swapping lets users replace default orbit slots with custom
+  categories
 
-### Partially adopted
-- `PeriodCubit` exists, is registered in DI, but is not the current source of
-  truth for home screen period changes
-- do not claim the current UI already uses `PeriodCubit`
+### Budgets
+
+- Budgets support total limits and per-category limits
+- Budget page shows built-in and visible custom categories
+- Home page displays a warning banner when budgets approach or exceed limits
+- Budget warning labels are localized
+
+### Auth and Sync
+
+- Unauthenticated users can use the app in local-only mode
+- Authenticated users sync through Firestore
+- First login uploads local Isar transactions
+- Drawer sync status reflects auth/sync state
+- Authenticated drawer header shows display name/email and Google photo when
+  available
 
 ---
 
 ## Localization Rules
 
-- code, identifiers, and comments stay in English
-- app locale is Russian-oriented
-- localization generated from `lib/l10n/*.arb`
-- prefer l10n strings for user-facing text on standard screens
+- The app supports Russian and English via `flutter_localizations`
+- User-facing strings must never be hardcoded in widget code
+- Always use `AppLocalizations` for user-facing strings
+- Category names should use `CategoryLocalizer`
+- Language preference persists via `SharedPreferences` in `LocaleCubit`
+- `LocaleCubit` updates `Intl.defaultLocale`
+- ARB files live in `lib/l10n`
+- Keep English strings in `app_en.arb`
+- Keep Russian strings in `app_ru.arb`
+- Generated localization classes are checked in and used by the app
 
-Current reality:
-- several newer screens already use generated localizations
-- home screen still contains some hardcoded English labels
-- preserve behavior unless the task is specifically localization cleanup
+---
+
+## Theme Rules
+
+- Dark mode persists via `SharedPreferences` in `ThemeCubit`
+- Standard screens should use `AppTheme` and `AppColors`
+- The home screen intentionally has a distinct custom visual system
+- Do not silently force the home screen to match generic app theme styling
 
 ---
 
 ## Testing Status
 
 Existing tests cover:
-- bloc reload behavior after add/update/delete
-- add transaction keypad input
-- edit-screen hydration after async load
+
+- Transaction bloc reload behavior after add/update/delete
+- Add transaction keypad input
+- Edit-screen hydration after async load
 
 Test helpers:
+
 - `test/helpers/in_memory_transaction_repository.dart`
 
 When making non-trivial changes, run:
+
 - `flutter analyze`
 - `flutter test`
+
+If a command times out or hangs, record that clearly in the final response.
 
 ---
 
 ## Working Rules For Future Sessions
 
-1. Do not revert the home screen to the old purple spec.
-2. Treat the current custom home layout as deliberate and fragile.
-3. Keep transaction persistence offline-first unless the task is Phase 3.
-4. Keep repository APIs returning `Either<Failure, T>`.
-5. Do not throw from repositories for expected data-layer failures.
-6. Avoid large architecture rewrites when the user asked for a focused fix.
-7. Prefer preserving route names and existing navigation contracts.
-8. Before changing category rendering, verify whether the change affects orbit
-   layout, donut slices, list filtering, and category picker behavior.
-9. Run `flutter analyze` and `flutter test` after every non-trivial change.
-10. Fix one thing per session — do not bundle unrelated changes.
+1. Treat the current app as feature-complete for the thesis build.
+2. Do not reintroduce phase prompts or old "not started" language.
+3. Do not revert the home screen to the old purple spec.
+4. Home screen uses `FittedBox` with a `738 x 1600` reference canvas; treat it as
+   fragile and do not normalize it.
+5. Never hardcode user-facing strings; always use `AppLocalizations`.
+6. Preserve Russian/English localization and persisted language switching.
+7. Preserve persisted dark mode behavior.
+8. Keep transaction persistence offline-first.
+9. Keep repository APIs returning `Either<Failure, T>`.
+10. Do not throw from repositories for expected data-layer failures.
+11. Avoid large architecture rewrites when the user asked for a focused fix.
+12. Prefer preserving route names and existing navigation contracts.
+13. Before changing category rendering, verify orbit, donut, connectors, lists,
+    picker behavior, and budget behavior.
+14. Run `flutter analyze` and `flutter test` after every non-trivial change.
+15. Work with existing dirty files; never revert user changes unless explicitly
+    requested.
 
 ---
 
-## Phase 3 Specification (do not start until Pre-Phase 3 is verified complete)
+## Known Gaps / Post-Thesis Roadmap
 
-### Packages to add to pubspec.yaml
-```yaml
-firebase_core: ^2.x
-firebase_auth: ^4.x
-cloud_firestore: ^4.x
-```
+These are roadmap items, not blockers for the final thesis build:
 
-### Auth flow
-- Providers: Email/Password + Google Sign-In
-- Unauthenticated users: full local-only mode — zero forced login gate
-- First successful login: batch upload all Isar transactions to Firestore
-- Auth state drives `go_router` redirect guards
-
-### Firestore structure
-```
-users/{uid}/transactions/{transactionId}
-users/{uid}/categories/{categoryId}
-```
-
-### Remote datasource
-- `TransactionRemoteDatasource` wraps Firestore
-- implements same interface as `TransactionLocalDatasource`
-- `TransactionRepositoryImpl` switches between local and remote based on
-  auth state — domain layer is unaware of which is used
-
-### Sync strategy
-- all writes go to Isar first (offline-first preserved)
-- if authenticated, mirror write to Firestore in background
-- on first login: batch upload local Isar data to Firestore
-- on app start with auth: fetch remote diff and merge into Isar
-
-### Phase 3 session prompt
-```
-Read CLAUDE.md. We are starting Phase 3.
-Phases 1 and 2 are complete. Pre-Phase 3 polish is verified complete.
-Do not modify any existing UI, BLoC, Isar, or routing code.
-
-Task 1: Add Firebase packages to pubspec.yaml and run flutterfire configure.
-Task 2: Implement FirebaseAuthDatasource with email/password and Google Sign-In.
-Task 3: Implement AuthBloc with SignIn/SignOut/CheckAuth events and states.
-Task 4: Wire go_router redirect guards to AuthBloc state.
-Task 5: Implement TransactionRemoteDatasource using Firestore.
-Task 6: Update TransactionRepositoryImpl to sync to Firestore when authenticated.
-Task 7: Implement first-login batch upload — all Isar transactions to Firestore.
-
-Run flutter analyze and flutter test after each task.
-Zero errors before moving to the next task.
-```
-
----
-
-## Known Gaps / Pending Work
-
-- Pre-Phase 3 fixes (see table above) — in progress
-- Firebase auth not wired
-- Firestore sync not started
-- login/register remain placeholder pages
-- `pets` and `gifts` missing from home orbit — layout fix pending
-- home screen localization incomplete (some hardcoded English remains)
-- home screen and app theme are intentionally inconsistent — evaluate before Phase 3
-- README is still default Flutter scaffold
+- Recurring transactions: UI placeholder exists, logic is not built
+- Financial insights / analytics screen
+- Multi-account support
+- Budget export
+- Custom category in home orbit: currently picker/storage support exists, but
+  full home-orbit rendering is not complete
+- Pets and gifts missing from default orbit: the app defines 10 built-in
+  categories, but the default home orbit shows 8 of 10
 
 ---
 
 ## Thesis Framing
 
 When asked for thesis-oriented explanations, structure as:
-1. what was implemented
-2. why it was chosen over nearby alternatives
-3. trade-offs
-4. how it supports the project goals
+
+1. What was implemented
+2. Why it was chosen over nearby alternatives
+3. Trade-offs
+4. How it supports the project goals
 
 | Topic | Thesis angle |
 |---|---|
 | Clean Architecture | SOLID, testability, layer isolation |
 | Isar over SQLite | Performance, Dart-native schema, no ORM overhead |
 | BLoC over setState | Predictable state machine, testability, explicit event log |
-| Offline-first | Resilience, UX continuity, swappable data layer |
+| Offline-first | Resilience, UX continuity, local-first UX |
 | Repository pattern | Datasource abstraction, domain independence |
 | Flutter cross-platform | Single codebase trade-offs vs native |
-| Firebase Auth + Firestore | Managed BaaS vs self-hosted — cost, scalability, lock-in |
-| Phase-based delivery | Risk reduction, incremental architecture validation |
-| FittedBox canvas approach | Fixed-reference layout vs responsive — deliberate trade-off |
+| Firebase Auth + Firestore | Managed BaaS vs self-hosted: cost, scalability, lock-in |
+| Localization | Internationalization readiness and accessibility for RU/EN users |
+| Persistent settings | User preference continuity through local storage |
+| FittedBox canvas approach | Fixed-reference visual fidelity vs responsive flexibility |
