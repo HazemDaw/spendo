@@ -34,42 +34,51 @@ class AppLeftDrawer extends StatelessWidget {
             BlocBuilder<AuthBloc, AuthState>(
               builder: (BuildContext context, AuthState state) {
                 if (state is AuthAuthenticated) {
-                  final String emailPrefix = state.email.split('@').first;
-
-                  return DrawerHeader(
-                    margin: EdgeInsets.zero,
-                    decoration: const BoxDecoration(color: AppColors.primary),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  return Container(
+                    padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: <Color>[
+                          Color(0xFF7C3AED),
+                          Color(0xFF5B21B6),
+                        ],
+                      ),
+                    ),
+                    child: Row(
                       children: <Widget>[
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor: AppColors.primaryLight,
-                          child: Text(
-                            state.email[0].toUpperCase(),
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          state.displayName?.isNotEmpty == true
-                              ? state.displayName!
-                              : emailPrefix,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          state.email,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
+                        _buildAvatar(state),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                state.displayName?.isNotEmpty == true
+                                    ? state.displayName!
+                                    : state.email.split('@')[0],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  inherit: true,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                state.email,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.75),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  inherit: true,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -77,36 +86,57 @@ class AppLeftDrawer extends StatelessWidget {
                   );
                 }
 
-                return DrawerHeader(
-                  margin: EdgeInsets.zero,
-                  decoration: const BoxDecoration(color: AppColors.primary),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                return Container(
+                  padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: <Color>[
+                        Color(0xFF7C3AED),
+                        Color(0xFF5B21B6),
+                      ],
+                    ),
+                  ),
+                  child: Row(
                     children: <Widget>[
-                      const CircleAvatar(
-                        radius: 30,
-                        backgroundColor: AppColors.primaryLight,
-                        child: Icon(
-                          Icons.person,
-                          color: AppColors.primary,
-                          size: 30,
+                      CircleAvatar(
+                        radius: 26,
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        child: const Icon(
+                          Icons.person_rounded,
+                          color: Colors.white,
+                          size: 28,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          context.push('/login');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            context.push('/login');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF7C3AED),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: const Text(
+                            'Войдите для синхронизации',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              inherit: true,
+                            ),
                           ),
                         ),
-                        child: const Text('Войдите для синхронизации'),
                       ),
                     ],
                   ),
@@ -278,6 +308,30 @@ class AppLeftDrawer extends StatelessWidget {
       TransactionPeriod.all => l10n.periodAll,
       TransactionPeriod.interval => l10n.periodInterval,
     };
+  }
+
+  Widget _buildAvatar(AuthAuthenticated state) {
+    if (state.photoUrl != null && state.photoUrl!.isNotEmpty) {
+      return CircleAvatar(
+        radius: 26,
+        backgroundImage: NetworkImage(state.photoUrl!),
+        backgroundColor: AppColors.primaryLight,
+      );
+    }
+
+    return CircleAvatar(
+      radius: 26,
+      backgroundColor: Colors.white.withValues(alpha: 0.2),
+      child: Text(
+        state.email[0].toUpperCase(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          inherit: true,
+        ),
+      ),
+    );
   }
 }
 

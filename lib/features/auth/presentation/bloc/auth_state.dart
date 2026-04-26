@@ -20,14 +20,16 @@ class AuthAuthenticated extends AuthState {
     required this.userId,
     required this.email,
     this.displayName,
+    this.photoUrl,
   });
 
   final String userId;
   final String email;
   final String? displayName;
+  final String? photoUrl;
 
   @override
-  List<Object?> get props => <Object?>[userId, email, displayName];
+  List<Object?> get props => <Object?>[userId, email, displayName, photoUrl];
 }
 
 class AuthUnauthenticated extends AuthState {
