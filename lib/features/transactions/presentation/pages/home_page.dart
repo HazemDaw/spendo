@@ -192,6 +192,7 @@ class _HomePageState extends State<HomePage> {
     final Color canvasBg =
         isDark ? const Color(0xFF1E1B2E) : const Color(0xFFF5F3FF);
     const Color balanceBarBg = Color(0xFF7C3AED);
+    // ignore: unused_local_variable
     final Color textOnCanvas =
         isDark ? Colors.white : const Color(0xFF1E1B4B);
     // ignore: unused_local_variable
@@ -304,50 +305,67 @@ class _HomePageState extends State<HomePage> {
                     Positioned(
                       left: 0,
                       right: 0,
-                      top: 128,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          GestureDetector(
-                            onTap: () => _navigatePeriod(-1, oldestTransactionDate),
-                            child: Icon(
-                              Icons.chevron_left,
-                              color: isAtOldestBoundary
-                                  ? Colors.transparent
-                                  : (isDark ? Colors.white54 : headerBg),
-                              size: 28,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: _cyclePeriod,
-                            child: Text(
-                              selectedPeriodLabel,
-                              style: GoogleFonts.inter(
-                                color: textOnCanvas,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500,
+                      top: 210,
+                      child: Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            GestureDetector(
+                              onTap: () =>
+                                  _navigatePeriod(-1, oldestTransactionDate),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Icon(
+                                  Icons.chevron_left_rounded,
+                                  color: isAtOldestBoundary
+                                      ? Colors.transparent
+                                      : isDark
+                                      ? Colors.white54
+                                      : const Color(0xFF7C3AED),
+                                  size: 36,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: () => _navigatePeriod(1, oldestTransactionDate),
-                            child: Icon(
-                              Icons.chevron_right,
-                              color: isAtFutureBoundary
-                                  ? Colors.transparent
-                                  : (isDark ? Colors.white54 : headerBg),
-                              size: 28,
+                            GestureDetector(
+                              onTap: _cyclePeriod,
+                              child: Text(
+                                selectedPeriodLabel,
+                                style: GoogleFonts.inter(
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF1E1B4B),
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0,
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+                            GestureDetector(
+                              onTap: () =>
+                                  _navigatePeriod(1, oldestTransactionDate),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: isAtFutureBoundary
+                                      ? Colors.transparent
+                                      : isDark
+                                      ? Colors.white54
+                                      : const Color(0xFF7C3AED),
+                                  size: 36,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     Positioned(
                       left: 32,
                       right: 32,
-                      top: 176,
+                      top: 220,
                       child: _buildBudgetWarningBanner(
                         expenseTotals: expenseTotals,
                         totalSpent: expense,

@@ -75,7 +75,7 @@ class ExportService {
             level: 0,
             child: pw.Text(
               'Spendo — Отчёт о расходах',
-              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(fontSize: 24),
             ),
           ),
           pw.Text(
