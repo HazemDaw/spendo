@@ -77,6 +77,9 @@ class _BudgetPageState extends State<BudgetPage> {
             ..hideCurrentSnackBar()
             ..showSnackBar(SnackBar(content: Text(state.message)));
         }
+        if (state is BudgetLoaded) {
+          _loadCustomCategories();
+        }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -86,13 +89,13 @@ class _BudgetPageState extends State<BudgetPage> {
           builder: (BuildContext context, BudgetState state) {
             final List<Budget> budgets =
                 state is BudgetLoaded ? state.budgets : const <Budget>[];
-            final List<CustomCategoryModel> customCategoriesWithSpending =
-                _customCategories
-                    .where(
-                      (CustomCategoryModel category) =>
-                          (categoryTotals[category.id] ?? 0) > 0,
-                    )
-                    .toList();
+            final List<CustomCategoryModel> visibleCustom = _customCategories
+                .where(
+                  (CustomCategoryModel category) =>
+                      (categoryTotals[category.id] ?? 0) > 0 ||
+                      _findBudget(budgets, category.id) != null,
+                )
+                .toList();
 
             if (state is BudgetLoading && budgets.isEmpty) {
               return const Center(child: CircularProgressIndicator());
@@ -121,19 +124,19 @@ class _BudgetPageState extends State<BudgetPage> {
                       ),
                     ),
                   ),
-                  if (customCategoriesWithSpending.isNotEmpty) ...<Widget>[
+                  if (visibleCustom.isNotEmpty) ...<Widget>[
                     const SizedBox(height: 16),
                     const Padding(
                       padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
                       child: Text(
-                        'Пользовательские категории',
+                        'Пользовательские',
                         style: TextStyle(
                           color: AppColors.textSecondary,
-                          fontSize: 12,
+                          fontSize: 13,
                         ),
                       ),
                     ),
-                    ...customCategoriesWithSpending.map(
+                    ...visibleCustom.map(
                       (CustomCategoryModel category) => Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: _buildCustomCategoryBudgetCard(

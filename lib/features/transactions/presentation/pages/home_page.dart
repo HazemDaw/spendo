@@ -1083,44 +1083,85 @@ class _HomePageState extends State<HomePage> {
         }
 
         final bool isExceeded = exceededLabels.isNotEmpty;
+        final bool isWarning = warningLabels.isNotEmpty;
+        final bool isDark = context.watch<ThemeCubit>().state == ThemeMode.dark;
         final String warningMessage = isExceeded
             ? 'Превышен бюджет: ${exceededLabels.join(', ')}'
             : 'Близко к лимиту: ${warningLabels.join(', ')}';
+        final Color bannerBg = isDark
+            ? (isExceeded
+                  ? const Color(0xFF3D1515)
+                  : const Color(0xFF2D2210))
+            : (isExceeded
+                  ? const Color(0xFFFEE2E2)
+                  : isWarning
+                  ? const Color(0xFFFFF3CD)
+                  : Colors.transparent);
+        final Color bannerBorder = isExceeded
+            ? const Color(0xFFEF4444)
+            : const Color(0xFFF59E0B);
+        final Color bannerText = isDark
+            ? Colors.white
+            : const Color(0xFF1E1B4B);
+        final Color bannerIcon = isExceeded
+            ? const Color(0xFFEF4444)
+            : const Color(0xFFF59E0B);
 
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          padding: const EdgeInsets.all(10),
+          margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           decoration: BoxDecoration(
-            color: isExceeded
-                ? AppColors.expenseLight
-                : const Color(0xFFFFF3CD),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isExceeded ? AppColors.expense : Colors.orange,
-            ),
+            color: bannerBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: bannerBorder, width: 1.5),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: bannerBorder.withValues(alpha: 0.15),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: <Widget>[
               Icon(
-                isExceeded ? Icons.warning : Icons.info_outline,
-                color: isExceeded ? AppColors.expense : Colors.orange,
-                size: 18,
+                isExceeded ? Icons.warning_rounded : Icons.info_rounded,
+                color: bannerIcon,
+                size: 22,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   warningMessage,
-                  style: const TextStyle(fontSize: 12),
+                  style: TextStyle(
+                    color: bannerText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    inherit: true,
+                  ),
                 ),
               ),
+              const SizedBox(width: 12),
               GestureDetector(
                 onTap: () => context.push('/budget'),
-                child: const Text(
-                  'Подробнее',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: bannerBorder.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: bannerBorder),
+                  ),
+                  child: Text(
+                    'Подробнее',
+                    style: TextStyle(
+                      color: bannerBorder,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      inherit: true,
+                    ),
                   ),
                 ),
               ),
