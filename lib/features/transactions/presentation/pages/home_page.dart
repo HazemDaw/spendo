@@ -108,6 +108,10 @@ class _HomePageState extends State<HomePage> {
 
   TransactionPeriod _selectedPeriod = TransactionPeriod.month;
   DateTime _referenceDate = DateTime.now();
+  // ignore: unused_field
+  DateTime? _intervalStart;
+  // ignore: unused_field
+  DateTime? _intervalEnd;
   double _slideDirection = 0;
   List<_OrbitAssignment> _orbitAssignments =
       List<_OrbitAssignment>.from(_defaultOrbitAssignments);
@@ -276,14 +280,26 @@ class _HomePageState extends State<HomePage> {
           endDrawerEnableOpenDragGesture: false,
           body: Align(
             alignment: Alignment.topCenter,
-            child: FittedBox(
-              fit: BoxFit.contain,
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: _referenceSize.width,
-                height: _referenceSize.height,
-                child: Stack(
-                  children: <Widget>[
+            child: GestureDetector(
+              onHorizontalDragEnd: (DragEndDetails details) {
+                if (details.primaryVelocity == null) {
+                  return;
+                }
+                if (details.primaryVelocity! > 200) {
+                  _navigatePeriod(-1, oldestTransactionDate);
+                }
+                if (details.primaryVelocity! < -200) {
+                  _navigatePeriod(1, oldestTransactionDate);
+                }
+              },
+              child: FittedBox(
+                fit: BoxFit.contain,
+                alignment: Alignment.topCenter,
+                child: SizedBox(
+                  width: _referenceSize.width,
+                  height: _referenceSize.height,
+                  child: Stack(
+                    children: <Widget>[
                     const Positioned.fill(
                       child: SizedBox.shrink(),
                     ),
@@ -302,66 +318,114 @@ class _HomePageState extends State<HomePage> {
                     _buildHeader(
                       titleColor: periodChipLabelSelected,
                     ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 210,
-                      child: Center(
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        top: 170,
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
-                            GestureDetector(
-                              onTap: () =>
-                                  _navigatePeriod(-1, oldestTransactionDate),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Icon(
-                                  Icons.chevron_left_rounded,
-                                  color: isAtOldestBoundary
-                                      ? Colors.transparent
-                                      : isDark
-                                      ? Colors.white54
-                                      : const Color(0xFF7C3AED),
-                                  size: 36,
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16),
+                              child: GestureDetector(
+                                onTap: () =>
+                                    _navigatePeriod(-1, oldestTransactionDate),
+                                child: Text(
+                                  isAtOldestBoundary
+                                      ? ''
+                                      : _buildAdjacentLabel(-1),
+                                  style: GoogleFonts.inter(
+                                    color: isDark
+                                        ? Colors.white38
+                                        : const Color(
+                                            0xFF7C3AED,
+                                          ).withValues(alpha: 0.4),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                 ),
                               ),
                             ),
-                            GestureDetector(
-                              onTap: _cyclePeriod,
-                              child: Text(
-                                selectedPeriodLabel,
-                                style: GoogleFonts.inter(
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF1E1B4B),
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                GestureDetector(
+                                  onTap: () => _navigatePeriod(
+                                    -1,
+                                    oldestTransactionDate,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Icon(
+                                      Icons.chevron_left_rounded,
+                                      color: isAtOldestBoundary
+                                          ? Colors.transparent
+                                          : isDark
+                                          ? Colors.white54
+                                          : const Color(0xFF7C3AED),
+                                      size: 36,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                GestureDetector(
+                                  onTap: _cyclePeriod,
+                                  child: Text(
+                                    selectedPeriodLabel,
+                                    style: GoogleFonts.inter(
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF1E1B4B),
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0,
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () => _navigatePeriod(
+                                    1,
+                                    oldestTransactionDate,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: isAtFutureBoundary
+                                          ? Colors.transparent
+                                          : isDark
+                                          ? Colors.white54
+                                          : const Color(0xFF7C3AED),
+                                      size: 36,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            GestureDetector(
-                              onTap: () =>
-                                  _navigatePeriod(1, oldestTransactionDate),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Icon(
-                                  Icons.chevron_right_rounded,
-                                  color: isAtFutureBoundary
-                                      ? Colors.transparent
-                                      : isDark
-                                      ? Colors.white54
-                                      : const Color(0xFF7C3AED),
-                                  size: 36,
+                            Padding(
+                              padding: const EdgeInsets.only(right: 16),
+                              child: GestureDetector(
+                                onTap: () =>
+                                    _navigatePeriod(1, oldestTransactionDate),
+                                child: Text(
+                                  isAtFutureBoundary
+                                      ? ''
+                                      : _buildAdjacentLabel(1),
+                                  style: GoogleFonts.inter(
+                                    color: isDark
+                                        ? Colors.white38
+                                        : const Color(
+                                            0xFF7C3AED,
+                                          ).withValues(alpha: 0.4),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
                     Positioned(
                       left: 32,
                       right: 32,
@@ -382,17 +446,6 @@ class _HomePageState extends State<HomePage> {
                       left: _chartCenter.dx - _donutOuterRadius,
                       top: _chartCenter.dy - _donutOuterRadius,
                       child: GestureDetector(
-                        onHorizontalDragEnd: (DragEndDetails details) {
-                          if (details.primaryVelocity == null) {
-                            return;
-                          }
-                          if (details.primaryVelocity! > 200) {
-                            _navigatePeriod(-1, oldestTransactionDate);
-                          }
-                          if (details.primaryVelocity! < -200) {
-                            _navigatePeriod(1, oldestTransactionDate);
-                          }
-                        },
                         child: SizedBox.square(
                           dimension: _donutOuterRadius * 2,
                           child: Stack(
@@ -508,6 +561,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -1088,29 +1142,40 @@ class _HomePageState extends State<HomePage> {
     required TransactionDateRange displayedRange,
     required DateTime now,
   }) {
-    final DateFormat dayFormatter = DateFormat('d MMM yyyy', 'ru_RU');
-    final DateFormat monthFormatter = DateFormat('MMMM yyyy', 'ru_RU');
+    final DateFormat dayFmt = DateFormat('d MMMM yyyy', 'ru_RU');
+    final DateFormat weekFmt = DateFormat('d MMM', 'ru_RU');
+    final DateFormat monthFmt = DateFormat('MMMM yyyy', 'ru_RU');
 
     return switch (_selectedPeriod) {
-      TransactionPeriod.day => _isSameDay(_referenceDate, now)
-          ? 'Сегодня'
-          : dayFormatter.format(_referenceDate),
-      TransactionPeriod.week => _containsDate(displayedRange, now)
-          ? 'Эта неделя'
-          : _currentWeekLabel(displayedRange.end),
-      TransactionPeriod.month => _isSameMonth(_referenceDate, now)
-          ? 'Этот месяц'
-          : monthFormatter.format(_referenceDate),
+      TransactionPeriod.day => dayFmt.format(_referenceDate),
+      TransactionPeriod.week =>
+        '${weekFmt.format(displayedRange.start)} — '
+            '${weekFmt.format(displayedRange.end)}',
+      TransactionPeriod.month => monthFmt.format(_referenceDate),
     };
   }
 
-  String _currentWeekLabel(DateTime now) {
-    final DateTime weekStart = AppDateUtils.getPeriodRange(
-      TransactionPeriod.week,
-      referenceDate: now,
-    ).start;
-    final DateFormat formatter = DateFormat('d MMM', 'ru_RU');
-    return '${formatter.format(weekStart)} — ${formatter.format(now)}';
+  String _buildAdjacentLabel(int direction) {
+    final DateFormat monthFmt = DateFormat('MMM yyyy', 'ru_RU');
+    final DateFormat dayFmt = DateFormat('d MMM', 'ru_RU');
+
+    final DateTime adjacent = switch (_selectedPeriod) {
+      TransactionPeriod.day => _referenceDate.add(Duration(days: direction)),
+      TransactionPeriod.week => _referenceDate.add(
+          Duration(days: direction * 7),
+        ),
+      TransactionPeriod.month => DateTime(
+          _referenceDate.year,
+          _referenceDate.month + direction,
+          1,
+        ),
+    };
+
+    return switch (_selectedPeriod) {
+      TransactionPeriod.day => dayFmt.format(adjacent),
+      TransactionPeriod.week => dayFmt.format(adjacent),
+      TransactionPeriod.month => monthFmt.format(adjacent),
+    };
   }
 
   DateTime _oldestTransactionDate(
@@ -1128,14 +1193,6 @@ class _HomePageState extends State<HomePage> {
 
   bool _containsDate(TransactionDateRange range, DateTime date) {
     return !date.isBefore(range.start) && !date.isAfter(range.end);
-  }
-
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
-
-  bool _isSameMonth(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month;
   }
 
   void _navigatePeriod(int direction, DateTime oldestTransactionDate) {
