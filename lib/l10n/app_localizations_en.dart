@@ -255,4 +255,189 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageTitleEnglish => 'Language: English';
+  @override
+  String get exportTitle => 'Export Data';
+
+  @override
+  String get exportChooseFormat => 'Choose format';
+
+  @override
+  String get exportPdf => 'Export to PDF';
+
+  @override
+  String get exportPdfSubtitle => 'Report grouped by categories';
+
+  @override
+  String get exportCsv => 'Export to CSV';
+
+  @override
+  String get exportCsvSubtitle => 'Table for Excel / Google Sheets';
+
+  @override
+  String get exportLoadError => 'Could not load transactions';
+
+  @override
+  String exportError(String error) => 'Export error: $error';
+
+  @override
+  String get exportReportTitle => 'Spendo — Expense Report';
+
+  @override
+  String exportGeneratedLabel(String date) => 'Generated: $date';
+
+  @override
+  String exportIncomeLabel(String amount) => 'Income: $amount';
+
+  @override
+  String exportExpenseLabel(String amount) => 'Expenses: $amount';
+
+  @override
+  String exportBalanceLabel(String amount) => 'Balance: $amount';
+
+  @override
+  String get exportExpenseType => 'Expense';
+
+  @override
+  String get exportIncomeType => 'Income';
+
+  @override
+  String get exportCsvDateHeader => 'Date';
+
+  @override
+  String get exportCsvTypeHeader => 'Type';
+
+  @override
+  String get exportCsvCategoryHeader => 'Category';
+
+  @override
+  String get exportCsvAmountHeader => 'Amount';
+
+  @override
+  String get exportCsvNoteHeader => 'Note';
+
+  @override
+  String get exportPdfDateHeader => 'Date';
+
+  @override
+  String get exportPdfAmountHeader => 'Amount';
+
+  @override
+  String get exportPdfNoteHeader => 'Note';
+
+  @override
+  String get budgetTitle => 'Budget';
+
+  @override
+  String get budgetTotalLabel => 'Total Budget';
+
+  @override
+  String get budgetSetTotal => 'Set total budget';
+
+  @override
+  String get budgetGeneralLabel => 'Total Budget';
+
+  @override
+  String budgetExceededWarning(String categories) =>
+      'Budget exceeded: $categories';
+
+  @override
+  String budgetWarningLabel(String categories) =>
+      'Approaching limit: $categories';
+
+  @override
+  String get budgetDetailsAction => 'Details';
+
+  @override
+  String budgetSpentLabel(String amount) => 'Spent: $amount';
+
+  @override
+  String budgetLimitLabel(String amount) => 'Limit: $amount';
+
+  @override
+  String budgetRemainingLabel(String amount) => 'Remaining: $amount';
+
+  @override
+  String budgetUsedPercent(int percent) => '$percent% used';
+
+  @override
+  String get budgetLimitInputLabel => 'Limit (₽)';
+
+  @override
+  String get budgetInvalidLimitMessage =>
+      'Enter a limit greater than zero';
+
+  @override
+  String get budgetTotalCategoryLabel => 'total';
+
+  @override
+  String get deleteConfirmTitle => 'Delete category?';
+
+  @override
+  String get deleteConfirmMessage =>
+      'This will not delete existing transactions in this category.';
+
+  @override
+  String get personalAccount => 'Personal Account';
+
+  @override
+  String get incomeLabel => 'Income';
+
+  @override
+  String get expenseLabel => 'Expenses';
+
+  @override
+  String transactionsCount(int count) => 'Transactions: $count';
+
+  @override
+  String get closeAction => 'Close';
+
+  @override
+  String get signInToSync => 'Sign in to sync';
+
+  @override
+  String get builtInCategoriesHint => 'Built-in (tap to replace)';
+
+  @override
+  String get customCategories => 'Custom';
+
+  @override
+  String get noCustomCategories =>
+      'No custom categories.\nTap + to add one.';
+
+  @override
+  String replaceCategoryTitle(String category) => "Replace '$category'";
+
+  @override
+  String get chooseCustomCategory => 'Choose a custom category';
+
+  @override
+  String get noCustomCategoriesCreate =>
+      'No custom categories.\nCreate them with the + button';
+
+  @override
+  String get restoreDefault => 'Restore default';
+
+  @override
+  String get newCategory => 'New category';
+
+  @override
+  String get editCategory => 'Edit';
+
+  @override
+  String get categoryNameLabel => 'Name';
+
+  @override
+  String get categoryColorLabel => 'Color:';
+
+  @override
+  String get categoryIconLabel => 'Icon:';
+
+  @override
+  String get categoryNameRequiredMessage => 'Enter a name';
+
+  @override
+  String get searchTransactionsHint => 'Search transactions...';
+
+  @override
+  String get nothingFound => 'Nothing found';
 }

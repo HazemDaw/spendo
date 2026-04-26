@@ -253,4 +253,190 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get languageTitleEnglish => 'Language: English';
+  @override
+  String get exportTitle => 'Экспорт данных';
+
+  @override
+  String get exportChooseFormat => 'Выберите формат';
+
+  @override
+  String get exportPdf => 'Экспорт в PDF';
+
+  @override
+  String get exportPdfSubtitle => 'Отчет с группировкой по категориям';
+
+  @override
+  String get exportCsv => 'Экспорт в CSV';
+
+  @override
+  String get exportCsvSubtitle => 'Таблица для Excel / Google Sheets';
+
+  @override
+  String get exportLoadError => 'Не удалось загрузить транзакции';
+
+  @override
+  String exportError(String error) => 'Ошибка экспорта: $error';
+
+  @override
+  String get exportReportTitle => 'Spendo — Отчет о расходах';
+
+  @override
+  String exportGeneratedLabel(String date) => 'Сформирован: $date';
+
+  @override
+  String exportIncomeLabel(String amount) => 'Доходы: $amount';
+
+  @override
+  String exportExpenseLabel(String amount) => 'Расходы: $amount';
+
+  @override
+  String exportBalanceLabel(String amount) => 'Баланс: $amount';
+
+  @override
+  String get exportExpenseType => 'Расход';
+
+  @override
+  String get exportIncomeType => 'Доход';
+
+  @override
+  String get exportCsvDateHeader => 'Дата';
+
+  @override
+  String get exportCsvTypeHeader => 'Тип';
+
+  @override
+  String get exportCsvCategoryHeader => 'Категория';
+
+  @override
+  String get exportCsvAmountHeader => 'Сумма';
+
+  @override
+  String get exportCsvNoteHeader => 'Примечание';
+
+  @override
+  String get exportPdfDateHeader => 'Дата';
+
+  @override
+  String get exportPdfAmountHeader => 'Сумма';
+
+  @override
+  String get exportPdfNoteHeader => 'Примечание';
+
+  @override
+  String get budgetTitle => 'Бюджет';
+
+  @override
+  String get budgetTotalLabel => 'Общий бюджет';
+
+  @override
+  String get budgetSetTotal => 'Установить общий бюджет';
+
+  @override
+  String get budgetGeneralLabel => 'Общий бюджет';
+
+  @override
+  String budgetExceededWarning(String categories) =>
+      'Превышен бюджет: $categories';
+
+  @override
+  String budgetWarningLabel(String categories) =>
+      'Близко к лимиту: $categories';
+
+  @override
+  String get budgetDetailsAction => 'Подробнее';
+
+  @override
+  String budgetSpentLabel(String amount) => 'Потрачено: $amount';
+
+  @override
+  String budgetLimitLabel(String amount) => 'Лимит: $amount';
+
+  @override
+  String budgetRemainingLabel(String amount) => 'Остаток: $amount';
+
+  @override
+  String budgetUsedPercent(int percent) => '$percent% использовано';
+
+  @override
+  String get budgetLimitInputLabel => 'Лимит (₽)';
+
+  @override
+  String get budgetInvalidLimitMessage =>
+      'Введите лимит больше нуля';
+
+  @override
+  String get budgetTotalCategoryLabel => 'общий';
+
+  @override
+  String get deleteConfirmTitle => 'Удалить категорию?';
+
+  @override
+  String get deleteConfirmMessage =>
+      'Это не удалит существующие транзакции этой категории.';
+
+  @override
+  String get personalAccount => 'Личный счет';
+
+  @override
+  String get incomeLabel => 'Доходы';
+
+  @override
+  String get expenseLabel => 'Расходы';
+
+  @override
+  String transactionsCount(int count) => 'Транзакций: $count';
+
+  @override
+  String get closeAction => 'Закрыть';
+
+  @override
+  String get signInToSync => 'Войдите для синхронизации';
+
+  @override
+  String get builtInCategoriesHint =>
+      'Встроенные (нажмите чтобы заменить)';
+
+  @override
+  String get customCategories => 'Пользовательские';
+
+  @override
+  String get noCustomCategories =>
+      'Нет пользовательских категорий.\nНажмите + чтобы добавить.';
+
+  @override
+  String replaceCategoryTitle(String category) => "Заменить '$category'";
+
+  @override
+  String get chooseCustomCategory => 'Выберите пользовательскую категорию';
+
+  @override
+  String get noCustomCategoriesCreate =>
+      'Нет пользовательских категорий.\nСоздайте их с помощью кнопки +';
+
+  @override
+  String get restoreDefault => 'Восстановить по умолчанию';
+
+  @override
+  String get newCategory => 'Новая категория';
+
+  @override
+  String get editCategory => 'Редактировать';
+
+  @override
+  String get categoryNameLabel => 'Название';
+
+  @override
+  String get categoryColorLabel => 'Цвет:';
+
+  @override
+  String get categoryIconLabel => 'Иконка:';
+
+  @override
+  String get categoryNameRequiredMessage => 'Введите название';
+
+  @override
+  String get searchTransactionsHint => 'Поиск транзакций...';
+
+  @override
+  String get nothingFound => 'Ничего не найдено';
 }

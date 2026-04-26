@@ -128,9 +128,9 @@ class AppLeftDrawer extends StatelessWidget {
                               borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                          child: const Text(
-                            'Войдите для синхронизации',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.signInToSync,
+                            style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               inherit: true,
@@ -217,20 +217,24 @@ class AppLeftDrawer extends StatelessWidget {
                       showDialog<void>(
                         context: context,
                         builder: (BuildContext dialogContext) => AlertDialog(
-                          title: const Text('Личный счёт'),
+                          title: Text(l10n.personalAccount),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              _AccountRow('Доходы', income, AppColors.income),
                               _AccountRow(
-                                'Расходы',
+                                l10n.incomeLabel,
+                                income,
+                                AppColors.income,
+                              ),
+                              _AccountRow(
+                                l10n.expenseLabel,
                                 expense,
                                 AppColors.expense,
                               ),
                               const Divider(),
                               _AccountRow(
-                                'Баланс',
+                                l10n.balanceLabel,
                                 balance,
                                 balance >= 0
                                     ? AppColors.income
@@ -238,7 +242,7 @@ class AppLeftDrawer extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Транзакций: $count',
+                                l10n.transactionsCount(count),
                                 style: const TextStyle(
                                   color: AppColors.textSecondary,
                                 ),
@@ -248,7 +252,7 @@ class AppLeftDrawer extends StatelessWidget {
                           actions: <Widget>[
                             TextButton(
                               onPressed: () => Navigator.of(dialogContext).pop(),
-                              child: const Text('Закрыть'),
+                              child: Text(l10n.closeAction),
                             ),
                           ],
                         ),

@@ -80,9 +80,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Категории'),
+        title: Text(l10n.drawerCategories),
         actions: <Widget>[
           IconButton(
             onPressed: _showAddDialog,
@@ -102,11 +104,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   children: <Widget>[
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                       child: Text(
-                        'Встроенные (нажмите чтобы заменить)',
-                        style: TextStyle(
+                        l10n.builtInCategoriesHint,
+                        style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 12,
                         ),
@@ -119,14 +121,16 @@ class _CategoriesPageState extends State<CategoriesPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const _SectionHeader(title: 'Пользовательские'),
+                    _SectionHeader(title: l10n.customCategories),
                     if (customCategories.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 32),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
                         child: Text(
-                          'Нет пользовательских категорий.\nНажмите + чтобы добавить.',
+                          l10n.noCustomCategories,
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: AppColors.textSecondary),
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       )
                     else
@@ -279,24 +283,23 @@ class _CategoriesPageState extends State<CategoriesPage> {
   }
 
   Future<void> _confirmDelete(CustomCategoryModel category) async {
+    final AppLocalizations l10n = _l10n;
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Удалить категорию?'),
-          content: const Text(
-            'Это не удалит существующие транзакции этой категории.',
-          ),
+          title: Text(l10n.deleteConfirmTitle),
+          content: Text(l10n.deleteConfirmMessage),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Отмена'),
+              child: Text(l10n.cancelAction),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text(
-                'Удалить',
-                style: TextStyle(color: AppColors.expense),
+              child: Text(
+                l10n.deleteAction,
+                style: const TextStyle(color: AppColors.expense),
               ),
             ),
           ],
@@ -326,6 +329,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   }
 
   Future<void> _showSwapDialog(int slotIndex, Category currentCategory) async {
+    final AppLocalizations l10n = _l10n;
     final List<CustomCategoryModel> customCategories = _categoryStore.models;
 
     await showModalBottomSheet<void>(
@@ -341,22 +345,24 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    "Заменить '${CategoryLocalizer.label(_l10n, currentCategory)}'",
+                    l10n.replaceCategoryTitle(
+                      CategoryLocalizer.label(_l10n, currentCategory),
+                    ),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Выберите пользовательскую категорию',
-                    style: TextStyle(color: AppColors.textSecondary),
+                  Text(
+                    l10n.chooseCustomCategory,
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 16),
                   Expanded(
                     child: customCategories.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              'Нет пользовательских категорий.\nСоздайте их с помощью кнопки +',
+                              l10n.noCustomCategoriesCreate,
                               textAlign: TextAlign.center,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: AppColors.textSecondary,
                               ),
                             ),
@@ -417,7 +423,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                       Icons.restore,
                       color: AppColors.textSecondary,
                     ),
-                    title: const Text('Восстановить по умолчанию'),
+                    title: Text(l10n.restoreDefault),
                     onTap: () async {
                       await _orbitSlotDatasource.resetSlot(slotIndex);
                       if (!mounted ||
@@ -447,6 +453,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   Future<_CategoryDialogResult?> _showCategoryDialog({
     CustomCategoryModel? initialCategory,
   }) {
+    final AppLocalizations l10n = _l10n;
     final TextEditingController controller = TextEditingController(
       text: initialCategory?.label ?? '',
     );
@@ -469,7 +476,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
             return AlertDialog(
               scrollable: true,
               title: Text(
-                initialCategory == null ? 'Новая категория' : 'Редактировать',
+                initialCategory == null ? l10n.newCategory : l10n.editCategory,
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -478,15 +485,15 @@ class _CategoriesPageState extends State<CategoriesPage> {
                   TextField(
                     controller: controller,
                     decoration: InputDecoration(
-                      labelText: 'Название',
+                      labelText: l10n.categoryNameLabel,
                       errorText: errorText,
                     ),
                     textInputAction: TextInputAction.done,
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Цвет:',
-                    style: TextStyle(color: AppColors.textSecondary),
+                  Text(
+                    l10n.categoryColorLabel,
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -512,9 +519,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     }).toList(),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Иконка:',
-                    style: TextStyle(color: AppColors.textSecondary),
+                  Text(
+                    l10n.categoryIconLabel,
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -556,14 +563,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
               actions: <Widget>[
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Отмена'),
+                  child: Text(l10n.cancelAction),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     final String label = controller.text.trim();
                     if (label.isEmpty) {
                       setState(() {
-                        errorText = 'Введите название';
+                        errorText = l10n.categoryNameRequiredMessage;
                       });
                       return;
                     }
@@ -585,9 +592,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'Сохранить',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.saveAction,
+                    style: const TextStyle(
                       inherit: true,
                       color: Colors.white,
                       fontSize: 14,

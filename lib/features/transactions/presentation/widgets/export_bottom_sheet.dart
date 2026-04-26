@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/services/export_service.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../bloc/transaction_bloc.dart';
 import '../bloc/transaction_state.dart';
 
@@ -21,6 +22,8 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+
     return SafeArea(
       child: Stack(
         children: <Widget>[
@@ -30,26 +33,29 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Text(
-                  'Экспорт данных',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                Text(
+                  l10n.exportTitle,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Выберите формат',
-                  style: TextStyle(color: Colors.black54),
+                Text(
+                  l10n.exportChooseFormat,
+                  style: const TextStyle(color: Colors.black54),
                 ),
                 const SizedBox(height: 12),
                 ListTile(
                   leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
-                  title: const Text('Экспорт в PDF'),
-                  subtitle: const Text('Отчёт с группировкой по категориям'),
+                  title: Text(l10n.exportPdf),
+                  subtitle: Text(l10n.exportPdfSubtitle),
                   onTap: () => _export('pdf'),
                 ),
                 ListTile(
                   leading: const Icon(Icons.table_chart, color: Colors.green),
-                  title: const Text('Экспорт в CSV'),
-                  subtitle: const Text('Таблица для Excel / Google Sheets'),
+                  title: Text(l10n.exportCsv),
+                  subtitle: Text(l10n.exportCsvSubtitle),
                   onTap: () => _export('csv'),
                 ),
               ],
@@ -75,11 +81,12 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
     }
 
     final TransactionState state = context.read<TransactionBloc>().state;
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     if (state is! TransactionLoaded) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Не удалось загрузить транзакции')),
+          SnackBar(content: Text(l10n.exportLoadError)),
         );
       return;
     }
@@ -90,14 +97,19 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
 
     try {
       late final File file;
+      final String locale = Localizations.localeOf(context).languageCode;
       if (format == 'pdf') {
         file = await _exportService.exportPdf(
           state.transactions,
           state.totalIncome,
           state.totalExpense,
+          locale: locale,
         );
       } else {
-        file = await _exportService.exportCsv(state.transactions);
+        file = await _exportService.exportCsv(
+          state.transactions,
+          locale: locale,
+        );
       }
 
       await Share.shareXFiles(<XFile>[XFile(file.path)]);
@@ -112,7 +124,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text('Ошибка экспорта: $error')),
+          SnackBar(content: Text(l10n.exportError(error.toString()))),
         );
     } finally {
       if (mounted) {

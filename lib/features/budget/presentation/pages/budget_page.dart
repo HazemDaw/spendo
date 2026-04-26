@@ -83,7 +83,7 @@ class _BudgetPageState extends State<BudgetPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Бюджет • ${_formatMonthYear(_currentMonth)}'),
+          title: Text('${l10n.budgetTitle} • ${_formatMonthYear(_currentMonth)}'),
         ),
         body: BlocBuilder<BudgetBloc, BudgetState>(
           builder: (BuildContext context, BudgetState state) {
@@ -108,6 +108,7 @@ class _BudgetPageState extends State<BudgetPage> {
                 children: <Widget>[
                   _buildTotalBudgetCard(
                     context: context,
+                    l10n: l10n,
                     budgets: budgets,
                     totalSpent: totalSpent,
                   ),
@@ -126,11 +127,11 @@ class _BudgetPageState extends State<BudgetPage> {
                   ),
                   if (visibleCustom.isNotEmpty) ...<Widget>[
                     const SizedBox(height: 16),
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(0, 8, 0, 8),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                       child: Text(
-                        'Пользовательские',
-                        style: TextStyle(
+                        l10n.customCategories,
+                        style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 13,
                         ),
@@ -141,6 +142,7 @@ class _BudgetPageState extends State<BudgetPage> {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: _buildCustomCategoryBudgetCard(
                           context: context,
+                          l10n: l10n,
                           category: category,
                           budgets: budgets,
                           spentAmount: categoryTotals[category.id] ?? 0,
@@ -171,6 +173,7 @@ class _BudgetPageState extends State<BudgetPage> {
 
   Widget _buildTotalBudgetCard({
     required BuildContext context,
+    required AppLocalizations l10n,
     required List<Budget> budgets,
     required double totalSpent,
   }) {
@@ -185,7 +188,7 @@ class _BudgetPageState extends State<BudgetPage> {
             Row(
               children: <Widget>[
                 Text(
-                  'Общий бюджет',
+                  l10n.budgetTotalLabel,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const Spacer(),
@@ -210,19 +213,19 @@ class _BudgetPageState extends State<BudgetPage> {
                 children: <Widget>[
                   Expanded(
                     child: Text(
-                      'Потрачено: ${CurrencyFormatter.format(totalSpent)}',
+                      l10n.budgetSpentLabel(CurrencyFormatter.format(totalSpent)),
                       style: const TextStyle(color: AppColors.expense),
                     ),
                   ),
                   Expanded(
                     child: Text(
-                      'Лимит: ${CurrencyFormatter.format(totalBudget.limitAmount)}',
+                      l10n.budgetLimitLabel(CurrencyFormatter.format(totalBudget.limitAmount)),
                       textAlign: TextAlign.center,
                     ),
                   ),
                   Expanded(
                     child: Text(
-                      'Остаток: ${_formatSignedAmount(totalBudget.limitAmount - totalSpent)}',
+                      l10n.budgetRemainingLabel(_formatSignedAmount(totalBudget.limitAmount - totalSpent)),
                       textAlign: TextAlign.end,
                       style: TextStyle(
                         color: totalBudget.limitAmount - totalSpent >= 0
@@ -241,7 +244,7 @@ class _BudgetPageState extends State<BudgetPage> {
                   null,
                   budgets,
                 ),
-                child: const Text('Установить общий бюджет'),
+                child: Text(l10n.budgetSetTotal),
               ),
             ],
           ],
@@ -303,7 +306,7 @@ class _BudgetPageState extends State<BudgetPage> {
               Row(
                 children: <Widget>[
                   Text(
-                    '${_usedPercent(spentAmount, budget.limitAmount)}% использовано',
+                    l10n.budgetUsedPercent(_usedPercent(spentAmount, budget.limitAmount)),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                           fontSize: 12,
@@ -311,7 +314,7 @@ class _BudgetPageState extends State<BudgetPage> {
                   ),
                   const Spacer(),
                   Text(
-                    'Лимит: ${CurrencyFormatter.format(budget.limitAmount)}',
+                    l10n.budgetLimitLabel(CurrencyFormatter.format(budget.limitAmount)),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontSize: 12,
                         ),
@@ -327,6 +330,7 @@ class _BudgetPageState extends State<BudgetPage> {
 
   Widget _buildCustomCategoryBudgetCard({
     required BuildContext context,
+    required AppLocalizations l10n,
     required CustomCategoryModel category,
     required List<Budget> budgets,
     required double spentAmount,
@@ -384,7 +388,7 @@ class _BudgetPageState extends State<BudgetPage> {
               Row(
                 children: <Widget>[
                   Text(
-                    '${_usedPercent(spentAmount, budget.limitAmount)}% РёСЃРїРѕР»СЊР·РѕРІР°РЅРѕ',
+                    l10n.budgetUsedPercent(_usedPercent(spentAmount, budget.limitAmount)),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                           fontSize: 12,
@@ -392,7 +396,7 @@ class _BudgetPageState extends State<BudgetPage> {
                   ),
                   const Spacer(),
                   Text(
-                    'Р›РёРјРёС‚: ${CurrencyFormatter.format(budget.limitAmount)}',
+                    l10n.budgetLimitLabel(CurrencyFormatter.format(budget.limitAmount)),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontSize: 12,
                         ),
@@ -487,6 +491,7 @@ class _BudgetPageState extends State<BudgetPage> {
         _customCategoryByKey(categoryKey)?.toCategory();
     final Budget? existingBudget = _findBudget(budgets, categoryKey);
     String amountInput = existingBudget?.limitAmount.toStringAsFixed(0) ?? '';
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
 
     await showDialog<void>(
       context: context,
@@ -494,7 +499,7 @@ class _BudgetPageState extends State<BudgetPage> {
         return AlertDialog(
           title: Text(
             categoryKey == null
-                ? 'Общий бюджет'
+                ? l10n.budgetGeneralLabel
                 : CategoryLocalizer.label(
                     AppLocalizations.of(context)!,
                     category!,
@@ -510,9 +515,9 @@ class _BudgetPageState extends State<BudgetPage> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(
-                  labelText: 'Лимит (₽)',
-                  prefixIcon: Icon(Icons.currency_ruble),
+                decoration: InputDecoration(
+                  labelText: l10n.budgetLimitInputLabel,
+                  prefixIcon: const Icon(Icons.currency_ruble),
                 ),
               ),
             ],
@@ -529,11 +534,11 @@ class _BudgetPageState extends State<BudgetPage> {
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.expense,
                 ),
-                child: const Text('Удалить'),
+                child: Text(l10n.deleteAction),
               ),
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Отмена'),
+              child: Text(l10n.cancelAction),
             ),
             ElevatedButton(
               onPressed: () {
@@ -543,8 +548,8 @@ class _BudgetPageState extends State<BudgetPage> {
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
-                      const SnackBar(
-                        content: Text('Введите лимит больше нуля'),
+                      SnackBar(
+                        content: Text(l10n.budgetInvalidLimitMessage),
                       ),
                     );
                   return;
@@ -571,9 +576,9 @@ class _BudgetPageState extends State<BudgetPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
-                'Сохранить',
-                style: TextStyle(
+              child: Text(
+                l10n.saveAction,
+                style: const TextStyle(
                   inherit: true,
                   color: Colors.white,
                   fontSize: 14,

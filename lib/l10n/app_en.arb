@@ -82,5 +82,156 @@
   "commonOk": "OK",
   "chartOther": "Other",
   "languageTitleRussian": "Язык: Русский",
-  "languageTitleEnglish": "Language: English"
+  "languageTitleEnglish": "Language: English",
+  "exportTitle": "Export Data",
+  "exportChooseFormat": "Choose format",
+  "exportPdf": "Export to PDF",
+  "exportPdfSubtitle": "Report grouped by categories",
+  "exportCsv": "Export to CSV",
+  "exportCsvSubtitle": "Table for Excel / Google Sheets",
+  "exportLoadError": "Could not load transactions",
+  "exportError": "Export error: {error}",
+  "@exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportReportTitle": "Spendo — Expense Report",
+  "exportGeneratedLabel": "Generated: {date}",
+  "@exportGeneratedLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "exportIncomeLabel": "Income: {amount}",
+  "@exportIncomeLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "exportExpenseLabel": "Expenses: {amount}",
+  "@exportExpenseLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "exportBalanceLabel": "Balance: {amount}",
+  "@exportBalanceLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "exportExpenseType": "Expense",
+  "exportIncomeType": "Income",
+  "exportCsvDateHeader": "Date",
+  "exportCsvTypeHeader": "Type",
+  "exportCsvCategoryHeader": "Category",
+  "exportCsvAmountHeader": "Amount",
+  "exportCsvNoteHeader": "Note",
+  "exportPdfDateHeader": "Date",
+  "exportPdfAmountHeader": "Amount",
+  "exportPdfNoteHeader": "Note",
+  "budgetTitle": "Budget",
+  "budgetTotalLabel": "Total Budget",
+  "budgetSetTotal": "Set total budget",
+  "budgetGeneralLabel": "Total Budget",
+  "budgetExceededWarning": "Budget exceeded: {categories}",
+  "@budgetExceededWarning": {
+    "placeholders": {
+      "categories": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetWarningLabel": "Approaching limit: {categories}",
+  "@budgetWarningLabel": {
+    "placeholders": {
+      "categories": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetDetailsAction": "Details",
+  "budgetSpentLabel": "Spent: {amount}",
+  "@budgetSpentLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetLimitLabel": "Limit: {amount}",
+  "@budgetLimitLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetRemainingLabel": "Remaining: {amount}",
+  "@budgetRemainingLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetUsedPercent": "{percent}% used",
+  "@budgetUsedPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetLimitInputLabel": "Limit (₽)",
+  "budgetInvalidLimitMessage": "Enter a limit greater than zero",
+  "budgetTotalCategoryLabel": "total",
+  "deleteConfirmTitle": "Delete category?",
+  "deleteConfirmMessage": "This will not delete existing transactions in this category.",
+  "personalAccount": "Personal Account",
+  "incomeLabel": "Income",
+  "expenseLabel": "Expenses",
+  "transactionsCount": "Transactions: {count}",
+  "@transactionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "closeAction": "Close",
+  "signInToSync": "Sign in to sync",
+  "builtInCategoriesHint": "Built-in (tap to replace)",
+  "customCategories": "Custom",
+  "noCustomCategories": "No custom categories.\nTap + to add one.",
+  "replaceCategoryTitle": "Replace '{category}'",
+  "@replaceCategoryTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseCustomCategory": "Choose a custom category",
+  "noCustomCategoriesCreate": "No custom categories.\nCreate them with the + button",
+  "restoreDefault": "Restore default",
+  "newCategory": "New category",
+  "editCategory": "Edit",
+  "categoryNameLabel": "Name",
+  "categoryColorLabel": "Color:",
+  "categoryIconLabel": "Icon:",
+  "categoryNameRequiredMessage": "Enter a name",
+  "searchTransactionsHint": "Search transactions...",
+  "nothingFound": "Nothing found"
 }

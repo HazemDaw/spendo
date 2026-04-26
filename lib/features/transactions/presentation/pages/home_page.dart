@@ -524,6 +524,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       _buildHeader(
+                        l10n: l10n,
                         titleColor: periodChipLabelSelected,
                       ),
                       Positioned(
@@ -593,6 +594,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHeader({
+    required AppLocalizations l10n,
     required Color titleColor,
   }) {
     return Positioned(
@@ -637,6 +639,7 @@ class _HomePageState extends State<HomePage> {
               showSearch(
                 context: context,
                 delegate: _TransactionSearchDelegate(
+                  l10n: l10n,
                   transactions:
                       (context.read<TransactionBloc>().state
                               is TransactionLoaded)
@@ -1087,9 +1090,10 @@ class _HomePageState extends State<HomePage> {
         final bool isExceeded = exceededLabels.isNotEmpty;
         final bool isWarning = warningLabels.isNotEmpty;
         final bool isDark = context.watch<ThemeCubit>().state == ThemeMode.dark;
+        final AppLocalizations l10n = AppLocalizations.of(context)!;
         final String warningMessage = isExceeded
-            ? 'Превышен бюджет: ${exceededLabels.join(', ')}'
-            : 'Близко к лимиту: ${warningLabels.join(', ')}';
+            ? l10n.budgetExceededWarning(exceededLabels.join(', '))
+            : l10n.budgetWarningLabel(warningLabels.join(', '));
         final Color bannerBg = isDark
             ? (isExceeded
                   ? const Color(0xFF3D1515)
@@ -1157,7 +1161,7 @@ class _HomePageState extends State<HomePage> {
                     border: Border.all(color: bannerBorder),
                   ),
                   child: Text(
-                    'Подробнее',
+                    l10n.budgetDetailsAction,
                     style: TextStyle(
                       color: bannerBorder,
                       fontSize: 13,
@@ -1176,7 +1180,7 @@ class _HomePageState extends State<HomePage> {
 
   String _budgetWarningLabel(BuildContext context, String? categoryKey) {
     if (categoryKey == null) {
-      return 'общий';
+      return AppLocalizations.of(context)!.budgetTotalCategoryLabel;
     }
 
     final category = MockData.categoryByKey(categoryKey);
@@ -1601,12 +1605,16 @@ enum _OrbitSlot {
 }
 
 class _TransactionSearchDelegate extends SearchDelegate<Transaction?> {
-  _TransactionSearchDelegate({required this.transactions});
+  _TransactionSearchDelegate({
+    required this.l10n,
+    required this.transactions,
+  });
 
+  final AppLocalizations l10n;
   final List<Transaction> transactions;
 
   @override
-  String get searchFieldLabel => 'Поиск транзакций...';
+  String get searchFieldLabel => l10n.searchTransactionsHint;
 
   @override
   List<Widget> buildActions(BuildContext context) => <Widget>[
@@ -1637,7 +1645,7 @@ class _TransactionSearchDelegate extends SearchDelegate<Transaction?> {
     }).toList()..sort((Transaction a, Transaction b) => b.date.compareTo(a.date));
 
     if (results.isEmpty) {
-      return const Center(child: Text('Ничего не найдено'));
+      return Center(child: Text(l10n.nothingFound));
     }
 
     return ListView.separated(

@@ -1,0 +1,237 @@
+{
+  "@@locale": "ru",
+  "appTitle": "Spendo",
+  "periodToday": "Сегодня",
+  "periodWeek": "Неделя",
+  "periodMonth": "Месяц",
+  "periodYear": "Год",
+  "periodAll": "Все время",
+  "periodInterval": "Интервал",
+  "allTime": "Все время",
+  "balanceLabel": "Баланс",
+  "actionExpense": "- Расход",
+  "actionIncome": "+ Доход",
+  "categoryFood": "Еда и продукты",
+  "categoryTransport": "Транспорт",
+  "categoryHousing": "Жилье",
+  "categoryHealth": "Здоровье",
+  "categoryClothing": "Одежда",
+  "categoryEntertainment": "Развлечения",
+  "categoryCommunication": "Связь",
+  "categoryPets": "Питомцы",
+  "categoryGifts": "Подарки",
+  "categorySport": "Спорт",
+  "addTransactionPlaceholder": "Экран добавления, фаза 1",
+  "transactionListPlaceholder": "Список по категории, фаза 1",
+  "addExpenseTitle": "Добавить расход",
+  "addIncomeTitle": "Добавить доход",
+  "editTransactionTitle": "Редактировать",
+  "saveAction": "Сохранить",
+  "cancelAction": "Отмена",
+  "deleteAction": "Удалить",
+  "dateLabel": "Дата",
+  "noteLabel": "Заметка",
+  "pickCategoryAction": "ВЫБРАТЬ КАТЕГОРИЮ",
+  "invalidAmountMessage": "Введите сумму больше нуля",
+  "invalidCategoryMessage": "Выберите категорию",
+  "transactionAddedMessage": "Транзакция добавлена",
+  "transactionUpdatedMessage": "Изменения сохранены",
+  "transactionDeletedMessage": "Транзакция удалена",
+  "deleteTransactionTitle": "Удалить транзакцию?",
+  "deleteTransactionMessage": "Это действие нельзя отменить",
+  "noTransactionsInCategory": "Нет транзакций в этой категории",
+  "totalExpenseLabel": "Итого расходы",
+  "allTransactionsTitle": "Все транзакции",
+  "incomeSectionTitle": "Доход",
+  "noTransactions": "Нет транзакций",
+  "drawerStub": "Фаза 1, скоро",
+  "categoryPickerStub": "Выбор категории, фаза 1",
+  "authLoginPhase3": "Вход, этап 3",
+  "authRegisterPhase3": "Регистрация, этап 3",
+  "authLoginTitle": "Вход",
+  "authRegisterTitle": "Регистрация",
+  "authEmailLabel": "Email",
+  "authPasswordLabel": "Пароль",
+  "authConfirmPasswordLabel": "Подтвердите пароль",
+  "authSignInAction": "Войти",
+  "authSignInWithGoogleAction": "Войти через Google",
+  "authRegisterAction": "Зарегистрироваться",
+  "authLoginOrRegisterAction": "Войти / Зарегистрироваться",
+  "authNoAccountPrompt": "Нет аккаунта? Зарегистрироваться",
+  "authHaveAccountPrompt": "Уже есть аккаунт? Войти",
+  "authSignOutAction": "Выйти",
+  "authOrDivider": "или",
+  "authEmailRequiredMessage": "Введите email",
+  "authPasswordRequiredMessage": "Введите пароль",
+  "authPasswordTooShortMessage": "Пароль должен содержать минимум 6 символов",
+  "authPasswordsDoNotMatchMessage": "Пароли не совпадают",
+  "drawerUserName": "Spendo User",
+  "drawerUserEmail": "user@spendo.app",
+  "drawerAllAccounts": "Все счета",
+  "drawerBudget": "Бюджет",
+  "drawerCategories": "Категории",
+  "drawerDarkTheme": "Темная тема",
+  "drawerExportData": "Экспорт данных",
+  "drawerAbout": "О приложении",
+  "drawerAboutDescription": "Приложение для отслеживания личных расходов.",
+  "drawerSettingsTitle": "Настройки",
+  "featureComingSoonMessage": "Функция будет доступна позже",
+  "syncTitle": "Синхронизация",
+  "syncSyncedSubtitle": "Синхронизировано",
+  "syncLocalOnlySubtitle": "Только локально",
+  "commonOk": "OK",
+  "chartOther": "Прочее",
+  "languageTitleRussian": "Язык: Русский",
+  "languageTitleEnglish": "Language: English",
+  "exportTitle": "Экспорт данных",
+  "exportChooseFormat": "Выберите формат",
+  "exportPdf": "Экспорт в PDF",
+  "exportPdfSubtitle": "Отчет с группировкой по категориям",
+  "exportCsv": "Экспорт в CSV",
+  "exportCsvSubtitle": "Таблица для Excel / Google Sheets",
+  "exportLoadError": "Не удалось загрузить транзакции",
+  "exportError": "Ошибка экспорта: {error}",
+  "@exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportReportTitle": "Spendo — Отчет о расходах",
+  "exportGeneratedLabel": "Сформирован: {date}",
+  "@exportGeneratedLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "exportIncomeLabel": "Доходы: {amount}",
+  "@exportIncomeLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "exportExpenseLabel": "Расходы: {amount}",
+  "@exportExpenseLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "exportBalanceLabel": "Баланс: {amount}",
+  "@exportBalanceLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "exportExpenseType": "Расход",
+  "exportIncomeType": "Доход",
+  "exportCsvDateHeader": "Дата",
+  "exportCsvTypeHeader": "Тип",
+  "exportCsvCategoryHeader": "Категория",
+  "exportCsvAmountHeader": "Сумма",
+  "exportCsvNoteHeader": "Примечание",
+  "exportPdfDateHeader": "Дата",
+  "exportPdfAmountHeader": "Сумма",
+  "exportPdfNoteHeader": "Примечание",
+  "budgetTitle": "Бюджет",
+  "budgetTotalLabel": "Общий бюджет",
+  "budgetSetTotal": "Установить общий бюджет",
+  "budgetGeneralLabel": "Общий бюджет",
+  "budgetExceededWarning": "Превышен бюджет: {categories}",
+  "@budgetExceededWarning": {
+    "placeholders": {
+      "categories": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetWarningLabel": "Близко к лимиту: {categories}",
+  "@budgetWarningLabel": {
+    "placeholders": {
+      "categories": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetDetailsAction": "Подробнее",
+  "budgetSpentLabel": "Потрачено: {amount}",
+  "@budgetSpentLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetLimitLabel": "Лимит: {amount}",
+  "@budgetLimitLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetRemainingLabel": "Остаток: {amount}",
+  "@budgetRemainingLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetUsedPercent": "{percent}% использовано",
+  "@budgetUsedPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetLimitInputLabel": "Лимит (₽)",
+  "budgetInvalidLimitMessage": "Введите лимит больше нуля",
+  "budgetTotalCategoryLabel": "общий",
+  "deleteConfirmTitle": "Удалить категорию?",
+  "deleteConfirmMessage": "Это не удалит существующие транзакции этой категории.",
+  "personalAccount": "Личный счет",
+  "incomeLabel": "Доходы",
+  "expenseLabel": "Расходы",
+  "transactionsCount": "Транзакций: {count}",
+  "@transactionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "closeAction": "Закрыть",
+  "signInToSync": "Войдите для синхронизации",
+  "builtInCategoriesHint": "Встроенные (нажмите чтобы заменить)",
+  "customCategories": "Пользовательские",
+  "noCustomCategories": "Нет пользовательских категорий.\nНажмите + чтобы добавить.",
+  "replaceCategoryTitle": "Заменить '{category}'",
+  "@replaceCategoryTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseCustomCategory": "Выберите пользовательскую категорию",
+  "noCustomCategoriesCreate": "Нет пользовательских категорий.\nСоздайте их с помощью кнопки +",
+  "restoreDefault": "Восстановить по умолчанию",
+  "newCategory": "Новая категория",
+  "editCategory": "Редактировать",
+  "categoryNameLabel": "Название",
+  "categoryColorLabel": "Цвет:",
+  "categoryIconLabel": "Иконка:",
+  "categoryNameRequiredMessage": "Введите название",
+  "searchTransactionsHint": "Поиск транзакций...",
+  "nothingFound": "Ничего не найдено"
+}

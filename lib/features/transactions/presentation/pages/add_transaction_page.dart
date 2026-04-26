@@ -152,9 +152,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white,
                 ),
-                child: const Text(
-                  'Сохранить',
-                  style: TextStyle(
+                child: Text(
+                  l10n.saveAction,
+                  style: const TextStyle(
                     inherit: true,
                     color: Colors.white,
                     fontSize: 16,
