@@ -189,6 +189,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final bool isDark = context.watch<ThemeCubit>().state == ThemeMode.dark;
     const Color headerBg = Color(0xFF7C3AED);
     final Color canvasBg =
@@ -532,6 +533,7 @@ class _HomePageState extends State<HomePage> {
                         child: Builder(
                           builder: (BuildContext scaffoldContext) {
                             return _HomeBalanceBar(
+                              balanceLabel: l10n.balanceLabel,
                               balanceText: _formatSignedHomeAmount(
                                 income - expense,
                               ),
@@ -551,8 +553,8 @@ class _HomePageState extends State<HomePage> {
                         right: 70,
                         top: 1362,
                         child: HomeActionButtons(
-                          expenseLabel: 'Expense',
-                          incomeLabel: 'Income',
+                          expenseLabel: l10n.actionExpense,
+                          incomeLabel: l10n.actionIncome,
                           onExpensePressed: () async {
                             final Object? result = await context.pushNamed(
                               'addTransaction',
@@ -1207,10 +1209,12 @@ class _HomePageState extends State<HomePage> {
     required TransactionDateRange displayedRange,
     required DateTime now,
   }) {
-    final DateFormat dayFmt = DateFormat('d MMMM yyyy', 'ru_RU');
-    final DateFormat weekFmt = DateFormat('d MMM', 'ru_RU');
-    final DateFormat monthFmt = DateFormat('MMMM yyyy', 'ru_RU');
-    final DateFormat yearFmt = DateFormat('yyyy', 'ru_RU');
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final String localeName = l10n.localeName;
+    final DateFormat dayFmt = DateFormat('d MMMM yyyy', localeName);
+    final DateFormat weekFmt = DateFormat('d MMM', localeName);
+    final DateFormat monthFmt = DateFormat('MMMM yyyy', localeName);
+    final DateFormat yearFmt = DateFormat('yyyy', localeName);
 
     return switch (_selectedPeriod) {
       TransactionPeriod.day => dayFmt.format(_referenceDate),
@@ -1219,7 +1223,7 @@ class _HomePageState extends State<HomePage> {
             '${weekFmt.format(displayedRange.end)}',
       TransactionPeriod.month => monthFmt.format(_referenceDate),
       TransactionPeriod.year => yearFmt.format(_referenceDate),
-      TransactionPeriod.all => 'Все время',
+      TransactionPeriod.all => l10n.allTime,
       TransactionPeriod.interval =>
         '${weekFmt.format(_intervalStart ?? _referenceDate)} — '
             '${weekFmt.format(_intervalEnd ?? now)}',
@@ -1227,8 +1231,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   String _buildAdjacentLabel(int direction) {
-    final DateFormat monthFmt = DateFormat('MMM yyyy', 'ru_RU');
-    final DateFormat dayFmt = DateFormat('d MMM', 'ru_RU');
+    final String localeName = AppLocalizations.of(context)!.localeName;
+    final DateFormat monthFmt = DateFormat('MMM yyyy', localeName);
+    final DateFormat dayFmt = DateFormat('d MMM', localeName);
     final DateFormat yearFmt = DateFormat('yyyy');
 
     final DateTime adjacent = switch (_selectedPeriod) {
@@ -1440,12 +1445,14 @@ class _HomePageState extends State<HomePage> {
 class _HomeBalanceBar extends StatelessWidget {
   const _HomeBalanceBar({
     required this.balanceText,
+    required this.balanceLabel,
     required this.backgroundColor,
     this.onTap,
     this.onMenuTap,
   });
 
   final String balanceText;
+  final String balanceLabel;
   final Color backgroundColor;
   final VoidCallback? onTap;
   final VoidCallback? onMenuTap;
@@ -1478,7 +1485,7 @@ class _HomeBalanceBar extends StatelessWidget {
               ],
             ),
             child: Text(
-              'Balance  $balanceText',
+              '$balanceLabel  $balanceText',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 30,

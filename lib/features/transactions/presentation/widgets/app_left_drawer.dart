@@ -141,7 +141,7 @@ class AppLeftDrawer extends StatelessWidget {
                                       color: AppColors.primary,
                                     )
                                   : null,
-                              title: Text(_periodLabel(period)),
+                              title: Text(_periodLabel(period, l10n)),
                               trailing: period == selectedPeriod
                                   ? const Icon(
                                       Icons.check,
@@ -266,14 +266,17 @@ class AppLeftDrawer extends StatelessWidget {
     );
   }
 
-  static String _periodLabel(TransactionPeriod period) {
+  static String _periodLabel(
+    TransactionPeriod period,
+    AppLocalizations l10n,
+  ) {
     return switch (period) {
-      TransactionPeriod.day => 'День',
-      TransactionPeriod.week => 'Неделя',
-      TransactionPeriod.month => 'Месяц',
-      TransactionPeriod.year => 'Год',
-      TransactionPeriod.all => 'Все время',
-      TransactionPeriod.interval => 'Интервал',
+      TransactionPeriod.day => l10n.periodToday,
+      TransactionPeriod.week => l10n.periodWeek,
+      TransactionPeriod.month => l10n.periodMonth,
+      TransactionPeriod.year => l10n.periodYear,
+      TransactionPeriod.all => l10n.periodAll,
+      TransactionPeriod.interval => l10n.periodInterval,
     };
   }
 }

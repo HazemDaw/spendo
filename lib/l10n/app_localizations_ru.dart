@@ -16,6 +16,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get periodMonth => 'Месяц';
 
   @override
+  String get periodYear => 'Год';
+
+  @override
+  String get periodAll => 'Все время';
+
+  @override
+  String get periodInterval => 'Интервал';
+
+  @override
+  String get allTime => 'Все время';
+
+  @override
   String get balanceLabel => 'Баланс';
 
   @override
@@ -235,4 +247,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get chartOther => 'Прочее';
+
+  @override
+  String get languageTitleRussian => 'Язык: Русский';
+
+  @override
+  String get languageTitleEnglish => 'Language: English';
 }

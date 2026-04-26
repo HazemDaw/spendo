@@ -3,6 +3,7 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/locale/locale_cubit.dart';
 import 'core/theme/theme_cubit.dart';
 import 'features/auth/data/datasources/firebase_auth_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
@@ -191,6 +192,11 @@ Future<void> initDependencies() async {
   }
   if (!sl.isRegistered<ThemeCubit>()) {
     sl.registerFactory<ThemeCubit>(() => ThemeCubit(sl<SharedPreferences>()));
+  }
+  if (!sl.isRegistered<LocaleCubit>()) {
+    sl.registerFactory<LocaleCubit>(
+      () => LocaleCubit(sl<SharedPreferences>()),
+    );
   }
 }
 

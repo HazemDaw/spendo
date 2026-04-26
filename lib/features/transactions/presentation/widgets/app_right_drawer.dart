@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/locale/locale_cubit.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_cubit.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -75,6 +76,25 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
                   value: themeMode == ThemeMode.dark,
                   onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
                   activeThumbColor: AppColors.primary,
+                );
+              },
+            ),
+            BlocBuilder<LocaleCubit, Locale>(
+              builder: (BuildContext context, Locale locale) {
+                final bool isRussian = locale.languageCode == 'ru';
+                return ListTile(
+                  leading: const Icon(Icons.language, color: AppColors.primary),
+                  title: Text(
+                    isRussian
+                        ? l10n.languageTitleRussian
+                        : l10n.languageTitleEnglish,
+                  ),
+                  trailing: Switch(
+                    value: !isRussian,
+                    onChanged: (_) =>
+                        context.read<LocaleCubit>().toggleLocale(),
+                    activeThumbColor: AppColors.primary,
+                  ),
                 );
               },
             ),

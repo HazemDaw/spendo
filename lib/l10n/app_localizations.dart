@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_en.dart';
 import 'app_localizations_ru.dart';
 
 abstract class AppLocalizations {
@@ -30,12 +31,17 @@ abstract class AppLocalizations {
 
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ru'),
+    Locale('en'),
   ];
 
   String get appTitle;
   String get periodToday;
   String get periodWeek;
   String get periodMonth;
+  String get periodYear;
+  String get periodAll;
+  String get periodInterval;
+  String get allTime;
   String get balanceLabel;
   String get actionExpense;
   String get actionIncome;
@@ -109,6 +115,8 @@ abstract class AppLocalizations {
   String get syncLocalOnlySubtitle;
   String get commonOk;
   String get chartOther;
+  String get languageTitleRussian;
+  String get languageTitleEnglish;
 }
 
 class _AppLocalizationsDelegate
@@ -124,7 +132,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['ru'].contains(locale.languageCode);
+      <String>['ru', 'en'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -132,6 +140,8 @@ class _AppLocalizationsDelegate
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
+    case 'en':
+      return AppLocalizationsEn();
     case 'ru':
       return AppLocalizationsRu();
   }
