@@ -298,268 +298,294 @@ class _HomePageState extends State<HomePage> {
                   height: _referenceSize.height,
                   child: Stack(
                     children: <Widget>[
-                    const Positioned.fill(
-                      child: SizedBox.shrink(),
-                    ),
-                    Positioned.fill(
-                      child: ColoredBox(color: canvasBg),
-                    ),
-                    const Positioned(
-                      left: 0,
-                      top: 0,
-                      right: 0,
-                      child: SizedBox(
-                        height: 156,
-                        child: ColoredBox(color: headerBg),
+                      const Positioned.fill(
+                        child: SizedBox.shrink(),
                       ),
-                    ),
-                    _buildHeader(
-                      titleColor: periodChipLabelSelected,
-                    ),
-                      Positioned(
+                      Positioned.fill(
+                        child: ColoredBox(color: canvasBg),
+                      ),
+                      const Positioned(
                         left: 0,
+                        top: 0,
                         right: 0,
-                        top: 170,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.only(left: 16),
-                              child: GestureDetector(
-                                onTap: () =>
-                                    _navigatePeriod(-1, oldestTransactionDate),
-                                child: Text(
-                                  isAtOldestBoundary
-                                      ? ''
-                                      : _buildAdjacentLabel(-1),
-                                  style: GoogleFonts.inter(
-                                    color: isDark
-                                        ? Colors.white38
-                                        : const Color(
-                                            0xFF7C3AED,
-                                          ).withValues(alpha: 0.4),
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                GestureDetector(
-                                  onTap: () => _navigatePeriod(
-                                    -1,
-                                    oldestTransactionDate,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Icon(
-                                      Icons.chevron_left_rounded,
-                                      color: isAtOldestBoundary
-                                          ? Colors.transparent
-                                          : isDark
-                                          ? Colors.white54
-                                          : const Color(0xFF7C3AED),
-                                      size: 36,
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: _cyclePeriod,
-                                  child: Text(
-                                    selectedPeriodLabel,
-                                    style: GoogleFonts.inter(
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF1E1B4B),
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 0,
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () => _navigatePeriod(
-                                    1,
-                                    oldestTransactionDate,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Icon(
-                                      Icons.chevron_right_rounded,
-                                      color: isAtFutureBoundary
-                                          ? Colors.transparent
-                                          : isDark
-                                          ? Colors.white54
-                                          : const Color(0xFF7C3AED),
-                                      size: 36,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 16),
-                              child: GestureDetector(
-                                onTap: () =>
-                                    _navigatePeriod(1, oldestTransactionDate),
-                                child: Text(
-                                  isAtFutureBoundary
-                                      ? ''
-                                      : _buildAdjacentLabel(1),
-                                  style: GoogleFonts.inter(
-                                    color: isDark
-                                        ? Colors.white38
-                                        : const Color(
-                                            0xFF7C3AED,
-                                          ).withValues(alpha: 0.4),
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: SizedBox(
+                          height: 156,
+                          child: ColoredBox(color: headerBg),
                         ),
                       ),
-                    Positioned(
-                      left: 32,
-                      right: 32,
-                      top: 220,
-                      child: _buildBudgetWarningBanner(
-                        expenseTotals: expenseTotals,
-                        totalSpent: expense,
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: CustomPaint(
-                          painter: ConnectorLinesPainter(connectors: connectors),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: _chartCenter.dx - _donutOuterRadius,
-                      top: _chartCenter.dy - _donutOuterRadius,
-                      child: GestureDetector(
-                        child: SizedBox.square(
-                          dimension: _donutOuterRadius * 2,
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        transitionBuilder: (
+                          Widget child,
+                          Animation<double> animation,
+                        ) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: Offset(_slideDirection, 0),
+                              end: Offset.zero,
+                            ).animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeOutCubic,
+                              ),
+                            ),
+                            child: child,
+                          );
+                        },
+                        child: SizedBox(
+                          key: ValueKey<String>(
+                            '${_selectedPeriod}_${_referenceDate.millisecondsSinceEpoch}',
+                          ),
+                          width: _referenceSize.width,
+                          height: _referenceSize.height,
                           child: Stack(
-                            alignment: Alignment.center,
                             children: <Widget>[
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                transitionBuilder: (
-                                  Widget child,
-                                  Animation<double> animation,
-                                ) {
-                                  return SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: Offset(_slideDirection, 0),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: child,
-                                  );
-                                },
-                                child: SizedBox.square(
-                                  key: ValueKey<DateTime>(_referenceDate),
-                                  dimension: _donutOuterRadius * 2,
-                                  child: DonutChartWidget(
-                                    slices: slices,
-                                    incomeText: _homeAmountFormatter.format(income),
-                                    expenseText: _homeAmountFormatter.format(
-                                      expense,
+                              Positioned(
+                                left: 0,
+                                right: 0,
+                                top: 170,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 16),
+                                      child: GestureDetector(
+                                        onTap: () => _navigatePeriod(
+                                          -1,
+                                          oldestTransactionDate,
+                                        ),
+                                        child: Text(
+                                          isAtOldestBoundary
+                                              ? ''
+                                              : _buildAdjacentLabel(-1),
+                                          style: GoogleFonts.inter(
+                                            color: isDark
+                                                ? Colors.white38
+                                                : const Color(
+                                                    0xFF7C3AED,
+                                                  ).withValues(alpha: 0.4),
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    startAngleDegrees: dynamicStartAngle,
-                                    outerRadius: _donutOuterRadius,
-                                    innerRadius: _donutInnerRadius,
-                                    onSliceTap: (String categoryKey) {
-                                      context.pushNamed(
-                                        'transactionList',
-                                        pathParameters: <String, String>{
-                                          'categoryKey': categoryKey,
-                                        },
-                                      );
-                                    },
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        GestureDetector(
+                                          onTap: () => _navigatePeriod(
+                                            -1,
+                                            oldestTransactionDate,
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12),
+                                            child: Icon(
+                                              Icons.chevron_left_rounded,
+                                              color: isAtOldestBoundary
+                                                  ? Colors.transparent
+                                                  : isDark
+                                                  ? Colors.white54
+                                                  : const Color(0xFF7C3AED),
+                                              size: 36,
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: _cyclePeriod,
+                                          child: Text(
+                                            selectedPeriodLabel,
+                                            style: GoogleFonts.inter(
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : const Color(0xFF1E1B4B),
+                                              fontSize: 28,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0,
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () => _navigatePeriod(
+                                            1,
+                                            oldestTransactionDate,
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12),
+                                            child: Icon(
+                                              Icons.chevron_right_rounded,
+                                              color: isAtFutureBoundary
+                                                  ? Colors.transparent
+                                                  : isDark
+                                                  ? Colors.white54
+                                                  : const Color(0xFF7C3AED),
+                                              size: 36,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 16),
+                                      child: GestureDetector(
+                                        onTap: () => _navigatePeriod(
+                                          1,
+                                          oldestTransactionDate,
+                                        ),
+                                        child: Text(
+                                          isAtFutureBoundary
+                                              ? ''
+                                              : _buildAdjacentLabel(1),
+                                          style: GoogleFonts.inter(
+                                            color: isDark
+                                                ? Colors.white38
+                                                : const Color(
+                                                    0xFF7C3AED,
+                                                  ).withValues(alpha: 0.4),
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                left: 32,
+                                right: 32,
+                                top: 220,
+                                child: _buildBudgetWarningBanner(
+                                  expenseTotals: expenseTotals,
+                                  totalSpent: expense,
+                                ),
+                              ),
+                              Positioned.fill(
+                                child: IgnorePointer(
+                                  child: CustomPaint(
+                                    painter: ConnectorLinesPainter(
+                                      connectors: connectors,
+                                    ),
                                   ),
                                 ),
                               ),
-                              if (isLoading)
-                                const SizedBox(
-                                  width: 36,
-                                  height: 36,
-                                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                              Positioned(
+                                left: _chartCenter.dx - _donutOuterRadius,
+                                top: _chartCenter.dy - _donutOuterRadius,
+                                child: GestureDetector(
+                                  child: SizedBox.square(
+                                    dimension: _donutOuterRadius * 2,
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: <Widget>[
+                                        SizedBox.square(
+                                          dimension: _donutOuterRadius * 2,
+                                          child: DonutChartWidget(
+                                            slices: slices,
+                                            incomeText: _homeAmountFormatter
+                                                .format(income),
+                                            expenseText: _homeAmountFormatter
+                                                .format(expense),
+                                            startAngleDegrees:
+                                                dynamicStartAngle,
+                                            outerRadius: _donutOuterRadius,
+                                            innerRadius: _donutInnerRadius,
+                                            onSliceTap: (String categoryKey) {
+                                              context.pushNamed(
+                                                'transactionList',
+                                                pathParameters:
+                                                    <String, String>{
+                                                  'categoryKey': categoryKey,
+                                                },
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        if (isLoading)
+                                          const SizedBox(
+                                            width: 36,
+                                            height: 36,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2.5,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
+                              ),
+                              for (final _OrbitNode node in orbitNodes)
+                                _buildOrbitNode(node),
                             ],
                           ),
                         ),
                       ),
-                    ),
-                    for (final _OrbitNode node in orbitNodes) _buildOrbitNode(node),
-                    Positioned(
-                      left: 44,
-                      right: 44,
-                      top: 1248,
-                      child: Builder(
-                        builder: (BuildContext scaffoldContext) {
-                          return _HomeBalanceBar(
-                            balanceText: _formatSignedHomeAmount(
-                              income - expense,
-                            ),
-                            backgroundColor: balanceBarBg,
-                            onTap: () => context.push(
-                              '/all-transactions',
-                              extra: allTransactions,
-                            ),
-                            onMenuTap: () =>
-                                Scaffold.of(scaffoldContext).openEndDrawer(),
-                          );
-                        },
+                      _buildHeader(
+                        titleColor: periodChipLabelSelected,
                       ),
-                    ),
-                    Positioned(
-                      left: 70,
-                      right: 70,
-                      top: 1362,
-                      child: HomeActionButtons(
-                        expenseLabel: 'Expense',
-                        incomeLabel: 'Income',
-                        onExpensePressed: () async {
-                          final Object? result = await context.pushNamed(
-                            'addTransaction',
-                            queryParameters: const <String, String>{
-                              'type': 'expense',
-                            },
-                          );
-                          if (!mounted) {
-                            return;
-                          }
-                          _showAddResult(result);
-                        },
-                        onIncomePressed: () async {
-                          final Object? result = await context.pushNamed(
-                            'addTransaction',
-                            queryParameters: const <String, String>{
-                              'type': 'income',
-                            },
-                          );
-                          if (!mounted) {
-                            return;
-                          }
-                          _showAddResult(result);
-                        },
+                      Positioned(
+                        left: 44,
+                        right: 44,
+                        top: 1248,
+                        child: Builder(
+                          builder: (BuildContext scaffoldContext) {
+                            return _HomeBalanceBar(
+                              balanceText: _formatSignedHomeAmount(
+                                income - expense,
+                              ),
+                              backgroundColor: balanceBarBg,
+                              onTap: () => context.push(
+                                '/all-transactions',
+                                extra: allTransactions,
+                              ),
+                              onMenuTap: () =>
+                                  Scaffold.of(scaffoldContext).openEndDrawer(),
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                   
-                  ],
+                      Positioned(
+                        left: 70,
+                        right: 70,
+                        top: 1362,
+                        child: HomeActionButtons(
+                          expenseLabel: 'Expense',
+                          incomeLabel: 'Income',
+                          onExpensePressed: () async {
+                            final Object? result = await context.pushNamed(
+                              'addTransaction',
+                              queryParameters: const <String, String>{
+                                'type': 'expense',
+                              },
+                            );
+                            if (!mounted) {
+                              return;
+                            }
+                            _showAddResult(result);
+                          },
+                          onIncomePressed: () async {
+                            final Object? result = await context.pushNamed(
+                              'addTransaction',
+                              queryParameters: const <String, String>{
+                                'type': 'income',
+                              },
+                            );
+                            if (!mounted) {
+                              return;
+                            }
+                            _showAddResult(result);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
