@@ -500,13 +500,15 @@ class _HomePageState extends State<HomePage> {
     return Positioned(
       left: 20,
       right: 10,
-      top: 54,
+      top: 80,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Builder(
             builder: (BuildContext scaffoldContext) {
               return IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
                 icon: const Icon(
                   Icons.menu_rounded,
