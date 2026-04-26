@@ -533,14 +533,6 @@ class _BudgetPageState extends State<BudgetPage> {
               child: const Text('Отмена'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                textStyle: const TextStyle(
-                  inherit: true,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
               onPressed: () {
                 final String rawValue = amountInput.trim().replaceAll(',', '.');
                 final double? amount = double.tryParse(rawValue);
@@ -568,7 +560,24 @@ class _BudgetPageState extends State<BudgetPage> {
                     );
                 Navigator.of(dialogContext).pop();
               },
-              child: const Text('Сохранить'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Сохранить',
+                style: TextStyle(
+                  inherit: true,
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.none,
+                ),
+              ),
             ),
           ],
         );

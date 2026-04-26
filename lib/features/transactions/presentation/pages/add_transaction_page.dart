@@ -149,7 +149,19 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                 ),
               TextButton(
                 onPressed: canSubmit ? _save : null,
-                child: Text(l10n.saveAction),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text(
+                  'Сохранить',
+                  style: TextStyle(
+                    inherit: true,
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
               ),
               const SizedBox(width: 8),
             ],

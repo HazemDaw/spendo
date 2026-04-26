@@ -559,14 +559,6 @@ class _CategoriesPageState extends State<CategoriesPage> {
                   child: const Text('Отмена'),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(
-                      inherit: true,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                   onPressed: () {
                     final String label = controller.text.trim();
                     if (label.isEmpty) {
@@ -585,7 +577,24 @@ class _CategoriesPageState extends State<CategoriesPage> {
                       ),
                     );
                   },
-                  child: const Text('Сохранить'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C3AED),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Сохранить',
+                    style: TextStyle(
+                      inherit: true,
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
                 ),
               ],
             );
