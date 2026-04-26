@@ -108,9 +108,7 @@ class _HomePageState extends State<HomePage> {
 
   TransactionPeriod _selectedPeriod = TransactionPeriod.month;
   DateTime _referenceDate = DateTime.now();
-  // ignore: unused_field
   DateTime? _intervalStart;
-  // ignore: unused_field
   DateTime? _intervalEnd;
   double _slideDirection = 0;
   List<_OrbitAssignment> _orbitAssignments =
@@ -1145,6 +1143,7 @@ class _HomePageState extends State<HomePage> {
     final DateFormat dayFmt = DateFormat('d MMMM yyyy', 'ru_RU');
     final DateFormat weekFmt = DateFormat('d MMM', 'ru_RU');
     final DateFormat monthFmt = DateFormat('MMMM yyyy', 'ru_RU');
+    final DateFormat yearFmt = DateFormat('yyyy', 'ru_RU');
 
     return switch (_selectedPeriod) {
       TransactionPeriod.day => dayFmt.format(_referenceDate),
@@ -1152,12 +1151,18 @@ class _HomePageState extends State<HomePage> {
         '${weekFmt.format(displayedRange.start)} — '
             '${weekFmt.format(displayedRange.end)}',
       TransactionPeriod.month => monthFmt.format(_referenceDate),
+      TransactionPeriod.year => yearFmt.format(_referenceDate),
+      TransactionPeriod.all => 'Все время',
+      TransactionPeriod.interval =>
+        '${weekFmt.format(_intervalStart ?? _referenceDate)} — '
+            '${weekFmt.format(_intervalEnd ?? now)}',
     };
   }
 
   String _buildAdjacentLabel(int direction) {
     final DateFormat monthFmt = DateFormat('MMM yyyy', 'ru_RU');
     final DateFormat dayFmt = DateFormat('d MMM', 'ru_RU');
+    final DateFormat yearFmt = DateFormat('yyyy');
 
     final DateTime adjacent = switch (_selectedPeriod) {
       TransactionPeriod.day => _referenceDate.add(Duration(days: direction)),
@@ -1169,13 +1174,57 @@ class _HomePageState extends State<HomePage> {
           _referenceDate.month + direction,
           1,
         ),
+      TransactionPeriod.year => DateTime(
+          _referenceDate.year + direction,
+          1,
+          1,
+        ),
+      TransactionPeriod.all || TransactionPeriod.interval => _referenceDate,
     };
 
     return switch (_selectedPeriod) {
       TransactionPeriod.day => dayFmt.format(adjacent),
       TransactionPeriod.week => dayFmt.format(adjacent),
       TransactionPeriod.month => monthFmt.format(adjacent),
+      TransactionPeriod.year => yearFmt.format(adjacent),
+      TransactionPeriod.all || TransactionPeriod.interval => '',
     };
+  }
+
+  Future<void> _showIntervalPicker() async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      initialDateRange: _intervalStart != null && _intervalEnd != null
+          ? DateTimeRange(start: _intervalStart!, end: _intervalEnd!)
+          : null,
+      builder: (BuildContext context, Widget? child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: AppColors.primary,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (!mounted) {
+      return;
+    }
+    if (picked != null) {
+      setState(() {
+        _intervalStart = picked.start;
+        _intervalEnd = picked.end;
+        _selectedPeriod = TransactionPeriod.interval;
+      });
+      context.read<TransactionBloc>().add(
+        LoadTransactionsEvent(
+          TransactionPeriod.interval,
+          intervalStart: picked.start,
+          intervalEnd: picked.end,
+        ),
+      );
+    }
   }
 
   DateTime _oldestTransactionDate(
@@ -1196,6 +1245,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _navigatePeriod(int direction, DateTime oldestTransactionDate) {
+    if (_selectedPeriod == TransactionPeriod.all ||
+        _selectedPeriod == TransactionPeriod.interval) {
+      return;
+    }
     final DateTime now = DateTime.now();
     final TransactionDateRange currentRange = AppDateUtils.getPeriodRange(
       _selectedPeriod,
@@ -1215,6 +1268,12 @@ class _HomePageState extends State<HomePage> {
           _referenceDate.month + direction,
           1,
         ),
+      TransactionPeriod.year => DateTime(
+          _referenceDate.year + direction,
+          1,
+          1,
+        ),
+      TransactionPeriod.all || TransactionPeriod.interval => _referenceDate,
     };
     final TransactionDateRange candidateRange = AppDateUtils.getPeriodRange(
       _selectedPeriod,
@@ -1242,16 +1301,27 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _cyclePeriod() {
-    _selectPeriod(
-      switch (_selectedPeriod) {
-        TransactionPeriod.day => TransactionPeriod.week,
-        TransactionPeriod.week => TransactionPeriod.month,
-        TransactionPeriod.month => TransactionPeriod.day,
-      },
-    );
+    switch (_selectedPeriod) {
+      case TransactionPeriod.day:
+        _selectPeriod(TransactionPeriod.week);
+      case TransactionPeriod.week:
+        _selectPeriod(TransactionPeriod.month);
+      case TransactionPeriod.month:
+        _selectPeriod(TransactionPeriod.year);
+      case TransactionPeriod.year:
+        _selectPeriod(TransactionPeriod.all);
+      case TransactionPeriod.all:
+        _showIntervalPicker();
+      case TransactionPeriod.interval:
+        _selectPeriod(TransactionPeriod.day);
+    }
   }
 
   void _selectPeriod(TransactionPeriod period) {
+    if (period == TransactionPeriod.interval) {
+      _showIntervalPicker();
+      return;
+    }
     if (_selectedPeriod == period) {
       return;
     }

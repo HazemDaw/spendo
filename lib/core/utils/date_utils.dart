@@ -1,4 +1,4 @@
-enum TransactionPeriod { day, week, month }
+enum TransactionPeriod { day, week, month, year, all, interval }
 
 class TransactionDateRange {
   const TransactionDateRange({
@@ -17,72 +17,53 @@ class AppDateUtils {
     DateTime date,
     TransactionPeriod period, {
     DateTime? now,
+    DateTime? intervalStart,
+    DateTime? intervalEnd,
   }) {
-    final DateTime reference = _dateOnly(now ?? DateTime.now());
     final DateTime candidate = _dateOnly(date);
-
-    switch (period) {
-      case TransactionPeriod.day:
-        return candidate == reference;
-      case TransactionPeriod.week:
-        final DateTime weekStart = _startOfWeek(reference);
-        final DateTime weekEnd = weekStart.add(const Duration(days: 7));
-        return !candidate.isBefore(weekStart) && candidate.isBefore(weekEnd);
-      case TransactionPeriod.month:
-        return candidate.year == reference.year &&
-            candidate.month == reference.month;
-    }
+    final TransactionDateRange range = getPeriodRange(
+      period,
+      referenceDate: now,
+      intervalStart: intervalStart,
+      intervalEnd: intervalEnd,
+    );
+    return !candidate.isBefore(_dateOnly(range.start)) &&
+        !candidate.isAfter(_dateOnly(range.end));
   }
 
   static TransactionDateRange getPeriodRange(
     TransactionPeriod period, {
     DateTime? referenceDate,
+    DateTime? intervalStart,
+    DateTime? intervalEnd,
   }) {
-    final DateTime reference = referenceDate ?? DateTime.now();
-
-    switch (period) {
-      case TransactionPeriod.day:
-        return TransactionDateRange(
-          start: DateTime(reference.year, reference.month, reference.day),
-          end: DateTime(
-            reference.year,
-            reference.month,
-            reference.day,
-            23,
-            59,
-            59,
-          ),
-        );
-      case TransactionPeriod.week:
-        final DateTime start = _startOfWeek(_dateOnly(reference));
-        return TransactionDateRange(
-          start: start,
-          end: DateTime(
-            start.year,
-            start.month,
-            start.day + 6,
-            23,
-            59,
-            59,
-          ),
-        );
-      case TransactionPeriod.month:
-        return TransactionDateRange(
-          start: DateTime(reference.year, reference.month, 1),
-          end: DateTime(
-            reference.year,
-            reference.month + 1,
-            0,
-            23,
-            59,
-            59,
-          ),
-        );
-    }
-  }
-
-  static DateTime _startOfWeek(DateTime value) {
-    return value.subtract(Duration(days: value.weekday - 1));
+    final DateTime now = referenceDate ?? DateTime.now();
+    return switch (period) {
+      TransactionPeriod.day => TransactionDateRange(
+          start: DateTime(now.year, now.month, now.day),
+          end: DateTime(now.year, now.month, now.day, 23, 59, 59),
+        ),
+      TransactionPeriod.week => TransactionDateRange(
+          start: now.subtract(Duration(days: now.weekday - 1)),
+          end: now.add(Duration(days: 7 - now.weekday)),
+        ),
+      TransactionPeriod.month => TransactionDateRange(
+          start: DateTime(now.year, now.month, 1),
+          end: DateTime(now.year, now.month + 1, 0, 23, 59, 59),
+        ),
+      TransactionPeriod.year => TransactionDateRange(
+          start: DateTime(now.year, 1, 1),
+          end: DateTime(now.year, 12, 31, 23, 59, 59),
+        ),
+      TransactionPeriod.all => TransactionDateRange(
+          start: DateTime(2000, 1, 1),
+          end: DateTime(2100, 12, 31),
+        ),
+      TransactionPeriod.interval => TransactionDateRange(
+          start: intervalStart ?? DateTime(now.year, now.month, 1),
+          end: intervalEnd ?? now,
+        ),
+    };
   }
 
   static DateTime _dateOnly(DateTime value) {

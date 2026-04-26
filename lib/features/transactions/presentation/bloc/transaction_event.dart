@@ -11,13 +11,25 @@ abstract class TransactionEvent extends Equatable {
 }
 
 class LoadTransactionsEvent extends TransactionEvent {
-  const LoadTransactionsEvent(this.period, {this.referenceDate});
+  const LoadTransactionsEvent(
+    this.period, {
+    this.referenceDate,
+    this.intervalStart,
+    this.intervalEnd,
+  });
 
   final TransactionPeriod period;
   final DateTime? referenceDate;
+  final DateTime? intervalStart;
+  final DateTime? intervalEnd;
 
   @override
-  List<Object?> get props => <Object?>[period, referenceDate];
+  List<Object?> get props => <Object?>[
+        period,
+        referenceDate,
+        intervalStart,
+        intervalEnd,
+      ];
 }
 
 class AddTransactionEvent extends TransactionEvent {

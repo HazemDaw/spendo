@@ -135,7 +135,13 @@ class AppLeftDrawer extends StatelessWidget {
                                 left: 24,
                                 right: 16,
                               ),
-                              title: Text(_periodLabel(period, l10n)),
+                              leading: period == TransactionPeriod.interval
+                                  ? const Icon(
+                                      Icons.date_range,
+                                      color: AppColors.primary,
+                                    )
+                                  : null,
+                              title: Text(_periodLabel(period)),
                               trailing: period == selectedPeriod
                                   ? const Icon(
                                       Icons.check,
@@ -143,6 +149,11 @@ class AppLeftDrawer extends StatelessWidget {
                                     )
                                   : null,
                               onTap: () {
+                                if (period == TransactionPeriod.interval) {
+                                  Navigator.of(context).pop();
+                                  onPeriodSelected(period);
+                                  return;
+                                }
                                 onPeriodSelected(period);
                                 Navigator.of(context).pop();
                               },
@@ -255,14 +266,14 @@ class AppLeftDrawer extends StatelessWidget {
     );
   }
 
-  static String _periodLabel(
-    TransactionPeriod period,
-    AppLocalizations l10n,
-  ) {
+  static String _periodLabel(TransactionPeriod period) {
     return switch (period) {
-      TransactionPeriod.day => l10n.periodToday,
-      TransactionPeriod.week => l10n.periodWeek,
-      TransactionPeriod.month => l10n.periodMonth,
+      TransactionPeriod.day => 'День',
+      TransactionPeriod.week => 'Неделя',
+      TransactionPeriod.month => 'Месяц',
+      TransactionPeriod.year => 'Год',
+      TransactionPeriod.all => 'Все время',
+      TransactionPeriod.interval => 'Интервал',
     };
   }
 }

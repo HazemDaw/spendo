@@ -33,6 +33,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
   TransactionPeriod _currentPeriod = TransactionPeriod.month;
   DateTime _currentReferenceDate = DateTime.now();
+  DateTime? _currentIntervalStart;
+  DateTime? _currentIntervalEnd;
 
   Future<void> _onLoadTransactions(
     LoadTransactionsEvent event,
@@ -40,11 +42,15 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   ) async {
     _currentPeriod = event.period;
     _currentReferenceDate = event.referenceDate ?? DateTime.now();
+    _currentIntervalStart = event.intervalStart;
+    _currentIntervalEnd = event.intervalEnd;
     emit(const TransactionLoading());
 
     final TransactionDateRange range = AppDateUtils.getPeriodRange(
       event.period,
       referenceDate: _currentReferenceDate,
+      intervalStart: event.intervalStart,
+      intervalEnd: event.intervalEnd,
     );
     final periodResult = await _getTransactionsByPeriod(
       GetTransactionsByPeriodParams(
@@ -95,6 +101,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
         LoadTransactionsEvent(
           _currentPeriod,
           referenceDate: _currentReferenceDate,
+          intervalStart: _currentIntervalStart,
+          intervalEnd: _currentIntervalEnd,
         ),
       ),
     );
@@ -113,6 +121,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
         LoadTransactionsEvent(
           _currentPeriod,
           referenceDate: _currentReferenceDate,
+          intervalStart: _currentIntervalStart,
+          intervalEnd: _currentIntervalEnd,
         ),
       ),
     );
@@ -131,6 +141,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
         LoadTransactionsEvent(
           _currentPeriod,
           referenceDate: _currentReferenceDate,
+          intervalStart: _currentIntervalStart,
+          intervalEnd: _currentIntervalEnd,
         ),
       ),
     );
