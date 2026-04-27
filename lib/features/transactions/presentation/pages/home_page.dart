@@ -1377,37 +1377,35 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _cyclePeriod() {
-    switch (_selectedPeriod) {
-      case TransactionPeriod.day:
-        _selectPeriod(TransactionPeriod.week);
-      case TransactionPeriod.week:
-        _selectPeriod(TransactionPeriod.month);
-      case TransactionPeriod.month:
-        _selectPeriod(TransactionPeriod.year);
-      case TransactionPeriod.year:
-        _selectPeriod(TransactionPeriod.all);
-      case TransactionPeriod.all:
-        _showIntervalPicker();
-      case TransactionPeriod.interval:
-        _selectPeriod(TransactionPeriod.day);
-    }
+    final TransactionPeriod next = switch (_selectedPeriod) {
+      TransactionPeriod.day => TransactionPeriod.week,
+      TransactionPeriod.week => TransactionPeriod.month,
+      TransactionPeriod.month => TransactionPeriod.year,
+      TransactionPeriod.year => TransactionPeriod.all,
+      TransactionPeriod.all => TransactionPeriod.interval,
+      TransactionPeriod.interval => TransactionPeriod.day,
+    };
+    _selectPeriod(next);
   }
 
   void _selectPeriod(TransactionPeriod period) {
+    if (_selectedPeriod == period) {
+      return;
+    }
     if (period == TransactionPeriod.interval) {
       _showIntervalPicker();
       return;
     }
-    if (_selectedPeriod == period) {
-      return;
-    }
+    final DateTime now = DateTime.now();
     setState(() {
       _selectedPeriod = period;
+      _referenceDate = now;
+      _slideDirection = 0;
     });
     context.read<TransactionBloc>().add(
       LoadTransactionsEvent(
         period,
-        referenceDate: _referenceDate,
+        referenceDate: now,
       ),
     );
   }

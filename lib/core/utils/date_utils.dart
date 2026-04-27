@@ -40,19 +40,33 @@ class AppDateUtils {
     final DateTime now = referenceDate ?? DateTime.now();
     return switch (period) {
       TransactionPeriod.day => TransactionDateRange(
-          start: DateTime(now.year, now.month, now.day),
+          start: DateTime(now.year, now.month, now.day, 0, 0, 0),
           end: DateTime(now.year, now.month, now.day, 23, 59, 59),
         ),
       TransactionPeriod.week => TransactionDateRange(
-          start: now.subtract(Duration(days: now.weekday - 1)),
-          end: now.add(Duration(days: 7 - now.weekday)),
+          start: DateTime(
+            now.year,
+            now.month,
+            now.day - (now.weekday - 1),
+            0,
+            0,
+            0,
+          ),
+          end: DateTime(
+            now.year,
+            now.month,
+            now.day + (7 - now.weekday),
+            23,
+            59,
+            59,
+          ),
         ),
       TransactionPeriod.month => TransactionDateRange(
           start: DateTime(now.year, now.month, 1),
           end: DateTime(now.year, now.month + 1, 0, 23, 59, 59),
         ),
       TransactionPeriod.year => TransactionDateRange(
-          start: DateTime(now.year, 1, 1),
+          start: DateTime(now.year, 1, 1, 0, 0, 0),
           end: DateTime(now.year, 12, 31, 23, 59, 59),
         ),
       TransactionPeriod.all => TransactionDateRange(
