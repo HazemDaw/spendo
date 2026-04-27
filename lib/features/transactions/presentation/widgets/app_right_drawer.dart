@@ -33,19 +33,57 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
-              margin: EdgeInsets.zero,
-              decoration: const BoxDecoration(color: AppColors.primaryDark),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  l10n.drawerSettingsTitle,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: <Color>[Color(0xFF7C3AED), Color(0xFF5B21B6)],
                 ),
+              ),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.tune_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        l10n.drawerSettingsTitle,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          inherit: true,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Spendo',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          inherit: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
             ListTile(
