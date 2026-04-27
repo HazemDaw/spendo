@@ -225,7 +225,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get drawerAboutDescription =>
-      'Приложение для отслеживания личных расходов.';
+      'Приложение для отслеживания личных расходов. Дау Хазем 2105-об';
 
   @override
   String get drawerSettingsTitle => 'Настройки';
