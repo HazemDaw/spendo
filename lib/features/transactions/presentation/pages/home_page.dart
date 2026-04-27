@@ -1307,12 +1307,7 @@ class _HomePageState extends State<HomePage> {
     TransactionState transactionState,
     DateTime now,
   ) {
-    if (transactionState is TransactionLoaded &&
-        transactionState.oldestTransactionDate != null) {
-      final DateTime oldest = transactionState.oldestTransactionDate!;
-      return DateTime(oldest.year, oldest.month, oldest.day);
-    }
-
+    // Always use 12 months back as the hard limit.
     return DateTime(now.year, now.month - 12, now.day);
   }
 
@@ -1334,6 +1329,12 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
+    final DateTime hardLimit = DateTime(
+      now.year,
+      now.month - 12,
+      now.day,
+    );
+
     final DateTime candidate = switch (_selectedPeriod) {
       TransactionPeriod.day => _referenceDate.add(Duration(days: direction)),
       TransactionPeriod.week => _referenceDate.add(
@@ -1351,16 +1352,19 @@ class _HomePageState extends State<HomePage> {
         ),
       TransactionPeriod.all || TransactionPeriod.interval => _referenceDate,
     };
-    final TransactionDateRange candidateRange = AppDateUtils.getPeriodRange(
-      _selectedPeriod,
-      referenceDate: candidate,
-    );
-    if (candidateRange.end.isBefore(oldestTransactionDate)) {
+    if (direction < 0 && candidate.isBefore(hardLimit)) {
       return;
     }
 
     DateTime nextReferenceDate = candidate;
-    if (candidate.isAfter(now) || _containsDate(candidateRange, now)) {
+    if (candidate.isAfter(now) ||
+        _containsDate(
+          AppDateUtils.getPeriodRange(
+            _selectedPeriod,
+            referenceDate: candidate,
+          ),
+          now,
+        )) {
       nextReferenceDate = now;
     }
 
