@@ -1,5 +1,6 @@
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart';
 
+import '../../../../core/database/app_database.dart';
 import '../models/custom_category_model.dart';
 
 abstract class CustomCategoryLocalDatasource {
@@ -14,14 +15,15 @@ abstract class CustomCategoryLocalDatasource {
 
 class CustomCategoryLocalDatasourceImpl
     implements CustomCategoryLocalDatasource {
-  const CustomCategoryLocalDatasourceImpl(this._isar);
+  const CustomCategoryLocalDatasourceImpl(this._db);
 
-  final Isar _isar;
+  final AppDatabase _db;
 
   @override
   Future<List<CustomCategoryModel>> getAll() async {
-    final List<CustomCategoryModel> categories =
-        await _isar.customCategoryModels.where().findAll();
+    final List<CustomCategory> rows =
+        await _db.select(_db.customCategories).get();
+    final List<CustomCategoryModel> categories = rows.map(_rowToModel).toList();
     categories.sort(
       (CustomCategoryModel a, CustomCategoryModel b) =>
           a.label.toLowerCase().compareTo(b.label.toLowerCase()),
@@ -31,37 +33,35 @@ class CustomCategoryLocalDatasourceImpl
 
   @override
   Future<CustomCategoryModel?> getById(String id) async {
-    final List<CustomCategoryModel> categories = await getAll();
-    for (final CustomCategoryModel category in categories) {
-      if (category.id == id) {
-        return category;
-      }
-    }
-
-    return null;
+    final CustomCategory? row = await (_db.select(_db.customCategories)
+          ..where((c) => c.id.equals(id)))
+        .getSingleOrNull();
+    return row == null ? null : _rowToModel(row);
   }
 
   @override
   Future<void> save(CustomCategoryModel model) async {
-    final CustomCategoryModel? existing = await getById(model.id);
-    if (existing != null) {
-      model.isarId = existing.isarId;
-    }
-
-    await _isar.writeTxn(() async {
-      await _isar.customCategoryModels.put(model);
-    });
+    await _db.into(_db.customCategories).insertOnConflictUpdate(
+          CustomCategoriesCompanion(
+            id: Value<String>(model.id),
+            label: Value<String>(model.label),
+            colorValue: Value<int>(model.colorValue),
+            iconIndex: Value<int>(model.iconIndex),
+          ),
+        );
   }
 
   @override
   Future<void> delete(String id) async {
-    final CustomCategoryModel? existing = await getById(id);
-    if (existing == null) {
-      return;
-    }
+    await (_db.delete(_db.customCategories)..where((c) => c.id.equals(id)))
+        .go();
+  }
 
-    await _isar.writeTxn(() async {
-      await _isar.customCategoryModels.delete(existing.isarId);
-    });
+  CustomCategoryModel _rowToModel(CustomCategory row) {
+    return CustomCategoryModel()
+      ..id = row.id
+      ..label = row.label
+      ..colorValue = row.colorValue
+      ..iconIndex = row.iconIndex;
   }
 }

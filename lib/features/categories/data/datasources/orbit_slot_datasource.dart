@@ -1,5 +1,6 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:drift/drift.dart';
 
+import '../../../../core/database/app_database.dart';
 import '../models/custom_category_model.dart';
 import '../models/orbit_slot_model.dart';
 import 'custom_category_local_datasource.dart';
@@ -25,23 +26,24 @@ abstract class OrbitSlotDatasource {
 
 class OrbitSlotDatasourceImpl implements OrbitSlotDatasource {
   const OrbitSlotDatasourceImpl({
-    required SharedPreferences sharedPreferences,
+    required AppDatabase db,
     required CustomCategoryLocalDatasource customCategoryDatasource,
-  })  : _sharedPreferences = sharedPreferences,
+  })  : _db = db,
         _customCategoryDatasource = customCategoryDatasource;
 
-  static const String _categoryKeyPrefix = 'home_orbit_slot_category_';
-  static const String _isCustomPrefix = 'home_orbit_slot_is_custom_';
-
-  final SharedPreferences _sharedPreferences;
+  final AppDatabase _db;
   final CustomCategoryLocalDatasource _customCategoryDatasource;
 
   @override
   Future<List<OrbitSlotModel>> getSlots() async {
+    final List<OrbitSlot> rows = await _db.select(_db.orbitSlots).get();
+    final Map<int, OrbitSlotModel> storedSlots = <int, OrbitSlotModel>{
+      for (final OrbitSlot row in rows) row.slotIndex: _rowToModel(row),
+    };
     final List<OrbitSlotModel> slots = <OrbitSlotModel>[];
 
     for (int index = 0; index < defaultOrbitSlotCategoryKeys.length; index++) {
-      final OrbitSlotModel slot = _storedSlot(index);
+      final OrbitSlotModel slot = storedSlots[index] ?? _defaultSlot(index);
       if (slot.isCustom) {
         final CustomCategoryModel? category =
             await _customCategoryDatasource.getById(slot.categoryKey);
@@ -68,25 +70,35 @@ class OrbitSlotDatasourceImpl implements OrbitSlotDatasource {
       return;
     }
 
-    for (int index = 0; index < defaultOrbitSlotCategoryKeys.length; index++) {
-      if (index == slotIndex) {
-        continue;
+    await _db.transaction(() async {
+      final List<OrbitSlot> rows = await _db.select(_db.orbitSlots).get();
+      final Map<int, OrbitSlotModel> storedSlots = <int, OrbitSlotModel>{
+        for (final OrbitSlot row in rows) row.slotIndex: _rowToModel(row),
+      };
+
+      for (int index = 0;
+          index < defaultOrbitSlotCategoryKeys.length;
+          index++) {
+        if (index == slotIndex) {
+          continue;
+        }
+
+        final OrbitSlotModel slot = storedSlots[index] ?? _defaultSlot(index);
+        if (slot.categoryKey == categoryKey && slot.isCustom == isCustom) {
+          await (_db.delete(_db.orbitSlots)
+                ..where((o) => o.slotIndex.equals(index)))
+              .go();
+        }
       }
 
-      final OrbitSlotModel slot = _storedSlot(index);
-      if (slot.categoryKey == categoryKey && slot.isCustom == isCustom) {
-        await resetSlot(index);
-      }
-    }
-
-    await _sharedPreferences.setString(
-      _categoryKey(slotIndex),
-      categoryKey,
-    );
-    await _sharedPreferences.setBool(
-      _isCustomKey(slotIndex),
-      isCustom,
-    );
+      await _db.into(_db.orbitSlots).insertOnConflictUpdate(
+            OrbitSlotsCompanion(
+              slotIndex: Value<int>(slotIndex),
+              categoryKey: Value<String>(categoryKey),
+              isCustom: Value<bool>(isCustom),
+            ),
+          );
+    });
   }
 
   @override
@@ -95,8 +107,9 @@ class OrbitSlotDatasourceImpl implements OrbitSlotDatasource {
       return;
     }
 
-    await _sharedPreferences.remove(_categoryKey(slotIndex));
-    await _sharedPreferences.remove(_isCustomKey(slotIndex));
+    await (_db.delete(_db.orbitSlots)
+          ..where((o) => o.slotIndex.equals(slotIndex)))
+        .go();
   }
 
   OrbitSlotModel _defaultSlot(int slotIndex) {
@@ -106,28 +119,14 @@ class OrbitSlotDatasourceImpl implements OrbitSlotDatasource {
       ..isCustom = false;
   }
 
-  OrbitSlotModel _storedSlot(int slotIndex) {
-    final String? categoryKey = _sharedPreferences.getString(
-      _categoryKey(slotIndex),
-    );
-    final bool isCustom =
-        _sharedPreferences.getBool(_isCustomKey(slotIndex)) ?? false;
-
-    if (categoryKey == null) {
-      return _defaultSlot(slotIndex);
-    }
-
+  OrbitSlotModel _rowToModel(OrbitSlot row) {
     return OrbitSlotModel()
-      ..slotIndex = slotIndex
-      ..categoryKey = categoryKey
-      ..isCustom = isCustom;
+      ..slotIndex = row.slotIndex
+      ..categoryKey = row.categoryKey
+      ..isCustom = row.isCustom;
   }
 
   bool _isValidSlotIndex(int slotIndex) {
     return slotIndex >= 0 && slotIndex < defaultOrbitSlotCategoryKeys.length;
   }
-
-  String _categoryKey(int slotIndex) => '$_categoryKeyPrefix$slotIndex';
-
-  String _isCustomKey(int slotIndex) => '$_isCustomPrefix$slotIndex';
 }

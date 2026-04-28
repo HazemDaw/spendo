@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spendo/core/theme/theme_cubit.dart';
 import 'package:spendo/core/utils/date_utils.dart';
 import 'package:spendo/features/transactions/domain/entities/transaction.dart';
 import 'package:spendo/features/transactions/domain/usecases/add_transaction.dart';
@@ -15,6 +17,10 @@ import 'package:spendo/l10n/app_localizations.dart';
 import '../../../helpers/in_memory_transaction_repository.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
+
   testWidgets(
     'keypad taps update the amount on add screen',
     (WidgetTester tester) async {
@@ -28,9 +34,17 @@ void main() {
       );
       addTearDown(bloc.close);
 
+      final SharedPreferences preferences =
+          await SharedPreferences.getInstance();
+      final ThemeCubit themeCubit = ThemeCubit(preferences);
+      addTearDown(themeCubit.close);
+
       await tester.pumpWidget(
-        BlocProvider<TransactionBloc>.value(
-          value: bloc,
+        MultiBlocProvider(
+          providers: <BlocProvider<dynamic>>[
+            BlocProvider<TransactionBloc>.value(value: bloc),
+            BlocProvider<ThemeCubit>.value(value: themeCubit),
+          ],
           child: const MaterialApp(
             locale: Locale('ru'),
             supportedLocales: AppLocalizations.supportedLocales,
@@ -54,18 +68,18 @@ void main() {
     (WidgetTester tester) async {
       final InMemoryTransactionRepository repository =
           InMemoryTransactionRepository(
-            loadDelay: const Duration(milliseconds: 10),
-            seedTransactions: <Transaction>[
-              Transaction(
-                id: 'tx-edit',
-                amount: 321,
-                categoryKey: 'food',
-                type: TransactionType.expense,
-                date: DateTime.now(),
-                note: 'Coffee beans',
-              ),
-            ],
-          );
+        loadDelay: const Duration(milliseconds: 10),
+        seedTransactions: <Transaction>[
+          Transaction(
+            id: 'tx-edit',
+            amount: 321,
+            categoryKey: 'food',
+            type: TransactionType.expense,
+            date: DateTime.now(),
+            note: 'Coffee beans',
+          ),
+        ],
+      );
       final TransactionBloc bloc = TransactionBloc(
         addTransaction: AddTransaction(repository),
         getTransactionsByPeriod: GetTransactionsByPeriod(repository),
@@ -74,9 +88,17 @@ void main() {
       )..add(const LoadTransactionsEvent(TransactionPeriod.month));
       addTearDown(bloc.close);
 
+      final SharedPreferences preferences =
+          await SharedPreferences.getInstance();
+      final ThemeCubit themeCubit = ThemeCubit(preferences);
+      addTearDown(themeCubit.close);
+
       await tester.pumpWidget(
-        BlocProvider<TransactionBloc>.value(
-          value: bloc,
+        MultiBlocProvider(
+          providers: <BlocProvider<dynamic>>[
+            BlocProvider<TransactionBloc>.value(value: bloc),
+            BlocProvider<ThemeCubit>.value(value: themeCubit),
+          ],
           child: const MaterialApp(
             locale: Locale('ru'),
             supportedLocales: AppLocalizations.supportedLocales,

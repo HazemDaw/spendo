@@ -42,7 +42,8 @@ class TransactionRepositoryImpl implements TransactionRepository {
     DateTime end,
   ) async {
     try {
-      final models = await localDatasource.getByCategory(categoryKey, start, end);
+      final models =
+          await localDatasource.getByCategory(categoryKey, start, end);
       return Right<Failure, List<Transaction>>(
         models.map((TransactionModel model) => model.toEntity()).toList(),
       );
@@ -60,10 +61,8 @@ class TransactionRepositoryImpl implements TransactionRepository {
       );
       final double balance = models.fold<double>(
         0,
-        (double sum, TransactionModel model) => switch (model.type) {
-          TransactionType.income => sum + model.amount,
-          TransactionType.expense => sum - model.amount,
-        },
+        (double sum, TransactionModel model) =>
+            model.type == 'income' ? sum + model.amount : sum - model.amount,
       );
       return Right<Failure, double>(balance);
     } on Exception catch (exception) {
@@ -84,7 +83,8 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> updateTransaction(Transaction transaction) async {
+  Future<Either<Failure, Unit>> updateTransaction(
+      Transaction transaction) async {
     try {
       final TransactionModel model = TransactionModel.fromEntity(transaction);
       await localDatasource.update(model);

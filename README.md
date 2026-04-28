@@ -33,10 +33,10 @@ Spendo uses Clean Architecture with 3 layers:
 
 - Presentation: Flutter widgets + BLoC
 - Domain: entities, use cases, repository interfaces
-- Data: Isar local DB, Firestore remote
+- Data: Drift/SQLite local DB, Firestore remote
 
 ```text
-UI -> BLoC -> Use Cases -> Repository -> Isar (local) / Firestore (remote)
+UI -> BLoC -> Use Cases -> Repository -> Drift/SQLite (local) / Firestore (remote)
 ```
 
 ## Tech Stack
@@ -45,7 +45,7 @@ UI -> BLoC -> Use Cases -> Repository -> Isar (local) / Firestore (remote)
 |---|---|
 | Flutter | Cross-platform mobile UI framework |
 | flutter_bloc | State management with BLoC/Cubit |
-| Isar | Local offline-first database |
+| Drift/SQLite | Local offline-first database |
 | Firebase Auth | Email/password and Google authentication |
 | Cloud Firestore | Remote cloud sync |
 | go_router | Declarative navigation and routing |
@@ -100,7 +100,7 @@ flutter run
 lib/
 ├── core/           # Theme, utils, error handling, localization
 ├── features/
-│   ├── transactions/   # Main feature: CRUD, BLoC, Isar, Firestore
+│   ├── transactions/   # Main feature: CRUD, BLoC, Drift/SQLite, Firestore
 │   ├── categories/     # Built-in + custom categories, orbit slots
 │   ├── budget/         # Budget limits and warnings
 │   └── auth/           # Firebase authentication
@@ -151,10 +151,10 @@ Spendo использует Clean Architecture с 3 слоями:
 
 - Presentation: Flutter widgets + BLoC
 - Domain: entities, use cases, repository interfaces
-- Data: Isar local DB, Firestore remote
+- Data: Drift/SQLite local DB, Firestore remote
 
 ```text
-UI -> BLoC -> Use Cases -> Repository -> Isar (local) / Firestore (remote)
+UI -> BLoC -> Use Cases -> Repository -> Drift/SQLite (local) / Firestore (remote)
 ```
 
 ## Технологический стек
@@ -163,7 +163,7 @@ UI -> BLoC -> Use Cases -> Repository -> Isar (local) / Firestore (remote)
 |---|---|
 | Flutter | Кроссплатформенный UI framework для мобильной разработки |
 | flutter_bloc | Управление состоянием через BLoC/Cubit |
-| Isar | Локальная offline-first база данных |
+| Drift/SQLite | Локальная offline-first база данных |
 | Firebase Auth | Авторизация через email/password и Google |
 | Cloud Firestore | Удалённая облачная синхронизация |
 | go_router | Декларативная навигация и маршрутизация |
@@ -218,7 +218,7 @@ flutter run
 lib/
 ├── core/           # Theme, utils, error handling, localization
 ├── features/
-│   ├── transactions/   # Main feature: CRUD, BLoC, Isar, Firestore
+│   ├── transactions/   # Main feature: CRUD, BLoC, Drift/SQLite, Firestore
 │   ├── categories/     # Built-in + custom categories, orbit slots
 │   ├── budget/         # Budget limits and warnings
 │   └── auth/           # Firebase authentication

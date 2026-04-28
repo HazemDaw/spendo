@@ -1,8 +1,7 @@
 import 'package:get_it/get_it.dart';
-import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/database/app_database.dart';
 import 'core/locale/locale_cubit.dart';
 import 'core/theme/theme_cubit.dart';
 import 'features/auth/data/datasources/firebase_auth_datasource.dart';
@@ -13,9 +12,7 @@ import 'features/categories/data/custom_category_store.dart';
 import 'features/categories/data/datasources/custom_category_local_datasource.dart';
 import 'features/categories/data/datasources/custom_category_remote_datasource.dart';
 import 'features/categories/data/datasources/orbit_slot_datasource.dart';
-import 'features/categories/data/models/custom_category_model.dart';
 import 'features/budget/data/datasources/budget_local_datasource.dart';
-import 'features/budget/data/models/budget_model.dart';
 import 'features/budget/data/repositories/budget_repository_impl.dart';
 import 'features/budget/domain/repositories/budget_repository.dart';
 import 'features/budget/domain/usecases/delete_budget.dart';
@@ -24,7 +21,6 @@ import 'features/budget/domain/usecases/set_budget.dart';
 import 'features/budget/presentation/bloc/budget_bloc.dart';
 import 'features/transactions/data/datasources/transaction_local_datasource.dart';
 import 'features/transactions/data/datasources/transaction_remote_datasource.dart';
-import 'features/transactions/data/models/transaction_model.dart';
 import 'features/transactions/data/repositories/transaction_repository_impl.dart';
 import 'features/transactions/domain/repositories/transaction_repository.dart';
 import 'features/transactions/domain/usecases/add_transaction.dart';
@@ -40,17 +36,9 @@ import 'features/transactions/presentation/bloc/transaction_bloc.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> initDependencies() async {
-  if (!sl.isRegistered<Isar>()) {
-    final directory = await getApplicationDocumentsDirectory();
-    final isar = await Isar.open(
-      <CollectionSchema<dynamic>>[
-        TransactionModelSchema,
-        BudgetModelSchema,
-        CustomCategoryModelSchema,
-      ],
-      directory: directory.path,
-    );
-    sl.registerSingleton<Isar>(isar);
+  if (!sl.isRegistered<AppDatabase>()) {
+    final AppDatabase db = AppDatabase();
+    sl.registerSingleton<AppDatabase>(db);
   }
 
   if (!sl.isRegistered<SharedPreferences>()) {
@@ -80,7 +68,7 @@ Future<void> initDependencies() async {
   if (!sl.isRegistered<OrbitSlotDatasource>()) {
     sl.registerLazySingleton<OrbitSlotDatasource>(
       () => OrbitSlotDatasourceImpl(
-        sharedPreferences: sl(),
+        db: sl(),
         customCategoryDatasource: sl(),
       ),
     );

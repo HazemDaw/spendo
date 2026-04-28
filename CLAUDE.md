@@ -15,7 +15,7 @@ this file when architecture, product direction, or implementation status changes
 - Platforms: Android and iOS
 - Current state: complete thesis build. Phases 1, 2, and 3 are implemented.
 - Core direction: offline-first expense tracking with a custom Monefy-inspired
-  home screen, Isar persistence, BLoC state management, Firebase auth/sync,
+  home screen, Drift/SQLite persistence, BLoC state management, Firebase auth/sync,
   Russian/English localization, persistent dark mode, budgets, export, and
   custom categories.
 
@@ -51,7 +51,7 @@ Complete. The app includes the full user-facing transaction experience:
 
 Complete. Local state and persistence are implemented with:
 
-- Isar offline-first database
+- Drift/SQLite offline-first database
 - Clean-architecture-style layers: presentation, domain, data
 - Repository APIs returning `Either<Failure, T>`
 - Transaction data model, datasource, repository, and use cases
@@ -75,7 +75,7 @@ Complete. Authentication and remote sync are implemented with:
 - Auth-aware drawer header
 - Google profile photo in the authenticated drawer header when available
 - Firestore transaction sync
-- First-login upload of local Isar transactions
+- First-login upload of local Drift transactions
 - Local-only mode for unauthenticated users
 - Sync status displayed in the left drawer
 
@@ -110,7 +110,7 @@ Complete. The app also includes:
 - `dartz`
 - `go_router`
 - `get_it`
-- `isar` + `isar_flutter_libs`
+- `drift` + `drift_flutter` + `sqlite3_flutter_libs`
 - `path_provider`
 - `shared_preferences`
 - `intl`
@@ -126,7 +126,7 @@ Complete. The app also includes:
 - `share_plus`
 
 Do not introduce a new state management or persistence stack unless explicitly
-requested. The app direction is BLoC + Isar + Firebase sync.
+requested. The app direction is BLoC + Drift/SQLite + Firebase sync.
 
 ---
 
@@ -145,7 +145,7 @@ Transaction flow:
 
 ```text
 UI -> TransactionBloc -> UseCases -> TransactionRepository
-   -> Local/Remote Datasources -> Isar / Firestore
+   -> Local/Remote Datasources -> Drift/SQLite / Firestore
 ```
 
 Core files:
@@ -246,7 +246,7 @@ for intervals, optional start/end dates.
 ### Categories
 
 - Built-in category metadata lives in `MockData`
-- Do not remove `MockData`; transaction storage moved to Isar, but category
+- Do not remove `MockData`; transaction storage moved to Drift/SQLite, but category
   metadata still depends on it
 - Custom categories are persisted locally
 - Category labels must go through `CategoryLocalizer` / `AppLocalizations`
@@ -264,7 +264,7 @@ for intervals, optional start/end dates.
 
 - Unauthenticated users can use the app in local-only mode
 - Authenticated users sync through Firestore
-- First login uploads local Isar transactions
+- First login uploads local Drift transactions
 - Drawer sync status reflects auth/sync state
 - Authenticated drawer header shows display name/email and Google photo when
   available
@@ -366,7 +366,7 @@ When asked for thesis-oriented explanations, structure as:
 | Topic | Thesis angle |
 |---|---|
 | Clean Architecture | SOLID, testability, layer isolation |
-| Isar over SQLite | Performance, Dart-native schema, no ORM overhead |
+| Drift/SQLite over Isar | SQL-backed portability, generated type-safe queries, release-build stability |
 | BLoC over setState | Predictable state machine, testability, explicit event log |
 | Offline-first | Resilience, UX continuity, local-first UX |
 | Repository pattern | Datasource abstraction, domain independence |

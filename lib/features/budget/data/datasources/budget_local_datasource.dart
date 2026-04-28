@@ -1,5 +1,6 @@
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart';
 
+import '../../../../core/database/app_database.dart';
 import '../models/budget_model.dart';
 
 abstract class BudgetLocalDatasource {
@@ -11,44 +12,43 @@ abstract class BudgetLocalDatasource {
 }
 
 class BudgetLocalDatasourceImpl implements BudgetLocalDatasource {
-  const BudgetLocalDatasourceImpl(this.isar);
+  const BudgetLocalDatasourceImpl(this._db);
 
-  final Isar isar;
+  final AppDatabase _db;
 
   @override
-  Future<List<BudgetModel>> getByMonthYear(int month, int year) {
-    return isar.txn<List<BudgetModel>>(
-      () => isar.budgetModels
-          .filter()
-          .monthEqualTo(month)
-          .yearEqualTo(year)
-          .findAll(),
-    );
+  Future<List<BudgetModel>> getByMonthYear(int month, int year) async {
+    final List<Budget> rows = await (_db.select(_db.budgets)
+          ..where((b) => b.month.equals(month) & b.year.equals(year)))
+        .get();
+    return rows.map(_rowToModel).toList();
   }
 
   @override
   Future<void> save(BudgetModel model) async {
-    await isar.writeTxn(() => _putByExternalId(model));
+    await _db.into(_db.budgets).insertOnConflictUpdate(
+          BudgetsCompanion(
+            id: Value<String>(model.id),
+            categoryKey: Value<String?>(model.categoryKey),
+            limitAmount: Value<double>(model.limitAmount),
+            month: Value<int>(model.month),
+            year: Value<int>(model.year),
+          ),
+        );
   }
 
   @override
   Future<void> delete(String id) async {
-    await isar.writeTxn(() async {
-      final BudgetModel? existing =
-          await isar.budgetModels.where().idEqualTo(id).findFirst();
-      if (existing != null) {
-        await isar.budgetModels.delete(existing.isarId);
-      }
-    });
+    await (_db.delete(_db.budgets)..where((b) => b.id.equals(id))).go();
   }
 
-  Future<void> _putByExternalId(BudgetModel model) async {
-    final BudgetModel? existing =
-        await isar.budgetModels.where().idEqualTo(model.id).findFirst();
-    if (existing != null) {
-      model.isarId = existing.isarId;
-    }
-
-    await isar.budgetModels.put(model);
+  BudgetModel _rowToModel(Budget row) {
+    return BudgetModel(
+      id: row.id,
+      categoryKey: row.categoryKey,
+      limitAmount: row.limitAmount,
+      month: row.month,
+      year: row.year,
+    );
   }
 }

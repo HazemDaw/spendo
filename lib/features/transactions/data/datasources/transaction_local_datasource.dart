@@ -1,5 +1,6 @@
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart';
 
+import '../../../../core/database/app_database.dart';
 import '../models/transaction_model.dart';
 
 abstract class TransactionLocalDatasource {
@@ -15,36 +16,44 @@ abstract class TransactionLocalDatasource {
   Future<void> save(TransactionModel model);
   Future<void> update(TransactionModel model);
   Future<void> delete(String id);
+  Future<DateTime?> getOldestTransactionDate();
 }
 
 class TransactionLocalDatasourceImpl implements TransactionLocalDatasource {
-  const TransactionLocalDatasourceImpl(this.isar);
+  const TransactionLocalDatasourceImpl(this._db);
 
-  final Isar isar;
+  final AppDatabase _db;
 
   @override
   Future<List<TransactionModel>> getAll() async {
-    return isar.txn<List<TransactionModel>>(
-      () async {
-        final List<TransactionModel> models =
-            await isar.transactionModels.where().findAll();
-        models.sort(
-          (TransactionModel a, TransactionModel b) => b.date.compareTo(a.date),
-        );
-        return models;
-      },
-    );
+    final List<Transaction> rows = await (_db.select(_db.transactions)
+          ..orderBy(
+            <OrderingTerm Function($TransactionsTable)>[
+              (t) => OrderingTerm.desc(t.date),
+            ],
+          ))
+        .get();
+    return rows.map(_rowToModel).toList();
   }
 
   @override
-  Future<List<TransactionModel>> getByPeriod(DateTime start, DateTime end) {
-    return isar.txn<List<TransactionModel>>(
-      () => isar.transactionModels
-          .filter()
-          .dateBetween(start, end)
-          .sortByDateDesc()
-          .findAll(),
-    );
+  Future<List<TransactionModel>> getByPeriod(
+    DateTime start,
+    DateTime end,
+  ) async {
+    final List<Transaction> rows = await (_db.select(_db.transactions)
+          ..where(
+            (t) =>
+                t.date.isBiggerOrEqualValue(start) &
+                t.date.isSmallerOrEqualValue(end),
+          )
+          ..orderBy(
+            <OrderingTerm Function($TransactionsTable)>[
+              (t) => OrderingTerm.desc(t.date),
+            ],
+          ))
+        .get();
+    return rows.map(_rowToModel).toList();
   }
 
   @override
@@ -52,45 +61,64 @@ class TransactionLocalDatasourceImpl implements TransactionLocalDatasource {
     String key,
     DateTime start,
     DateTime end,
-  ) {
-    return isar.txn<List<TransactionModel>>(
-      () => isar.transactionModels
-          .filter()
-          .categoryKeyEqualTo(key)
-          .dateBetween(start, end)
-          .sortByDateDesc()
-          .findAll(),
-    );
+  ) async {
+    final List<Transaction> rows = await (_db.select(_db.transactions)
+          ..where(
+            (t) =>
+                t.categoryKey.equals(key) &
+                t.date.isBiggerOrEqualValue(start) &
+                t.date.isSmallerOrEqualValue(end),
+          )
+          ..orderBy(
+            <OrderingTerm Function($TransactionsTable)>[
+              (t) => OrderingTerm.desc(t.date),
+            ],
+          ))
+        .get();
+    return rows.map(_rowToModel).toList();
   }
 
   @override
   Future<void> save(TransactionModel model) async {
-    await isar.writeTxn(() => _putByExternalId(model));
+    await _db.into(_db.transactions).insertOnConflictUpdate(
+          TransactionsCompanion(
+            id: Value<String>(model.id),
+            amount: Value<double>(model.amount),
+            categoryKey: Value<String?>(model.categoryKey),
+            type: Value<String>(model.type),
+            date: Value<DateTime>(model.date),
+            note: Value<String?>(model.note),
+          ),
+        );
   }
 
   @override
-  Future<void> update(TransactionModel model) async {
-    await isar.writeTxn(() => _putByExternalId(model));
-  }
+  Future<void> update(TransactionModel model) => save(model);
 
   @override
   Future<void> delete(String id) async {
-    await isar.writeTxn(() async {
-      final TransactionModel? existing =
-          await isar.transactionModels.where().idEqualTo(id).findFirst();
-      if (existing != null) {
-        await isar.transactionModels.delete(existing.isarId);
-      }
-    });
+    await (_db.delete(_db.transactions)..where((t) => t.id.equals(id))).go();
   }
 
-  Future<void> _putByExternalId(TransactionModel model) async {
-    final TransactionModel? existing =
-        await isar.transactionModels.where().idEqualTo(model.id).findFirst();
-    if (existing != null) {
-      model.isarId = existing.isarId;
-    }
-
-    await isar.transactionModels.put(model);
+  @override
+  Future<DateTime?> getOldestTransactionDate() async {
+    final Transaction? row = await (_db.select(_db.transactions)
+          ..orderBy(
+            <OrderingTerm Function($TransactionsTable)>[
+              (t) => OrderingTerm.asc(t.date),
+            ],
+          )
+          ..limit(1))
+        .getSingleOrNull();
+    return row?.date;
   }
+
+  TransactionModel _rowToModel(Transaction row) => TransactionModel(
+        id: row.id,
+        amount: row.amount,
+        categoryKey: row.categoryKey,
+        type: row.type,
+        date: row.date,
+        note: row.note,
+      );
 }
