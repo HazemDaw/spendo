@@ -32,6 +32,7 @@ import '../widgets/app_right_drawer.dart';
 import '../widgets/connector_lines_painter.dart';
 import '../widgets/donut_chart_widget.dart';
 import '../widgets/home_action_buttons.dart';
+import '../widgets/transaction_delete_undo_snackbar.dart';
 import '../widgets/transaction_list_item.dart';
 
 class HomePage extends StatefulWidget {
@@ -1660,7 +1661,9 @@ class _HomePageState extends State<HomePage> {
 
   void _showAddResult(Object? result) {
     final messenger = ScaffoldMessenger.of(context);
-    if (result == 'deleted') {
+    if (result case TransactionDeleteResult(:final transaction)) {
+      showTransactionDeletedUndoSnackBar(context, transaction);
+    } else if (result == 'deleted') {
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(

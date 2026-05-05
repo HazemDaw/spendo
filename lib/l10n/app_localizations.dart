@@ -72,6 +72,7 @@ abstract class AppLocalizations {
   String get transactionUpdatedMessage;
   String get transactionSavedSuccessMessage;
   String get transactionDeletedMessage;
+  String get undoDeleteAction;
   String get deleteTransactionTitle;
   String get deleteTransactionMessage;
   String get noTransactionsInCategory;
@@ -122,6 +123,11 @@ abstract class AppLocalizations {
   String get insightsTitle;
   String get insightsDailySpendingTitle;
   String get insightsMonthlySpendingTitle;
+  String get insightsNoDataTitle;
+  String get insightsNoDataSubtitle;
+  String get insightsAddTransactionAction;
+  String get insightsNoTransactionsPeriodTitle;
+  String get insightsNoTransactionsPeriodSubtitle;
   String get insightsEmptyTitle;
   String get insightsEmptyMessage;
   String get insightsErrorTitle;

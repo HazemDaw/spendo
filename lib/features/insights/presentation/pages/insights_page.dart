@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/currency/currency_cubit.dart';
@@ -13,6 +14,7 @@ import '../../../../core/utils/date_utils.dart';
 import '../../../../injection_container.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../transactions/domain/entities/transaction.dart';
+import '../../../transactions/domain/repositories/transaction_repository.dart';
 import '../bloc/insights_cubit.dart';
 
 class InsightsPage extends StatelessWidget {
@@ -65,7 +67,11 @@ class _InsightsView extends StatelessWidget {
       body: BlocBuilder<InsightsCubit, InsightsState>(
         builder: (BuildContext context, InsightsState state) {
           if (state is InsightsLoading || state is InsightsInitial) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF7C3AED),
+              ),
+            );
           }
 
           if (state is InsightsError) {
@@ -77,11 +83,7 @@ class _InsightsView extends StatelessWidget {
           }
 
           if (state is InsightsLoaded && state.isEmpty) {
-            return _MessageState(
-              icon: Icons.lightbulb_outline_rounded,
-              title: l10n.insightsEmptyTitle,
-              message: l10n.insightsEmptyMessage,
-            );
+            return _InsightsEmptyState(l10n: l10n);
           }
 
           final InsightsLoaded loadedState = state as InsightsLoaded;
@@ -112,6 +114,141 @@ class _InsightsView extends StatelessWidget {
             itemCount: itemCount,
           );
         },
+      ),
+    );
+  }
+}
+
+class _InsightsEmptyState extends StatefulWidget {
+  const _InsightsEmptyState({
+    required this.l10n,
+  });
+
+  final AppLocalizations l10n;
+
+  @override
+  State<_InsightsEmptyState> createState() => _InsightsEmptyStateState();
+}
+
+class _InsightsEmptyStateState extends State<_InsightsEmptyState> {
+  late final Future<bool> _hasAnyTransactionsFuture = _hasAnyTransactions();
+
+  Future<bool> _hasAnyTransactions() async {
+    final result = await sl<TransactionRepository>().getTransactionsByPeriod(
+      DateTime(2000, 1, 1),
+      DateTime(2100, 12, 31, 23, 59, 59),
+    );
+    return result.fold(
+      (_) => true,
+      (List<Transaction> transactions) => transactions.isNotEmpty,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _hasAnyTransactionsFuture,
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF7C3AED),
+            ),
+          );
+        }
+
+        final bool hasAnyTransactions = snapshot.data ?? true;
+        if (!hasAnyTransactions) {
+          return _EmptyStateContent(
+            icon: Icons.lightbulb_outline,
+            title: widget.l10n.insightsNoDataTitle,
+            subtitle: widget.l10n.insightsNoDataSubtitle,
+            actionLabel: widget.l10n.insightsAddTransactionAction,
+            onActionPressed: () => context.push('/add'),
+          );
+        }
+
+        return _EmptyStateContent(
+          icon: Icons.search_off,
+          title: widget.l10n.insightsNoTransactionsPeriodTitle,
+          subtitle: widget.l10n.insightsNoTransactionsPeriodSubtitle,
+        );
+      },
+    );
+  }
+}
+
+class _EmptyStateContent extends StatelessWidget {
+  const _EmptyStateContent({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.actionLabel,
+    this.onActionPressed,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String? actionLabel;
+  final VoidCallback? onActionPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = context.watch<ThemeCubit>().state == ThemeMode.dark;
+    final Color titleColor = isDark ? Colors.white : AppColors.textPrimary;
+    final Color subtitleColor =
+        isDark ? Colors.white70 : AppColors.textSecondary;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(
+              icon,
+              size: 64,
+              color: const Color(0xFF7C3AED).withValues(alpha: 0.40),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: titleColor,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: subtitleColor,
+                fontSize: 14,
+                height: 1.35,
+              ),
+            ),
+            if (actionLabel != null && onActionPressed != null) ...<Widget>[
+              const SizedBox(height: 14),
+              TextButton(
+                onPressed: onActionPressed,
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF7C3AED),
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                child: Text(actionLabel!),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

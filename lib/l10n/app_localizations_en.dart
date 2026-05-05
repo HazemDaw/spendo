@@ -119,6 +119,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionDeletedMessage => 'Transaction deleted';
 
   @override
+  String get undoDeleteAction => 'Undo';
+
+  @override
   String get deleteTransactionTitle => 'Delete transaction?';
 
   @override
@@ -268,6 +271,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightsMonthlySpendingTitle => 'Monthly Spending';
+
+  @override
+  String get insightsNoDataTitle => 'No data to analyze';
+
+  @override
+  String get insightsNoDataSubtitle =>
+      'Add your first transaction to see insights';
+
+  @override
+  String get insightsAddTransactionAction => 'Add Transaction';
+
+  @override
+  String get insightsNoTransactionsPeriodTitle => 'No transactions this period';
+
+  @override
+  String get insightsNoTransactionsPeriodSubtitle =>
+      'Try selecting a different period';
 
   @override
   String get insightsEmptyTitle => 'No insights yet';

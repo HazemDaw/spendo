@@ -14,6 +14,7 @@ import '../bloc/transaction_bloc.dart';
 import '../bloc/transaction_event.dart';
 import '../bloc/transaction_state.dart';
 import '../widgets/transaction_list_item.dart';
+import '../widgets/transaction_delete_undo_snackbar.dart';
 
 class TransactionListPage extends StatefulWidget {
   const TransactionListPage({
@@ -174,7 +175,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
                               if (!mounted) {
                                 return;
                               }
-                              _showResult(result);
+                              _showResult(result, transaction);
                             },
                           );
                         },
@@ -189,19 +190,14 @@ class _TransactionListPageState extends State<TransactionListPage> {
     );
   }
 
-  void _showResult(Object? result) {
-    final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final String? message = switch (result) {
-      'deleted' => l10n.transactionDeletedMessage,
+  void _showResult(Object? result, Transaction fallbackTransaction) {
+    final Transaction? deletedTransaction = switch (result) {
+      TransactionDeleteResult(:final transaction) => transaction,
+      'deleted' => fallbackTransaction,
       _ => null,
     };
-
-    if (message == null) {
-      return;
+    if (deletedTransaction != null) {
+      showTransactionDeletedUndoSnackBar(context, deletedTransaction);
     }
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
   }
 }

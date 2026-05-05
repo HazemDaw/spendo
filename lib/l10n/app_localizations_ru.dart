@@ -118,6 +118,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get transactionDeletedMessage => 'Транзакция удалена';
 
   @override
+  String get undoDeleteAction => 'Отменить';
+
+  @override
   String get deleteTransactionTitle => 'Удалить транзакцию?';
 
   @override
@@ -268,6 +271,24 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get insightsMonthlySpendingTitle => 'Расходы по месяцам';
+
+  @override
+  String get insightsNoDataTitle => 'Нет данных для анализа';
+
+  @override
+  String get insightsNoDataSubtitle =>
+      'Добавьте первую транзакцию, чтобы увидеть аналитику';
+
+  @override
+  String get insightsAddTransactionAction => 'Добавить транзакцию';
+
+  @override
+  String get insightsNoTransactionsPeriodTitle =>
+      'Нет транзакций за этот период';
+
+  @override
+  String get insightsNoTransactionsPeriodSubtitle =>
+      'Попробуйте выбрать другой период';
 
   @override
   String get insightsEmptyTitle => 'Пока нет аналитики';

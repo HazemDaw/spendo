@@ -17,6 +17,7 @@ import '../bloc/transaction_bloc.dart';
 import '../bloc/transaction_event.dart';
 import '../bloc/transaction_state.dart';
 import '../widgets/calculator_keypad.dart';
+import '../widgets/transaction_delete_undo_snackbar.dart';
 import '../../../categories/presentation/widgets/category_picker_sheet.dart';
 
 class AddTransactionPage extends StatefulWidget {
@@ -45,6 +46,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   DateTime _selectedDate = DateTime.now();
   String? _selectedCategoryKey;
   Transaction? _editingTransaction;
+  Transaction? _pendingDeletedTransaction;
   _PendingAction? _pendingAction;
   bool _didInitialize = false;
 
@@ -92,136 +94,142 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final TransactionState transactionState = context.watch<TransactionBloc>().state;
+    final TransactionState transactionState =
+        context.watch<TransactionBloc>().state;
     final bool isDark = context.watch<ThemeCubit>().state == ThemeMode.dark;
     final String currencySymbol = context.watch<CurrencyCubit>().state;
     final Category? category =
         _categoryStore?.resolveCategory(_selectedCategoryKey);
-    final bool isResolvingEditTransaction =
-        _isEditMode &&
+    final bool isResolvingEditTransaction = _isEditMode &&
         _editingTransaction == null &&
         (transactionState is TransactionInitial ||
             transactionState is TransactionLoading);
-    final bool isMissingEditTransaction =
-        _isEditMode &&
+    final bool isMissingEditTransaction = _isEditMode &&
         _editingTransaction == null &&
         transactionState is TransactionLoaded;
     final bool canSubmit =
         _pendingAction == null && (!_isEditMode || _editingTransaction != null);
 
     return BlocListener<TransactionBloc, TransactionState>(
-        listener: (BuildContext context, TransactionState state) {
-          if (_isEditMode && state is TransactionLoaded) {
-            _hydrateEditingTransaction(state.transactions);
-          }
+      listener: (BuildContext context, TransactionState state) {
+        if (_isEditMode && state is TransactionLoaded) {
+          _hydrateEditingTransaction(state.transactions);
+        }
 
-          if (_pendingAction == null) {
-            return;
-          }
+        if (_pendingAction == null) {
+          return;
+        }
 
-          if (state is TransactionError &&
-              (ModalRoute.of(context)?.isCurrent ?? false)) {
-            setState(() {
-              _pendingAction = null;
-            });
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(content: Text(state.message)));
-            return;
-          }
-
-          if (state is TransactionLoaded) {
-            final _PendingAction action = _pendingAction!;
-            final String result = switch (action) {
-              _PendingAction.add => 'added',
-              _PendingAction.update => 'updated',
-              _PendingAction.delete => 'deleted',
-            };
-            if (action == _PendingAction.delete) {
-              _pendingAction = null;
-              context.pop(result);
-              return;
-            }
-
+        if (state is TransactionError &&
+            (ModalRoute.of(context)?.isCurrent ?? false)) {
+          setState(() {
             _pendingAction = null;
-            _showSuccessAndPop(result);
+          });
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(state.message)));
+          return;
+        }
+
+        if (state is TransactionLoaded) {
+          final _PendingAction action = _pendingAction!;
+          final String result = switch (action) {
+            _PendingAction.add => 'added',
+            _PendingAction.update => 'updated',
+            _PendingAction.delete => 'deleted',
+          };
+          if (action == _PendingAction.delete) {
+            final Transaction? deletedTransaction =
+                _pendingDeletedTransaction ?? _editingTransaction;
+            _pendingAction = null;
+            _pendingDeletedTransaction = null;
+            context.pop(
+              deletedTransaction == null
+                  ? result
+                  : TransactionDeleteResult(deletedTransaction),
+            );
+            return;
           }
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(_title(l10n)),
-            actions: <Widget>[
-              if (_isEditMode)
-                IconButton(
-                  onPressed:
-                      _pendingAction == null && _editingTransaction != null
-                      ? _confirmDelete
-                      : null,
-                  icon: const Icon(Icons.delete_outline_rounded),
-                ),
-              TextButton(
-                onPressed: canSubmit ? _save : null,
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(
-                  l10n.saveAction,
-                  style: const TextStyle(
-                    inherit: true,
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.none,
-                  ),
+
+          _pendingAction = null;
+          _showSuccessAndPop(result);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_title(l10n)),
+          actions: <Widget>[
+            if (_isEditMode)
+              IconButton(
+                onPressed: _pendingAction == null && _editingTransaction != null
+                    ? _confirmDelete
+                    : null,
+                icon: const Icon(Icons.delete_outline_rounded),
+              ),
+            TextButton(
+              onPressed: canSubmit ? _save : null,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                l10n.saveAction,
+                style: const TextStyle(
+                  inherit: true,
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.none,
                 ),
               ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          body: SafeArea(
-            child: isResolvingEditTransaction
-                ? const Center(child: CircularProgressIndicator())
-                : isMissingEditTransaction
-                ? _buildMissingTransactionState(l10n)
-                : ListView(
-                    padding: const EdgeInsets.all(24),
-                    children: <Widget>[
-                      _buildDateCard(context, l10n),
-                      const SizedBox(height: 16),
-                      _buildAmountCard(currencySymbol),
-                      const SizedBox(height: 16),
-                      _buildNoteField(l10n, isDark),
-                      const SizedBox(height: 16),
-                      CalculatorKeypad(onKeyTap: _keypadCubit.appendChar),
-                      if (_requiresCategory) ...<Widget>[
-                        const SizedBox(height: 24),
-                        OutlinedButton(
-                          onPressed: _showCategoryPicker,
-                          child: Text(l10n.pickCategoryAction),
-                        ),
-                        if (category != null) ...<Widget>[
-                          const SizedBox(height: 12),
-                          Row(
-                            children: <Widget>[
-                              Icon(category.icon, color: category.color),
-                              const SizedBox(width: 12),
-                              Text(
-                                CategoryLocalizer.label(l10n, category),
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ],
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: SafeArea(
+          child: isResolvingEditTransaction
+              ? const Center(child: CircularProgressIndicator())
+              : isMissingEditTransaction
+                  ? _buildMissingTransactionState(l10n)
+                  : ListView(
+                      padding: const EdgeInsets.all(24),
+                      children: <Widget>[
+                        _buildDateCard(context, l10n),
+                        const SizedBox(height: 16),
+                        _buildAmountCard(currencySymbol),
+                        const SizedBox(height: 16),
+                        _buildNoteField(l10n, isDark),
+                        const SizedBox(height: 16),
+                        CalculatorKeypad(onKeyTap: _keypadCubit.appendChar),
+                        if (_requiresCategory) ...<Widget>[
+                          const SizedBox(height: 24),
+                          OutlinedButton(
+                            onPressed: _showCategoryPicker,
+                            child: Text(l10n.pickCategoryAction),
                           ),
+                          if (category != null) ...<Widget>[
+                            const SizedBox(height: 12),
+                            Row(
+                              children: <Widget>[
+                                Icon(category.icon, color: category.color),
+                                const SizedBox(width: 12),
+                                Text(
+                                  CategoryLocalizer.label(l10n, category),
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                        if (_pendingAction != null) ...<Widget>[
+                          const SizedBox(height: 24),
+                          const LinearProgressIndicator(),
                         ],
                       ],
-                      if (_pendingAction != null) ...<Widget>[
-                        const SizedBox(height: 24),
-                        const LinearProgressIndicator(),
-                      ],
-                    ],
-                  ),
-          ),
+                    ),
         ),
-      );
+      ),
+    );
   }
 
   Future<void> _showSuccessAndPop(String result) async {
@@ -481,6 +489,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
     setState(() {
       _pendingAction = _PendingAction.delete;
+      _pendingDeletedTransaction = _editingTransaction;
     });
     context
         .read<TransactionBloc>()
@@ -512,8 +521,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
 
     setState(() {
-      _pendingAction =
-          _isEditMode ? _PendingAction.update : _PendingAction.add;
+      _pendingAction = _isEditMode ? _PendingAction.update : _PendingAction.add;
     });
 
     context.read<TransactionBloc>().add(

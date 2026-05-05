@@ -13,6 +13,7 @@ import '../../domain/entities/transaction.dart';
 import '../bloc/transaction_bloc.dart';
 import '../bloc/transaction_state.dart';
 import '../widgets/transaction_list_item.dart';
+import '../widgets/transaction_delete_undo_snackbar.dart';
 
 class AllTransactionsPage extends StatefulWidget {
   const AllTransactionsPage({
@@ -212,23 +213,18 @@ class _AllTransactionsPageState extends State<AllTransactionsPage> {
     if (!mounted) {
       return;
     }
-    _showResult(result);
+    _showResult(result, transaction);
   }
 
-  void _showResult(Object? result) {
-    final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final String? message = switch (result) {
-      'deleted' => l10n.transactionDeletedMessage,
+  void _showResult(Object? result, Transaction fallbackTransaction) {
+    final Transaction? deletedTransaction = switch (result) {
+      TransactionDeleteResult(:final transaction) => transaction,
+      'deleted' => fallbackTransaction,
       _ => null,
     };
-
-    if (message == null) {
-      return;
+    if (deletedTransaction != null) {
+      showTransactionDeletedUndoSnackBar(context, deletedTransaction);
     }
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
