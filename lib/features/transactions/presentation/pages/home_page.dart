@@ -128,7 +128,10 @@ class _HomePageState extends State<HomePage> {
   DateTime _referenceDate = DateTime.now();
   DateTime? _intervalStart;
   DateTime? _intervalEnd;
-  double _slideDirection = 0;
+  static const int _periodPageCount = 10000;
+  static const int _initialPeriodPage = _periodPageCount ~/ 2;
+  late final PageController _periodPageController;
+  int _periodPageIndex = _initialPeriodPage;
   List<_OrbitAssignment> _orbitAssignments =
       List<_OrbitAssignment>.from(_defaultOrbitAssignments);
   Map<String, CustomCategoryModel> _customOrbitCategories =
@@ -141,7 +144,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _periodPageController = PageController(initialPage: _initialPeriodPage);
     _loadOrbitSlots();
+  }
+
+  @override
+  void dispose() {
+    _periodPageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadOrbitSlots() async {
@@ -284,8 +294,8 @@ class _HomePageState extends State<HomePage> {
     );
     final bool isLoading = transactionState is TransactionInitial ||
         transactionState is TransactionLoading;
-    final String periodCanvasKey =
-        '${_selectedPeriod}_${_referenceDate.millisecondsSinceEpoch}';
+    final bool canPagePeriods = _selectedPeriod != TransactionPeriod.all &&
+        _selectedPeriod != TransactionPeriod.interval;
 
     return BlocListener<TransactionBloc, TransactionState>(
       listener: (BuildContext context, TransactionState state) {
@@ -323,350 +333,317 @@ class _HomePageState extends State<HomePage> {
           endDrawerEnableOpenDragGesture: false,
           body: Align(
             alignment: Alignment.topCenter,
-            child: GestureDetector(
-              onHorizontalDragEnd: (DragEndDetails details) {
-                if (details.primaryVelocity == null) {
-                  return;
-                }
-                if (details.primaryVelocity! > 200) {
-                  _navigatePeriod(-1, oldestTransactionDate);
-                }
-                if (details.primaryVelocity! < -200) {
-                  _navigatePeriod(1, oldestTransactionDate);
-                }
-              },
-              child: FittedBox(
-                fit: BoxFit.contain,
-                alignment: Alignment.topCenter,
-                child: SizedBox(
-                  width: _referenceSize.width,
-                  height: _referenceSize.height,
-                  child: Stack(
-                    children: <Widget>[
-                      const Positioned.fill(
-                        child: SizedBox.shrink(),
+            child: FittedBox(
+              fit: BoxFit.contain,
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: _referenceSize.width,
+                height: _referenceSize.height,
+                child: Stack(
+                  children: <Widget>[
+                    const Positioned.fill(
+                      child: SizedBox.shrink(),
+                    ),
+                    Positioned.fill(
+                      child: ColoredBox(color: canvasBg),
+                    ),
+                    const Positioned(
+                      left: 0,
+                      top: 0,
+                      right: 0,
+                      child: SizedBox(
+                        height: 156,
+                        child: ColoredBox(color: headerBg),
                       ),
-                      Positioned.fill(
-                        child: ColoredBox(color: canvasBg),
-                      ),
-                      const Positioned(
-                        left: 0,
-                        top: 0,
-                        right: 0,
-                        child: SizedBox(
-                          height: 156,
-                          child: ColoredBox(color: headerBg),
-                        ),
-                      ),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        layoutBuilder: (
-                          Widget? currentChild,
-                          List<Widget> previousChildren,
-                        ) {
-                          return Stack(
-                            children: <Widget>[
-                              ...previousChildren,
-                              if (currentChild != null) currentChild,
-                            ],
+                    ),
+                    SizedBox(
+                      width: _referenceSize.width,
+                      height: _referenceSize.height,
+                      child: PageView.builder(
+                        controller: _periodPageController,
+                        itemCount: _periodPageCount,
+                        physics: canPagePeriods
+                            ? const PageScrollPhysics()
+                            : const NeverScrollableScrollPhysics(),
+                        onPageChanged: (int index) {
+                          _handlePeriodPageChanged(
+                            index,
+                            oldestTransactionDate,
                           );
                         },
-                        transitionBuilder: (
-                          Widget child,
-                          Animation<double> animation,
-                        ) {
-                          final bool isIncoming =
-                              child.key == ValueKey<String>(periodCanvasKey);
-                          final double direction =
-                              _slideDirection == 0 ? 1.0 : _slideDirection;
-                          final Offset beginOffset = Offset(
-                            isIncoming ? direction : -direction,
-                            0,
-                          );
-
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: beginOffset,
-                                end: Offset.zero,
-                              ).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeOutCubic,
-                                ),
-                              ),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: RepaintBoundary(
-                          key: ValueKey<String>(periodCanvasKey),
-                          child: SizedBox(
-                            width: _referenceSize.width,
-                            height: _referenceSize.height,
-                            child: Stack(
-                              children: <Widget>[
-                                Positioned(
-                                  left: 0,
-                                  right: 0,
-                                  top: 170,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: <Widget>[
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 16),
-                                        child: GestureDetector(
-                                          onTap: () => _navigatePeriod(
-                                            -1,
-                                            oldestTransactionDate,
-                                          ),
-                                          child: Text(
-                                            isAtOldestBoundary
-                                                ? ''
-                                                : _buildAdjacentLabel(-1),
-                                            style: GoogleFonts.inter(
-                                              color: isDark
-                                                  ? Colors.white38
-                                                  : const Color(
-                                                      0xFF7C3AED,
-                                                    ).withValues(alpha: 0.4),
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w400,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: <Widget>[
-                                          GestureDetector(
-                                            onTap: () => _navigatePeriod(
+                        itemBuilder: (BuildContext context, int index) {
+                          return RepaintBoundary(
+                            child: SizedBox(
+                              width: _referenceSize.width,
+                              height: _referenceSize.height,
+                              child: Stack(
+                                children: <Widget>[
+                                  Positioned(
+                                    left: 0,
+                                    right: 0,
+                                    top: 170,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: <Widget>[
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 16),
+                                          child: GestureDetector(
+                                            onTap: () => _animatePeriodPage(
                                               -1,
                                               oldestTransactionDate,
                                             ),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(12),
-                                              child: Icon(
-                                                Icons.chevron_left_rounded,
-                                                color: isAtOldestBoundary
-                                                    ? Colors.transparent
-                                                    : isDark
-                                                        ? Colors.white54
-                                                        : const Color(
-                                                            0xFF7C3AED),
-                                                size: 36,
-                                              ),
-                                            ),
-                                          ),
-                                          GestureDetector(
-                                            onTap: _cyclePeriod,
                                             child: Text(
-                                              selectedPeriodLabel,
+                                              isAtOldestBoundary
+                                                  ? ''
+                                                  : _buildAdjacentLabel(-1),
                                               style: GoogleFonts.inter(
                                                 color: isDark
-                                                    ? Colors.white
-                                                    : const Color(0xFF1E1B4B),
-                                                fontSize: 28,
-                                                fontWeight: FontWeight.w600,
-                                                letterSpacing: 0,
+                                                    ? Colors.white38
+                                                    : const Color(
+                                                        0xFF7C3AED,
+                                                      ).withValues(alpha: 0.4),
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w400,
                                               ),
                                             ),
                                           ),
-                                          GestureDetector(
-                                            onTap: () => _navigatePeriod(
+                                        ),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: <Widget>[
+                                            GestureDetector(
+                                              onTap: () => _animatePeriodPage(
+                                                -1,
+                                                oldestTransactionDate,
+                                              ),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(12),
+                                                child: Icon(
+                                                  Icons.chevron_left_rounded,
+                                                  color: isAtOldestBoundary
+                                                      ? Colors.transparent
+                                                      : isDark
+                                                          ? Colors.white54
+                                                          : const Color(
+                                                              0xFF7C3AED),
+                                                  size: 36,
+                                                ),
+                                              ),
+                                            ),
+                                            GestureDetector(
+                                              onTap: _cyclePeriod,
+                                              child: Text(
+                                                selectedPeriodLabel,
+                                                style: GoogleFonts.inter(
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : const Color(0xFF1E1B4B),
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.w600,
+                                                  letterSpacing: 0,
+                                                ),
+                                              ),
+                                            ),
+                                            GestureDetector(
+                                              onTap: () => _animatePeriodPage(
+                                                1,
+                                                oldestTransactionDate,
+                                              ),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(12),
+                                                child: Icon(
+                                                  Icons.chevron_right_rounded,
+                                                  color: isAtFutureBoundary
+                                                      ? Colors.transparent
+                                                      : isDark
+                                                          ? Colors.white54
+                                                          : const Color(
+                                                              0xFF7C3AED),
+                                                  size: 36,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 16),
+                                          child: GestureDetector(
+                                            onTap: () => _animatePeriodPage(
                                               1,
                                               oldestTransactionDate,
                                             ),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(12),
-                                              child: Icon(
-                                                Icons.chevron_right_rounded,
-                                                color: isAtFutureBoundary
-                                                    ? Colors.transparent
-                                                    : isDark
-                                                        ? Colors.white54
-                                                        : const Color(
-                                                            0xFF7C3AED),
-                                                size: 36,
+                                            child: Text(
+                                              isAtFutureBoundary
+                                                  ? ''
+                                                  : _buildAdjacentLabel(1),
+                                              style: GoogleFonts.inter(
+                                                color: isDark
+                                                    ? Colors.white38
+                                                    : const Color(
+                                                        0xFF7C3AED,
+                                                      ).withValues(alpha: 0.4),
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w400,
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 16),
-                                        child: GestureDetector(
-                                          onTap: () => _navigatePeriod(
-                                            1,
-                                            oldestTransactionDate,
-                                          ),
-                                          child: Text(
-                                            isAtFutureBoundary
-                                                ? ''
-                                                : _buildAdjacentLabel(1),
-                                            style: GoogleFonts.inter(
-                                              color: isDark
-                                                  ? Colors.white38
-                                                  : const Color(
-                                                      0xFF7C3AED,
-                                                    ).withValues(alpha: 0.4),
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w400,
-                                            ),
-                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Positioned(
-                                  left: 32,
-                                  right: 32,
-                                  top: 220,
-                                  child: _buildBudgetWarningBanner(
-                                    expenseTotals: expenseTotals,
-                                    totalSpent: expense,
-                                  ),
-                                ),
-                                Positioned.fill(
-                                  child: IgnorePointer(
-                                    child: RepaintBoundary(
-                                      child: CustomPaint(
-                                        painter: ConnectorLinesPainter(
-                                          connectors: connectors,
+                                  Positioned.fill(
+                                    child: IgnorePointer(
+                                      child: RepaintBoundary(
+                                        child: CustomPaint(
+                                          painter: ConnectorLinesPainter(
+                                            connectors: connectors,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                Positioned(
-                                  left: _chartCenter.dx - _donutOuterRadius,
-                                  top: _chartCenter.dy - _donutOuterRadius,
-                                  child: GestureDetector(
-                                    child: SizedBox.square(
-                                      dimension: _donutOuterRadius * 2,
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: <Widget>[
-                                          SizedBox.square(
-                                            dimension: _donutOuterRadius * 2,
-                                            child: DonutChartWidget(
-                                              slices: slices,
-                                              incomeText:
-                                                  CurrencyFormatter.format(
-                                                income,
-                                                symbol: currencySymbol,
-                                              ),
-                                              expenseText:
-                                                  CurrencyFormatter.format(
-                                                expense,
-                                                symbol: currencySymbol,
-                                              ),
-                                              startAngleDegrees:
-                                                  dynamicStartAngle,
-                                              outerRadius: _donutOuterRadius,
-                                              innerRadius: _donutInnerRadius,
-                                              exceededBudgetCategoryKeys:
-                                                  exceededBudgetCategoryKeys,
-                                              onSliceTap: (String categoryKey) {
-                                                context.pushNamed(
-                                                  'transactionList',
-                                                  pathParameters: <String,
-                                                      String>{
-                                                    'categoryKey': categoryKey,
-                                                  },
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                          if (isLoading)
-                                            const SizedBox(
-                                              width: 36,
-                                              height: 36,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2.5,
+                                  Positioned(
+                                    left: _chartCenter.dx - _donutOuterRadius,
+                                    top: _chartCenter.dy - _donutOuterRadius,
+                                    child: GestureDetector(
+                                      child: SizedBox.square(
+                                        dimension: _donutOuterRadius * 2,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: <Widget>[
+                                            SizedBox.square(
+                                              dimension: _donutOuterRadius * 2,
+                                              child: DonutChartWidget(
+                                                slices: slices,
+                                                incomeText:
+                                                    CurrencyFormatter.format(
+                                                  income,
+                                                  symbol: currencySymbol,
+                                                ),
+                                                expenseText:
+                                                    CurrencyFormatter.format(
+                                                  expense,
+                                                  symbol: currencySymbol,
+                                                ),
+                                                startAngleDegrees:
+                                                    dynamicStartAngle,
+                                                outerRadius: _donutOuterRadius,
+                                                innerRadius: _donutInnerRadius,
+                                                exceededBudgetCategoryKeys:
+                                                    exceededBudgetCategoryKeys,
+                                                onSliceTap:
+                                                    (String categoryKey) {
+                                                  context.pushNamed(
+                                                    'transactionList',
+                                                    pathParameters: <String,
+                                                        String>{
+                                                      'categoryKey':
+                                                          categoryKey,
+                                                    },
+                                                  );
+                                                },
                                               ),
                                             ),
-                                        ],
+                                            if (isLoading)
+                                              const SizedBox(
+                                                width: 36,
+                                                height: 36,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2.5,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                for (final _OrbitNode node in orbitNodes)
-                                  _buildOrbitNode(node),
-                              ],
+                                  for (final _OrbitNode node in orbitNodes)
+                                    _buildOrbitNode(node),
+                                ],
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
-                      _buildHeader(
-                        l10n: l10n,
-                        titleColor: periodChipLabelSelected,
+                    ),
+                    Positioned(
+                      left: 32,
+                      right: 32,
+                      top: 220,
+                      child: _buildBudgetWarningBanner(
+                        expenseTotals: expenseTotals,
+                        totalSpent: expense,
                       ),
-                      Positioned(
-                        left: 44,
-                        right: 44,
-                        top: 1248,
-                        child: Builder(
-                          builder: (BuildContext scaffoldContext) {
-                            return _HomeBalanceBar(
-                              balanceLabel: l10n.balanceLabel,
-                              balanceText: _formatSignedHomeAmount(
-                                income - expense,
-                                currencySymbol,
-                              ),
-                              backgroundColor: balanceBarBg,
-                              onTap: () => context.push(
-                                '/all-transactions',
-                                extra: allTransactions,
-                              ),
-                              onMenuTap: () =>
-                                  Scaffold.of(scaffoldContext).openEndDrawer(),
-                            );
-                          },
-                        ),
+                    ),
+                    _buildHeader(
+                      l10n: l10n,
+                      titleColor: periodChipLabelSelected,
+                    ),
+                    Positioned(
+                      left: 44,
+                      right: 44,
+                      top: 1248,
+                      child: Builder(
+                        builder: (BuildContext scaffoldContext) {
+                          return _HomeBalanceBar(
+                            balanceLabel: l10n.balanceLabel,
+                            balanceText: _formatSignedHomeAmount(
+                              income - expense,
+                              currencySymbol,
+                            ),
+                            backgroundColor: balanceBarBg,
+                            onTap: () => context.push(
+                              '/all-transactions',
+                              extra: allTransactions,
+                            ),
+                            onMenuTap: () =>
+                                Scaffold.of(scaffoldContext).openEndDrawer(),
+                          );
+                        },
                       ),
-                      Positioned(
-                        left: 70,
-                        right: 70,
-                        top: 1362,
-                        child: HomeActionButtons(
-                          expenseLabel: l10n.actionExpense,
-                          incomeLabel: l10n.actionIncome,
-                          onExpensePressed: () async {
-                            final Object? result = await context.pushNamed(
-                              'addTransaction',
-                              queryParameters: _addTransactionQueryParameters(
-                                type: 'expense',
-                              ),
-                            );
-                            if (!mounted) {
-                              return;
-                            }
-                            _showAddResult(result);
-                          },
-                          onIncomePressed: () async {
-                            final Object? result = await context.pushNamed(
-                              'addTransaction',
-                              queryParameters: _addTransactionQueryParameters(
-                                type: 'income',
-                              ),
-                            );
-                            if (!mounted) {
-                              return;
-                            }
-                            _showAddResult(result);
-                          },
-                        ),
+                    ),
+                    Positioned(
+                      left: 70,
+                      right: 70,
+                      top: 1362,
+                      child: HomeActionButtons(
+                        expenseLabel: l10n.actionExpense,
+                        incomeLabel: l10n.actionIncome,
+                        onExpensePressed: () async {
+                          final Object? result = await context.pushNamed(
+                            'addTransaction',
+                            queryParameters: _addTransactionQueryParameters(
+                              type: 'expense',
+                            ),
+                          );
+                          if (!mounted) {
+                            return;
+                          }
+                          _showAddResult(result);
+                        },
+                        onIncomePressed: () async {
+                          final Object? result = await context.pushNamed(
+                            'addTransaction',
+                            queryParameters: _addTransactionQueryParameters(
+                              type: 'income',
+                            ),
+                          );
+                          if (!mounted) {
+                            return;
+                          }
+                          _showAddResult(result);
+                        },
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1512,14 +1489,10 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     if (picked != null) {
-      final double slideDirection = _periodChangeDirection(
-        TransactionPeriod.interval,
-      );
       setState(() {
         _intervalStart = picked.start;
         _intervalEnd = picked.end;
         _selectedPeriod = TransactionPeriod.interval;
-        _slideDirection = slideDirection;
       });
       context.read<TransactionBloc>().add(
             LoadTransactionsEvent(
@@ -1543,10 +1516,95 @@ class _HomePageState extends State<HomePage> {
     return !date.isBefore(range.start) && !date.isAfter(range.end);
   }
 
-  void _navigatePeriod(int direction, DateTime oldestTransactionDate) {
+  void _animatePeriodPage(int direction, DateTime oldestTransactionDate) {
+    if (_nextReferenceDateForPeriodNavigation(
+          direction,
+          oldestTransactionDate,
+        ) ==
+        null) {
+      return;
+    }
+
+    final int targetPage = _periodPageIndex + direction;
+    if (targetPage < 0 || targetPage >= _periodPageCount) {
+      return;
+    }
+
+    if (!_periodPageController.hasClients) {
+      _navigatePeriod(direction, oldestTransactionDate);
+      return;
+    }
+
+    _periodPageController.animateToPage(
+      targetPage,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _handlePeriodPageChanged(
+    int index,
+    DateTime oldestTransactionDate,
+  ) {
+    final int previousIndex = _periodPageIndex;
+    if (index == previousIndex) {
+      return;
+    }
+
+    final int direction = index > previousIndex ? 1 : -1;
+    final bool didNavigate = _navigatePeriod(
+      direction,
+      oldestTransactionDate,
+      pageIndex: index,
+    );
+    if (didNavigate) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_periodPageController.hasClients) {
+        return;
+      }
+
+      _periodPageController.jumpToPage(previousIndex);
+    });
+  }
+
+  bool _navigatePeriod(
+    int direction,
+    DateTime oldestTransactionDate, {
+    int? pageIndex,
+  }) {
+    final DateTime? nextReferenceDate = _nextReferenceDateForPeriodNavigation(
+      direction,
+      oldestTransactionDate,
+    );
+    if (nextReferenceDate == null) {
+      return false;
+    }
+
+    setState(() {
+      _referenceDate = nextReferenceDate;
+      if (pageIndex != null) {
+        _periodPageIndex = pageIndex;
+      }
+    });
+    context.read<TransactionBloc>().add(
+          LoadTransactionsEvent(
+            _selectedPeriod,
+            referenceDate: nextReferenceDate,
+          ),
+        );
+    return true;
+  }
+
+  DateTime? _nextReferenceDateForPeriodNavigation(
+    int direction,
+    DateTime oldestTransactionDate,
+  ) {
     if (_selectedPeriod == TransactionPeriod.all ||
         _selectedPeriod == TransactionPeriod.interval) {
-      return;
+      return null;
     }
     final DateTime now = DateTime.now();
     final TransactionDateRange currentRange = AppDateUtils.getPeriodRange(
@@ -1554,7 +1612,7 @@ class _HomePageState extends State<HomePage> {
       referenceDate: _referenceDate,
     );
     if (direction > 0 && _containsDate(currentRange, now)) {
-      return;
+      return null;
     }
 
     final DateTime candidate = switch (_selectedPeriod) {
@@ -1579,7 +1637,7 @@ class _HomePageState extends State<HomePage> {
       referenceDate: candidate,
     );
     if (direction < 0 && candidateRange.end.isBefore(oldestTransactionDate)) {
-      return;
+      return null;
     }
 
     DateTime nextReferenceDate = candidate;
@@ -1591,16 +1649,7 @@ class _HomePageState extends State<HomePage> {
       nextReferenceDate = now;
     }
 
-    setState(() {
-      _slideDirection = direction > 0 ? 1.0 : -1.0;
-      _referenceDate = nextReferenceDate;
-    });
-    context.read<TransactionBloc>().add(
-          LoadTransactionsEvent(
-            _selectedPeriod,
-            referenceDate: nextReferenceDate,
-          ),
-        );
+    return nextReferenceDate;
   }
 
   void _cyclePeriod() {
@@ -1624,11 +1673,9 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     final DateTime now = DateTime.now();
-    final double slideDirection = _periodChangeDirection(period);
     setState(() {
       _selectedPeriod = period;
       _referenceDate = now;
-      _slideDirection = slideDirection;
     });
     context.read<TransactionBloc>().add(
           LoadTransactionsEvent(
@@ -1636,14 +1683,6 @@ class _HomePageState extends State<HomePage> {
             referenceDate: now,
           ),
         );
-  }
-
-  double _periodChangeDirection(TransactionPeriod nextPeriod) {
-    if (nextPeriod.index == _selectedPeriod.index) {
-      return 0;
-    }
-
-    return nextPeriod.index > _selectedPeriod.index ? 1.0 : -1.0;
   }
 
   Map<String, String> _addTransactionQueryParameters({
