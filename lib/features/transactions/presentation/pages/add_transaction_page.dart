@@ -24,11 +24,13 @@ class AddTransactionPage extends StatefulWidget {
     super.key,
     required this.type,
     this.initialCategoryKey,
+    this.initialDate,
     this.transactionId,
   });
 
   final String type;
   final String? initialCategoryKey;
+  final DateTime? initialDate;
   final String? transactionId;
 
   @override
@@ -69,6 +71,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
     _categoryStore?.ensureLoaded();
     _selectedCategoryKey = widget.initialCategoryKey;
+    _selectedDate = widget.initialDate ?? _selectedDate;
     if (_isEditMode) {
       final TransactionState state = context.read<TransactionBloc>().state;
       if (state is TransactionLoaded) {

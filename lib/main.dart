@@ -118,10 +118,14 @@ final GoRouter _router = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         final String type = state.uri.queryParameters['type'] ?? 'expense';
         final String? categoryKey = state.uri.queryParameters['categoryKey'];
+        final DateTime? initialDate = _nullableDateFromQuery(
+          state.uri.queryParameters['date'],
+        );
 
         return AddTransactionPage(
           type: type,
           initialCategoryKey: categoryKey,
+          initialDate: initialDate,
         );
       },
     ),

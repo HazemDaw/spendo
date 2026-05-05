@@ -607,9 +607,9 @@ class _HomePageState extends State<HomePage> {
                           onExpensePressed: () async {
                             final Object? result = await context.pushNamed(
                               'addTransaction',
-                              queryParameters: const <String, String>{
-                                'type': 'expense',
-                              },
+                              queryParameters: _addTransactionQueryParameters(
+                                type: 'expense',
+                              ),
                             );
                             if (!mounted) {
                               return;
@@ -619,9 +619,9 @@ class _HomePageState extends State<HomePage> {
                           onIncomePressed: () async {
                             final Object? result = await context.pushNamed(
                               'addTransaction',
-                              queryParameters: const <String, String>{
-                                'type': 'income',
-                              },
+                              queryParameters: _addTransactionQueryParameters(
+                                type: 'income',
+                              ),
                             );
                             if (!mounted) {
                               return;
@@ -736,10 +736,10 @@ class _HomePageState extends State<HomePage> {
         onTap: () async {
           final Object? result = await context.pushNamed(
             'addTransaction',
-            queryParameters: <String, String>{
-              'type': 'expense',
-              'categoryKey': node.categoryKey,
-            },
+            queryParameters: _addTransactionQueryParameters(
+              type: 'expense',
+              categoryKey: node.categoryKey,
+            ),
           );
           if (!mounted) {
             return;
@@ -1569,6 +1569,29 @@ class _HomePageState extends State<HomePage> {
         referenceDate: now,
       ),
     );
+  }
+
+  Map<String, String> _addTransactionQueryParameters({
+    required String type,
+    String? categoryKey,
+  }) {
+    return <String, String>{
+      'type': type,
+      'date': _initialTransactionDate().millisecondsSinceEpoch.toString(),
+      if (categoryKey != null) 'categoryKey': categoryKey,
+    };
+  }
+
+  DateTime _initialTransactionDate() {
+    return switch (_selectedPeriod) {
+      TransactionPeriod.all => DateTime.now(),
+      TransactionPeriod.interval => _intervalEnd ?? _intervalStart ?? DateTime.now(),
+      TransactionPeriod.day ||
+      TransactionPeriod.week ||
+      TransactionPeriod.month ||
+      TransactionPeriod.year =>
+        _referenceDate,
+    };
   }
 
   void _showAddResult(Object? result) {

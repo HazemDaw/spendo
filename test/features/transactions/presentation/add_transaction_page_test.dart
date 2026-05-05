@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spendo/core/currency/currency_cubit.dart';
 import 'package:spendo/core/theme/theme_cubit.dart';
@@ -125,6 +126,90 @@ void main() {
       expect(find.text('321'), findsOneWidget);
       expect(find.text('Coffee beans'), findsOneWidget);
       expect(find.byIcon(Icons.delete_outline_rounded), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'add screen saves transaction with provided initial date',
+    (WidgetTester tester) async {
+      final DateTime initialDate = DateTime(2025, 3, 12);
+      final InMemoryTransactionRepository repository =
+          InMemoryTransactionRepository();
+      final TransactionBloc bloc = TransactionBloc(
+        addTransaction: AddTransaction(repository),
+        getTransactionsByPeriod: GetTransactionsByPeriod(repository),
+        updateTransaction: UpdateTransaction(repository),
+        deleteTransaction: DeleteTransaction(repository),
+      );
+      addTearDown(bloc.close);
+
+      final SharedPreferences preferences =
+          await SharedPreferences.getInstance();
+      final ThemeCubit themeCubit = ThemeCubit(preferences);
+      addTearDown(themeCubit.close);
+      final CurrencyCubit currencyCubit = CurrencyCubit(preferences);
+      addTearDown(currencyCubit.close);
+
+      final GoRouter router = GoRouter(
+        routes: <RouteBase>[
+          GoRoute(
+            path: '/',
+            builder: (BuildContext context, GoRouterState state) {
+              return TextButton(
+                onPressed: () => context.push('/add'),
+                child: const Text('Open add'),
+              );
+            },
+          ),
+          GoRoute(
+            path: '/add',
+            builder: (BuildContext context, GoRouterState state) {
+              return AddTransactionPage(
+                type: 'expense',
+                initialCategoryKey: 'food',
+                initialDate: initialDate,
+              );
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        MultiBlocProvider(
+          providers: <BlocProvider<dynamic>>[
+            BlocProvider<TransactionBloc>.value(value: bloc),
+            BlocProvider<ThemeCubit>.value(value: themeCubit),
+            BlocProvider<CurrencyCubit>.value(value: currencyCubit),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('ru'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            routerConfig: router,
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, '1'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(TextButton, 'Сохранить'));
+      await tester.pumpAndSettle();
+
+      final result = await repository.getTransactionsByPeriod(
+        DateTime(2025, 3, 12),
+        DateTime(2025, 3, 12, 23, 59, 59, 999),
+      );
+
+      result.fold(
+        (failure) => fail(failure.message),
+        (transactions) {
+          expect(transactions, hasLength(1));
+          expect(transactions.single.date, initialDate);
+        },
+      );
     },
   );
 }
