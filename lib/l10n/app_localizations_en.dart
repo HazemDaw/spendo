@@ -7,6 +7,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Spendo';
 
   @override
+  String get onboardingSkipAction => 'Skip';
+
+  @override
+  String get onboardingNextAction => 'Next';
+
+  @override
+  String get onboardingGetStartedAction => 'Get Started';
+
+  @override
+  String get onboardingPageOneTitle => 'Everything in control';
+
+  @override
+  String get onboardingPageOneSubtitle =>
+      'Track income and expenses with a beautiful chart. Swipe to move between periods.';
+
+  @override
+  String get onboardingPageTwoTitle => 'Two drawers, everything at hand';
+
+  @override
+  String get onboardingPageTwoSubtitle =>
+      'Left drawer for periods and budget. Right drawer for settings, export and sync.';
+
+  @override
+  String get onboardingPageThreeTitle => 'Works offline';
+
+  @override
+  String get onboardingPageThreeSubtitle =>
+      'All data is stored on your device. Sign in to enable cloud sync.';
+
+  @override
   String get periodToday => 'Today';
 
   @override

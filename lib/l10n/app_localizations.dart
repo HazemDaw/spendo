@@ -35,6 +35,15 @@ abstract class AppLocalizations {
   ];
 
   String get appTitle;
+  String get onboardingSkipAction;
+  String get onboardingNextAction;
+  String get onboardingGetStartedAction;
+  String get onboardingPageOneTitle;
+  String get onboardingPageOneSubtitle;
+  String get onboardingPageTwoTitle;
+  String get onboardingPageTwoSubtitle;
+  String get onboardingPageThreeTitle;
+  String get onboardingPageThreeSubtitle;
   String get periodToday;
   String get periodWeek;
   String get periodMonth;

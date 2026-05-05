@@ -746,7 +746,7 @@ class _HomePageState extends State<HomePage> {
               return IconButton(
                 onPressed: () => Scaffold.of(scaffoldContext).openEndDrawer(),
                 icon: const Icon(
-                  Icons.more_vert_rounded,
+                  Icons.menu_rounded,
                   color: Colors.white,
                   size: 38,
                 ),

@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/locale/locale_cubit.dart';
 import 'core/currency/currency_cubit.dart';
 import 'core/mock/mock_data.dart';
+import 'core/preferences/preference_keys.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/utils/date_utils.dart';
@@ -19,6 +21,7 @@ import 'features/budget/presentation/pages/budget_page.dart';
 import 'features/categories/data/custom_category_store.dart';
 import 'features/categories/presentation/pages/categories_page.dart';
 import 'features/insights/presentation/pages/insights_page.dart';
+import 'features/onboarding/presentation/pages/onboarding_page.dart';
 import 'features/transactions/domain/entities/transaction.dart';
 import 'features/transactions/presentation/bloc/transaction_bloc.dart';
 import 'features/transactions/presentation/bloc/transaction_event.dart';
@@ -39,11 +42,22 @@ Future<void> main() async {
   );
   await initDependencies();
   await sl<CustomCategoryStore>().ensureLoaded();
-  runApp(const SpendoApp());
+  final bool onboardingComplete =
+      sl<SharedPreferences>().getBool(onboardingCompletePreferenceKey) ?? false;
+  runApp(
+    SpendoApp(
+      initialLocation: onboardingComplete ? '/' : '/onboarding',
+    ),
+  );
 }
 
 class SpendoApp extends StatelessWidget {
-  const SpendoApp({super.key});
+  const SpendoApp({
+    super.key,
+    required this.initialLocation,
+  });
+
+  final String initialLocation;
 
   @override
   Widget build(BuildContext context) {
@@ -75,13 +89,30 @@ class SpendoApp extends StatelessWidget {
             ),
         ),
       ],
-      child: const _SpendoMaterialApp(),
+      child: _SpendoMaterialApp(initialLocation: initialLocation),
     );
   }
 }
 
-class _SpendoMaterialApp extends StatelessWidget {
-  const _SpendoMaterialApp();
+class _SpendoMaterialApp extends StatefulWidget {
+  const _SpendoMaterialApp({
+    required this.initialLocation,
+  });
+
+  final String initialLocation;
+
+  @override
+  State<_SpendoMaterialApp> createState() => _SpendoMaterialAppState();
+}
+
+class _SpendoMaterialAppState extends State<_SpendoMaterialApp> {
+  late final GoRouter _router = _createRouter(widget.initialLocation);
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,8 +136,15 @@ class _SpendoMaterialApp extends StatelessWidget {
   }
 }
 
-final GoRouter _router = GoRouter(
+GoRouter _createRouter(String initialLocation) => GoRouter(
+  initialLocation: initialLocation,
   routes: <RouteBase>[
+    GoRoute(
+      path: '/onboarding',
+      name: 'onboarding',
+      builder: (BuildContext context, GoRouterState state) =>
+          const OnboardingPage(),
+    ),
     GoRoute(
       path: '/',
       name: 'home',

@@ -7,6 +7,36 @@ class AppLocalizationsRu extends AppLocalizations {
   String get appTitle => 'Spendo';
 
   @override
+  String get onboardingSkipAction => 'Пропустить';
+
+  @override
+  String get onboardingNextAction => 'Далее';
+
+  @override
+  String get onboardingGetStartedAction => 'Начать';
+
+  @override
+  String get onboardingPageOneTitle => 'Всё под контролем';
+
+  @override
+  String get onboardingPageOneSubtitle =>
+      'Отслеживайте доходы и расходы в виде красивой диаграммы. Листайте между периодами свайпом.';
+
+  @override
+  String get onboardingPageTwoTitle => 'Два ящика — всё рядом';
+
+  @override
+  String get onboardingPageTwoSubtitle =>
+      'Левый ящик — периоды и бюджет. Правый — настройки, экспорт и прочее.';
+
+  @override
+  String get onboardingPageThreeTitle => 'Работает без интернета';
+
+  @override
+  String get onboardingPageThreeSubtitle =>
+      'Все данные хранятся на устройстве. Войдите в аккаунт, чтобы включить облачную синхронизацию.';
+
+  @override
   String get periodToday => 'Сегодня';
 
   @override
