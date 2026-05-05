@@ -113,6 +113,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionUpdatedMessage => 'Changes saved';
 
   @override
+  String get transactionSavedSuccessMessage => 'Transaction saved';
+
+  @override
   String get transactionDeletedMessage => 'Transaction deleted';
 
   @override

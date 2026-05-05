@@ -126,13 +126,20 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           }
 
           if (state is TransactionLoaded) {
-            final String result = switch (_pendingAction!) {
+            final _PendingAction action = _pendingAction!;
+            final String result = switch (action) {
               _PendingAction.add => 'added',
               _PendingAction.update => 'updated',
               _PendingAction.delete => 'deleted',
             };
+            if (action == _PendingAction.delete) {
+              _pendingAction = null;
+              context.pop(result);
+              return;
+            }
+
             _pendingAction = null;
-            context.pop(result);
+            _showSuccessAndPop(result);
           }
         },
         child: Scaffold(
@@ -210,6 +217,45 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           ),
         ),
       );
+  }
+
+  Future<void> _showSuccessAndPop(String result) async {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7C3AED),
+          behavior: SnackBarBehavior.fixed,
+          duration: const Duration(milliseconds: 1500),
+          content: Row(
+            children: <Widget>[
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.transactionSavedSuccessMessage,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) {
+      return;
+    }
+
+    context.pop(result);
   }
 
   Widget _buildMissingTransactionState(AppLocalizations l10n) {

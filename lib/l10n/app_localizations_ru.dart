@@ -112,6 +112,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get transactionUpdatedMessage => 'Изменения сохранены';
 
   @override
+  String get transactionSavedSuccessMessage => 'Транзакция сохранена';
+
+  @override
   String get transactionDeletedMessage => 'Транзакция удалена';
 
   @override

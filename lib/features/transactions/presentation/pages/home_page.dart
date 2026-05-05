@@ -236,6 +236,9 @@ class _HomePageState extends State<HomePage> {
         ? transactionState.categoryTotals
         : const <String, double>{};
     final double dynamicStartAngle = _computeStartAngle(expenseTotals);
+    final BudgetState budgetState = context.watch<BudgetBloc>().state;
+    final Set<String> exceededBudgetCategoryKeys =
+        _exceededBudgetCategoryKeys(budgetState, expenseTotals);
     final List<Transaction> allTransactions = transactionState is TransactionLoaded
         ? transactionState.transactions
         : MockData.sampleTransactions;
@@ -493,6 +496,8 @@ class _HomePageState extends State<HomePage> {
                                                 dynamicStartAngle,
                                             outerRadius: _donutOuterRadius,
                                             innerRadius: _donutInnerRadius,
+                                            exceededBudgetCategoryKeys:
+                                                exceededBudgetCategoryKeys,
                                             onSliceTap: (String categoryKey) {
                                               context.pushNamed(
                                                 'transactionList',
@@ -748,6 +753,26 @@ class _HomePageState extends State<HomePage> {
           b.value.compareTo(a.value),
     );
     return slices;
+  }
+
+  Set<String> _exceededBudgetCategoryKeys(
+    BudgetState budgetState,
+    Map<String, double> expenseTotals,
+  ) {
+    if (budgetState is! BudgetLoaded) {
+      return const <String>{};
+    }
+
+    return budgetState.budgets
+        .where(
+          (Budget budget) =>
+              !budget.isTotalBudget &&
+              budget.categoryKey != null &&
+              budget.limitAmount > 0 &&
+              (expenseTotals[budget.categoryKey] ?? 0) >= budget.limitAmount,
+        )
+        .map((Budget budget) => budget.categoryKey!)
+        .toSet();
   }
 
   List<_OrbitNode> _buildOrbitNodes(Map<String, double> totals) {
@@ -1113,65 +1138,69 @@ class _HomePageState extends State<HomePage> {
             ? const Color(0xFFEF4444)
             : const Color(0xFFF59E0B);
 
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          decoration: BoxDecoration(
-            color: bannerBg,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: bannerBorder, width: 1.5),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: bannerBorder.withValues(alpha: 0.15),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: <Widget>[
-              Icon(
-                isExceeded ? Icons.warning_rounded : Icons.info_rounded,
-                color: bannerIcon,
-                size: 22,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  warningMessage,
-                  style: TextStyle(
-                    color: bannerText,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    inherit: true,
-                  ),
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => context.push('/budget'),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: BoxDecoration(
+              color: bannerBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: bannerBorder, width: 1.5),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: bannerBorder.withValues(alpha: 0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
-              ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: () => context.push('/budget'),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: bannerBorder.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: bannerBorder),
-                  ),
+              ],
+            ),
+            child: Row(
+              children: <Widget>[
+                Icon(
+                  isExceeded ? Icons.warning_rounded : Icons.info_rounded,
+                  color: bannerIcon,
+                  size: 22,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
                   child: Text(
-                    l10n.budgetDetailsAction,
+                    warningMessage,
                     style: TextStyle(
-                      color: bannerBorder,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      color: bannerText,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                       inherit: true,
                     ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: () => context.push('/budget'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: bannerBorder.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: bannerBorder),
+                    ),
+                    child: Text(
+                      l10n.budgetDetailsAction,
+                      style: TextStyle(
+                        color: bannerBorder,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        inherit: true,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -1416,25 +1445,7 @@ class _HomePageState extends State<HomePage> {
 
   void _showAddResult(Object? result) {
     final messenger = ScaffoldMessenger.of(context);
-    if (result == 'added') {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.transactionAddedMessage),
-          ),
-        );
-    } else if (result == 'updated') {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.transactionUpdatedMessage,
-            ),
-          ),
-        );
-    } else if (result == 'deleted') {
+    if (result == 'deleted') {
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(

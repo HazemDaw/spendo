@@ -36,6 +36,7 @@
   "invalidCategoryMessage": "Выберите категорию",
   "transactionAddedMessage": "Транзакция добавлена",
   "transactionUpdatedMessage": "Изменения сохранены",
+  "transactionSavedSuccessMessage": "Транзакция сохранена",
   "transactionDeletedMessage": "Транзакция удалена",
   "deleteTransactionTitle": "Удалить транзакцию?",
   "deleteTransactionMessage": "Это действие нельзя отменить",

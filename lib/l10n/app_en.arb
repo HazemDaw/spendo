@@ -36,6 +36,7 @@
   "invalidCategoryMessage": "Choose a category",
   "transactionAddedMessage": "Transaction added",
   "transactionUpdatedMessage": "Changes saved",
+  "transactionSavedSuccessMessage": "Transaction saved",
   "transactionDeletedMessage": "Transaction deleted",
   "deleteTransactionTitle": "Delete transaction?",
   "deleteTransactionMessage": "This action cannot be undone",

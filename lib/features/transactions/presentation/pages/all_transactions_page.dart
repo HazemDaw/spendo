@@ -213,8 +213,6 @@ class _AllTransactionsPageState extends State<AllTransactionsPage> {
   void _showResult(Object? result) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final String? message = switch (result) {
-      'added' => l10n.transactionAddedMessage,
-      'updated' => l10n.transactionUpdatedMessage,
       'deleted' => l10n.transactionDeletedMessage,
       _ => null,
     };

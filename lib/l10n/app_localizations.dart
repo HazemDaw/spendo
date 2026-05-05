@@ -70,6 +70,7 @@ abstract class AppLocalizations {
   String get invalidCategoryMessage;
   String get transactionAddedMessage;
   String get transactionUpdatedMessage;
+  String get transactionSavedSuccessMessage;
   String get transactionDeletedMessage;
   String get deleteTransactionTitle;
   String get deleteTransactionMessage;

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class DonutCategorySlice {
@@ -14,7 +15,7 @@ class DonutCategorySlice {
   final Color color;
 }
 
-class DonutChartWidget extends StatelessWidget {
+class DonutChartWidget extends StatefulWidget {
   const DonutChartWidget({
     super.key,
     required this.slices,
@@ -24,6 +25,7 @@ class DonutChartWidget extends StatelessWidget {
     required this.outerRadius,
     required this.innerRadius,
     required this.onSliceTap,
+    this.exceededBudgetCategoryKeys = const <String>{},
   });
 
   final List<DonutCategorySlice> slices;
@@ -33,8 +35,39 @@ class DonutChartWidget extends StatelessWidget {
   final double outerRadius;
   final double innerRadius;
   final ValueChanged<String> onSliceTap;
+  final Set<String> exceededBudgetCategoryKeys;
 
-  bool get _isEmpty => slices.isEmpty;
+  @override
+  State<DonutChartWidget> createState() => _DonutChartWidgetState();
+}
+
+class _DonutChartWidgetState extends State<DonutChartWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseOpacity;
+
+  bool get _isEmpty => widget.slices.isEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _pulseOpacity = Tween<double>(begin: 1.0, end: 0.6).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,29 +78,37 @@ class DonutChartWidget extends StatelessWidget {
           : (TapUpDetails details) {
               final String? categoryKey = _hitTest(details.localPosition);
               if (categoryKey != null) {
-                onSliceTap(categoryKey);
+                widget.onSliceTap(categoryKey);
               }
             },
       child: SizedBox.square(
-        dimension: outerRadius * 2,
+        dimension: widget.outerRadius * 2,
         child: Stack(
           alignment: Alignment.center,
           children: <Widget>[
-            CustomPaint(
-              size: Size.square(outerRadius * 2),
-              painter: _DonutChartPainter(
-                slices: slices,
-                startAngleDegrees: startAngleDegrees,
-                outerRadius: outerRadius,
-                innerRadius: innerRadius,
-              ),
+            AnimatedBuilder(
+              animation: _pulseOpacity,
+              builder: (BuildContext context, Widget? child) {
+                return CustomPaint(
+                  size: Size.square(widget.outerRadius * 2),
+                  painter: _DonutChartPainter(
+                    slices: widget.slices,
+                    startAngleDegrees: widget.startAngleDegrees,
+                    outerRadius: widget.outerRadius,
+                    innerRadius: widget.innerRadius,
+                    exceededBudgetCategoryKeys:
+                        widget.exceededBudgetCategoryKeys,
+                    pulseOpacity: _pulseOpacity.value,
+                  ),
+                );
+              },
             ),
             IgnorePointer(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
-                    incomeText,
+                    widget.incomeText,
                     style: const TextStyle(
                       color: Color(0xFF89A14F),
                       fontSize: 22,
@@ -76,7 +117,7 @@ class DonutChartWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    expenseText,
+                    widget.expenseText,
                     style: const TextStyle(
                       color: Color(0xFFB75C63),
                       fontSize: 28,
@@ -93,21 +134,21 @@ class DonutChartWidget extends StatelessWidget {
   }
 
   String? _hitTest(Offset localPosition) {
-    final Offset center = Offset(outerRadius, outerRadius);
+    final Offset center = Offset(widget.outerRadius, widget.outerRadius);
     final Offset delta = localPosition - center;
     final double radius = delta.distance;
-    if (radius < innerRadius || radius > outerRadius) {
+    if (radius < widget.innerRadius || radius > widget.outerRadius) {
       return null;
     }
 
     final double tapAngle = _normalizeAngle(math.atan2(delta.dy, delta.dx));
-    final double total = slices.fold<double>(
+    final double total = widget.slices.fold<double>(
       0,
       (double sum, DonutCategorySlice slice) => sum + slice.value,
     );
-    double current = _normalizeAngle(startAngleDegrees * math.pi / 180);
+    double current = _normalizeAngle(widget.startAngleDegrees * math.pi / 180);
 
-    for (final DonutCategorySlice slice in slices) {
+    for (final DonutCategorySlice slice in widget.slices) {
       final double sweep = (slice.value / total) * (math.pi * 2);
       final double end = current + sweep;
       if (_containsAngle(tapAngle, current, end)) {
@@ -145,12 +186,16 @@ class _DonutChartPainter extends CustomPainter {
     required this.startAngleDegrees,
     required this.outerRadius,
     required this.innerRadius,
+    required this.exceededBudgetCategoryKeys,
+    required this.pulseOpacity,
   });
 
   final List<DonutCategorySlice> slices;
   final double startAngleDegrees;
   final double outerRadius;
   final double innerRadius;
+  final Set<String> exceededBudgetCategoryKeys;
+  final double pulseOpacity;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -180,11 +225,16 @@ class _DonutChartPainter extends CustomPainter {
     double start = startAngleDegrees * math.pi / 180;
 
     for (final DonutCategorySlice slice in slices) {
+      final double opacity = exceededBudgetCategoryKeys.contains(
+        slice.categoryKey,
+      )
+          ? pulseOpacity
+          : 1.0;
       final Paint paint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
         ..strokeCap = StrokeCap.butt
-        ..color = slice.color;
+        ..color = slice.color.withValues(alpha: opacity);
       final double sweep = (slice.value / total) * (math.pi * 2);
       canvas.drawArc(rect, start, sweep, false, paint);
       start += sweep;
@@ -196,6 +246,11 @@ class _DonutChartPainter extends CustomPainter {
     return oldDelegate.slices != slices ||
         oldDelegate.startAngleDegrees != startAngleDegrees ||
         oldDelegate.outerRadius != outerRadius ||
-        oldDelegate.innerRadius != innerRadius;
+        oldDelegate.innerRadius != innerRadius ||
+        !setEquals(
+          oldDelegate.exceededBudgetCategoryKeys,
+          exceededBudgetCategoryKeys,
+        ) ||
+        oldDelegate.pulseOpacity != pulseOpacity;
   }
 }
