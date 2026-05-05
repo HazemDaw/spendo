@@ -125,7 +125,7 @@ flutterfire configure --project=YOUR_PROJECT_ID
 ### Run the Project
 
 ```bash
-git clone https://github.com/[YOUR_GITHUB_USERNAME]/spendo.git
+git clone https://github.com/HazemDaw/spendo.git
 cd spendo
 flutter pub get
 flutter run
