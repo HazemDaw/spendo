@@ -85,6 +85,77 @@
   "languageTitleRussian": "Язык: Русский",
   "languageTitleEnglish": "Language: English",
   "currencyLabel": "Currency",
+  "insightsTitle": "Insights",
+  "insightsEmptyTitle": "No insights yet",
+  "insightsEmptyMessage": "Add a few transactions for this period and Spendo will find useful patterns.",
+  "insightsErrorTitle": "Could not load insights",
+  "insightLargestCategoryTitle": "Largest expense category",
+  "insightSpendingTrendTitle": "Spending trend",
+  "insightExpensiveDayTitle": "Most expensive day",
+  "insightBudgetStatusTitle": "Budget status",
+  "insightLargestCategoryDescription": "{category} is your largest expense this period at {amount}",
+  "@insightLargestCategoryDescription": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "insightNoExpensesThisPeriod": "No expense categories yet this period",
+  "insightSpentMore": "You spent {percent}% more than last period",
+  "@insightSpentMore": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "insightSpentLess": "You spent {percent}% less than last period",
+  "@insightSpentLess": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "insightSpentSame": "Your spending is the same as last period",
+  "insightNoPreviousExpenses": "No expenses last period; this period you spent {amount}",
+  "@insightNoPreviousExpenses": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "insightMostExpensiveDay": "{day} is your most expensive day",
+  "@insightMostExpensiveDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "insightNoExpenseDay": "No expense day stands out yet",
+  "insightBudgetOnTrack": "You are on track — {percent}% of your monthly budget used",
+  "@insightBudgetOnTrack": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "insightBudgetExceeded": "You have exceeded your monthly budget by {amount}",
+  "@insightBudgetExceeded": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "insightBudgetNotSet": "No total monthly budget is set yet",
   "exportTitle": "Export Data",
   "exportChooseFormat": "Choose format",
   "exportPdf": "Export to PDF",

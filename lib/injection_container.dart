@@ -13,6 +13,7 @@ import 'features/categories/data/custom_category_store.dart';
 import 'features/categories/data/datasources/custom_category_local_datasource.dart';
 import 'features/categories/data/datasources/custom_category_remote_datasource.dart';
 import 'features/categories/data/datasources/orbit_slot_datasource.dart';
+import 'features/insights/presentation/bloc/insights_cubit.dart';
 import 'features/budget/data/datasources/budget_local_datasource.dart';
 import 'features/budget/data/repositories/budget_repository_impl.dart';
 import 'features/budget/domain/repositories/budget_repository.dart';
@@ -160,6 +161,14 @@ Future<void> initDependencies() async {
         getBudgets: sl(),
         setBudget: sl(),
         deleteBudget: sl(),
+      ),
+    );
+  }
+  if (!sl.isRegistered<InsightsCubit>()) {
+    sl.registerFactory<InsightsCubit>(
+      () => InsightsCubit(
+        transactionRepository: sl(),
+        budgetRepository: sl(),
       ),
     );
   }

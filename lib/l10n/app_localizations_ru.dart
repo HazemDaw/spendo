@@ -261,6 +261,73 @@ class AppLocalizationsRu extends AppLocalizations {
   String get currencyLabel => 'Валюта';
 
   @override
+  String get insightsTitle => 'Аналитика';
+
+  @override
+  String get insightsEmptyTitle => 'Пока нет аналитики';
+
+  @override
+  String get insightsEmptyMessage =>
+      'Добавьте несколько транзакций за этот период, и Spendo найдет полезные закономерности.';
+
+  @override
+  String get insightsErrorTitle => 'Не удалось загрузить аналитику';
+
+  @override
+  String get insightLargestCategoryTitle => 'Крупнейшая категория расходов';
+
+  @override
+  String get insightSpendingTrendTitle => 'Динамика расходов';
+
+  @override
+  String get insightExpensiveDayTitle => 'Самый дорогой день';
+
+  @override
+  String get insightBudgetStatusTitle => 'Статус бюджета';
+
+  @override
+  String insightLargestCategoryDescription(String category, String amount) =>
+      '$category — ваша крупнейшая статья расходов за период: $amount';
+
+  @override
+  String get insightNoExpensesThisPeriod =>
+      'В этом периоде пока нет категорий расходов';
+
+  @override
+  String insightSpentMore(int percent) =>
+      'Вы потратили на $percent% больше, чем в прошлом периоде';
+
+  @override
+  String insightSpentLess(int percent) =>
+      'Вы потратили на $percent% меньше, чем в прошлом периоде';
+
+  @override
+  String get insightSpentSame =>
+      'Ваши расходы не изменились по сравнению с прошлым периодом';
+
+  @override
+  String insightNoPreviousExpenses(String amount) =>
+      'В прошлом периоде расходов не было; в этом вы потратили $amount';
+
+  @override
+  String insightMostExpensiveDay(String day) =>
+      '$day — ваш самый дорогой день';
+
+  @override
+  String get insightNoExpenseDay => 'Пока нет дня с заметными расходами';
+
+  @override
+  String insightBudgetOnTrack(int percent) =>
+      'Вы в рамках плана — использовано $percent% месячного бюджета';
+
+  @override
+  String insightBudgetExceeded(String amount) =>
+      'Вы превысили месячный бюджет на $amount';
+
+  @override
+  String get insightBudgetNotSet => 'Общий месячный бюджет еще не задан';
+
+  @override
   String get exportTitle => 'Экспорт данных';
 
   @override

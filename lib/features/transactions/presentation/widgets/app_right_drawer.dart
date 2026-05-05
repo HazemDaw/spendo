@@ -6,6 +6,7 @@ import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/locale/locale_cubit.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_cubit.dart';
+import '../../../../core/utils/date_utils.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
@@ -16,10 +17,18 @@ class AppRightDrawer extends StatefulWidget {
   const AppRightDrawer({
     super.key,
     required this.currentPeriodLabel,
+    required this.selectedPeriod,
+    required this.referenceDate,
+    this.intervalStart,
+    this.intervalEnd,
     this.onCategoriesTap,
   });
 
   final String currentPeriodLabel;
+  final TransactionPeriod selectedPeriod;
+  final DateTime referenceDate;
+  final DateTime? intervalStart;
+  final DateTime? intervalEnd;
   final Future<void> Function()? onCategoriesTap;
 
   @override
@@ -164,6 +173,21 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
             ),
             ListTile(
               leading: const Icon(
+                Icons.lightbulb_outline,
+                color: AppColors.primary,
+              ),
+              title: Text(l10n.insightsTitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                context.pushNamed(
+                  'insights',
+                  queryParameters: _insightsQueryParameters(),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(
                 Icons.upload_file,
                 color: AppColors.primary,
               ),
@@ -228,6 +252,18 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
         ),
       ),
     );
+  }
+
+  Map<String, String> _insightsQueryParameters() {
+    return <String, String>{
+      'period': widget.selectedPeriod.name,
+      'referenceDate': widget.referenceDate.millisecondsSinceEpoch.toString(),
+      if (widget.intervalStart != null)
+        'intervalStart':
+            widget.intervalStart!.millisecondsSinceEpoch.toString(),
+      if (widget.intervalEnd != null)
+        'intervalEnd': widget.intervalEnd!.millisecondsSinceEpoch.toString(),
+    };
   }
 }
 

@@ -18,6 +18,7 @@ import 'features/budget/presentation/bloc/budget_event.dart';
 import 'features/budget/presentation/pages/budget_page.dart';
 import 'features/categories/data/custom_category_store.dart';
 import 'features/categories/presentation/pages/categories_page.dart';
+import 'features/insights/presentation/pages/insights_page.dart';
 import 'features/transactions/domain/entities/transaction.dart';
 import 'features/transactions/presentation/bloc/transaction_bloc.dart';
 import 'features/transactions/presentation/bloc/transaction_event.dart';
@@ -163,6 +164,24 @@ final GoRouter _router = GoRouter(
       builder: (BuildContext context, GoRouterState state) => const BudgetPage(),
     ),
     GoRoute(
+      path: '/insights',
+      name: 'insights',
+      builder: (BuildContext context, GoRouterState state) {
+        final Map<String, String> query = state.uri.queryParameters;
+        final TransactionPeriod period = TransactionPeriod.values.firstWhere(
+          (TransactionPeriod value) => value.name == query['period'],
+          orElse: () => TransactionPeriod.month,
+        );
+
+        return InsightsPage(
+          period: period,
+          referenceDate: _dateFromQuery(query['referenceDate'], DateTime.now()),
+          intervalStart: _nullableDateFromQuery(query['intervalStart']),
+          intervalEnd: _nullableDateFromQuery(query['intervalEnd']),
+        );
+      },
+    ),
+    GoRoute(
       path: '/categories',
       name: 'categories',
       builder: (BuildContext context, GoRouterState state) =>
@@ -181,3 +200,19 @@ final GoRouter _router = GoRouter(
     ),
   ],
 );
+
+DateTime _dateFromQuery(String? value, DateTime fallback) {
+  final int? milliseconds = int.tryParse(value ?? '');
+  if (milliseconds == null) {
+    return fallback;
+  }
+  return DateTime.fromMillisecondsSinceEpoch(milliseconds);
+}
+
+DateTime? _nullableDateFromQuery(String? value) {
+  final int? milliseconds = int.tryParse(value ?? '');
+  if (milliseconds == null) {
+    return null;
+  }
+  return DateTime.fromMillisecondsSinceEpoch(milliseconds);
+}

@@ -85,6 +85,77 @@
   "languageTitleRussian": "Язык: Русский",
   "languageTitleEnglish": "Language: English",
   "currencyLabel": "Валюта",
+  "insightsTitle": "Аналитика",
+  "insightsEmptyTitle": "Пока нет аналитики",
+  "insightsEmptyMessage": "Добавьте несколько транзакций за этот период, и Spendo найдет полезные закономерности.",
+  "insightsErrorTitle": "Не удалось загрузить аналитику",
+  "insightLargestCategoryTitle": "Крупнейшая категория расходов",
+  "insightSpendingTrendTitle": "Динамика расходов",
+  "insightExpensiveDayTitle": "Самый дорогой день",
+  "insightBudgetStatusTitle": "Статус бюджета",
+  "insightLargestCategoryDescription": "{category} — ваша крупнейшая статья расходов за период: {amount}",
+  "@insightLargestCategoryDescription": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "insightNoExpensesThisPeriod": "В этом периоде пока нет категорий расходов",
+  "insightSpentMore": "Вы потратили на {percent}% больше, чем в прошлом периоде",
+  "@insightSpentMore": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "insightSpentLess": "Вы потратили на {percent}% меньше, чем в прошлом периоде",
+  "@insightSpentLess": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "insightSpentSame": "Ваши расходы не изменились по сравнению с прошлым периодом",
+  "insightNoPreviousExpenses": "В прошлом периоде расходов не было; в этом вы потратили {amount}",
+  "@insightNoPreviousExpenses": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "insightMostExpensiveDay": "{day} — ваш самый дорогой день",
+  "@insightMostExpensiveDay": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "insightNoExpenseDay": "Пока нет дня с заметными расходами",
+  "insightBudgetOnTrack": "Вы в рамках плана — использовано {percent}% месячного бюджета",
+  "@insightBudgetOnTrack": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "insightBudgetExceeded": "Вы превысили месячный бюджет на {amount}",
+  "@insightBudgetExceeded": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "insightBudgetNotSet": "Общий месячный бюджет еще не задан",
   "exportTitle": "Экспорт данных",
   "exportChooseFormat": "Выберите формат",
   "exportPdf": "Экспорт в PDF",

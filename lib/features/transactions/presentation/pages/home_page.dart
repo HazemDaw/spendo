@@ -278,6 +278,10 @@ class _HomePageState extends State<HomePage> {
           drawerEnableOpenDragGesture: false,
           endDrawer: AppRightDrawer(
             currentPeriodLabel: selectedPeriodLabel,
+            selectedPeriod: _selectedPeriod,
+            referenceDate: _referenceDate,
+            intervalStart: _intervalStart,
+            intervalEnd: _intervalEnd,
             onCategoriesTap: _openCategoriesPage,
           ),
           endDrawerEnableOpenDragGesture: false,

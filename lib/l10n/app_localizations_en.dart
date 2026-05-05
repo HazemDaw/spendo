@@ -263,6 +263,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currencyLabel => 'Currency';
 
   @override
+  String get insightsTitle => 'Insights';
+
+  @override
+  String get insightsEmptyTitle => 'No insights yet';
+
+  @override
+  String get insightsEmptyMessage =>
+      'Add a few transactions for this period and Spendo will find useful patterns.';
+
+  @override
+  String get insightsErrorTitle => 'Could not load insights';
+
+  @override
+  String get insightLargestCategoryTitle => 'Largest expense category';
+
+  @override
+  String get insightSpendingTrendTitle => 'Spending trend';
+
+  @override
+  String get insightExpensiveDayTitle => 'Most expensive day';
+
+  @override
+  String get insightBudgetStatusTitle => 'Budget status';
+
+  @override
+  String insightLargestCategoryDescription(String category, String amount) =>
+      '$category is your largest expense this period at $amount';
+
+  @override
+  String get insightNoExpensesThisPeriod =>
+      'No expense categories yet this period';
+
+  @override
+  String insightSpentMore(int percent) =>
+      'You spent $percent% more than last period';
+
+  @override
+  String insightSpentLess(int percent) =>
+      'You spent $percent% less than last period';
+
+  @override
+  String get insightSpentSame =>
+      'Your spending is the same as last period';
+
+  @override
+  String insightNoPreviousExpenses(String amount) =>
+      'No expenses last period; this period you spent $amount';
+
+  @override
+  String insightMostExpensiveDay(String day) =>
+      '$day is your most expensive day';
+
+  @override
+  String get insightNoExpenseDay => 'No expense day stands out yet';
+
+  @override
+  String insightBudgetOnTrack(int percent) =>
+      'You are on track — $percent% of your monthly budget used';
+
+  @override
+  String insightBudgetExceeded(String amount) =>
+      'You have exceeded your monthly budget by $amount';
+
+  @override
+  String get insightBudgetNotSet => 'No total monthly budget is set yet';
+
+  @override
   String get exportTitle => 'Export Data';
 
   @override
