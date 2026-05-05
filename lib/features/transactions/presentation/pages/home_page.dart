@@ -51,6 +51,26 @@ class _HomePageState extends State<HomePage> {
   static const double _iconTouchSize = 84;
   static const double _iconSize = 58;
   static const double _slotAxisRadius = _donutOuterRadius + _orbitGridOffset;
+  static const List<_OrbitSlot> _clockwiseSlotOrder = <_OrbitSlot>[
+    _OrbitSlot.topCenter,
+    _OrbitSlot.topRight,
+    _OrbitSlot.right,
+    _OrbitSlot.bottomRight,
+    _OrbitSlot.bottomCenter,
+    _OrbitSlot.bottomLeft,
+    _OrbitSlot.left,
+    _OrbitSlot.topLeft,
+  ];
+  static const Map<_OrbitSlot, double> _slotAngles = <_OrbitSlot, double>{
+    _OrbitSlot.topCenter: -math.pi / 2,
+    _OrbitSlot.topRight: -math.pi / 4,
+    _OrbitSlot.right: 0,
+    _OrbitSlot.bottomRight: math.pi / 4,
+    _OrbitSlot.bottomCenter: math.pi / 2,
+    _OrbitSlot.bottomLeft: 3 * math.pi / 4,
+    _OrbitSlot.left: math.pi,
+    _OrbitSlot.topLeft: -3 * math.pi / 4,
+  };
   static const List<_OrbitAssignment> _defaultOrbitAssignments =
       <_OrbitAssignment>[
         _OrbitAssignment(
@@ -233,15 +253,26 @@ class _HomePageState extends State<HomePage> {
     final Map<String, double> expenseTotals = transactionState is TransactionLoaded
         ? transactionState.categoryTotals
         : const <String, double>{};
-    final double dynamicStartAngle = _computeStartAngle(expenseTotals);
+    final Map<String, _OrbitSlot> orbitSlotAssignment =
+        _assignSlots(expenseTotals);
+    final List<DonutCategorySlice> slices = _buildSlices(
+      expenseTotals,
+      orbitSlotAssignment,
+    );
+    final double dynamicStartAngle = _computeStartAngle(
+      slices,
+      orbitSlotAssignment,
+    );
     final BudgetState budgetState = context.watch<BudgetBloc>().state;
     final Set<String> exceededBudgetCategoryKeys =
         _exceededBudgetCategoryKeys(budgetState, expenseTotals);
     final List<Transaction> allTransactions = transactionState is TransactionLoaded
         ? transactionState.transactions
         : MockData.sampleTransactions;
-    final List<DonutCategorySlice> slices = _buildSlices(expenseTotals);
-    final List<_OrbitNode> orbitNodes = _buildOrbitNodes(expenseTotals);
+    final List<_OrbitNode> orbitNodes = _buildOrbitNodes(
+      expenseTotals,
+      orbitSlotAssignment,
+    );
     final List<OrbitConnector> connectors = _buildConnectors(
       slices: slices,
       orbitNodes: orbitNodes,
@@ -748,9 +779,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  List<DonutCategorySlice> _buildSlices(Map<String, double> totals) {
-    final List<DonutCategorySlice> slices = _sliceOrder
-        .where((String key) => (totals[key] ?? 0) > 0)
+  List<DonutCategorySlice> _buildSlices(
+    Map<String, double> totals,
+    Map<String, _OrbitSlot> slotAssignment,
+  ) {
+    return _activeCategoryKeysBySlotOrder(totals, slotAssignment)
         .map(
           (String key) => DonutCategorySlice(
             categoryKey: key,
@@ -759,12 +792,52 @@ class _HomePageState extends State<HomePage> {
           ),
         )
         .toList();
+  }
 
-    slices.sort(
-      (DonutCategorySlice a, DonutCategorySlice b) =>
-          b.value.compareTo(a.value),
-    );
-    return slices;
+  List<String> _activeCategoryKeysByAmountOrder(Map<String, double> totals) {
+    final Map<String, int> categoryIndex = <String, int>{
+      for (int i = 0; i < _sliceOrder.length; i++) _sliceOrder[i]: i,
+    };
+
+    final List<String> keys = _sliceOrder
+        .where((String key) => (totals[key] ?? 0) > 0)
+        .toList();
+    keys.sort((String a, String b) {
+      final int amountComparison = (totals[b] ?? 0).compareTo(totals[a] ?? 0);
+      if (amountComparison != 0) {
+        return amountComparison;
+      }
+      return (categoryIndex[a] ?? 0).compareTo(categoryIndex[b] ?? 0);
+    });
+    return keys;
+  }
+
+  List<String> _activeCategoryKeysBySlotOrder(
+    Map<String, double> totals,
+    Map<String, _OrbitSlot> slotAssignment,
+  ) {
+    final Map<String, int> categoryIndex = <String, int>{
+      for (int i = 0; i < _sliceOrder.length; i++) _sliceOrder[i]: i,
+    };
+    final Map<_OrbitSlot, int> slotIndex = <_OrbitSlot, int>{
+      for (int i = 0; i < _clockwiseSlotOrder.length; i++)
+        _clockwiseSlotOrder[i]: i,
+    };
+
+    final List<String> keys = _sliceOrder
+        .where((String key) => (totals[key] ?? 0) > 0)
+        .toList();
+    keys.sort((String a, String b) {
+      final int slotComparison =
+          (slotIndex[slotAssignment[a]] ?? 0).compareTo(
+        slotIndex[slotAssignment[b]] ?? 0,
+      );
+      if (slotComparison != 0) {
+        return slotComparison;
+      }
+      return (categoryIndex[a] ?? 0).compareTo(categoryIndex[b] ?? 0);
+    });
+    return keys;
   }
 
   Set<String> _exceededBudgetCategoryKeys(
@@ -787,12 +860,14 @@ class _HomePageState extends State<HomePage> {
         .toSet();
   }
 
-  List<_OrbitNode> _buildOrbitNodes(Map<String, double> totals) {
+  List<_OrbitNode> _buildOrbitNodes(
+    Map<String, double> totals,
+    Map<String, _OrbitSlot> slotAssignment,
+  ) {
     final double totalExpense = totals.values.fold<double>(
       0,
       (double sum, double value) => sum + value,
     );
-    final Map<String, _OrbitSlot> slotAssignment = _assignSlots(totals);
     return _orbitAssignments.map(
       (_OrbitAssignment assignment) => _buildNodeForSlot(
         assignment,
@@ -872,16 +947,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Map<String, _OrbitSlot> _assignSlots(Map<String, double> totals) {
-    const Map<_OrbitSlot, double> slotAngles = <_OrbitSlot, double>{
-      _OrbitSlot.topCenter: -math.pi / 2,
-      _OrbitSlot.topRight: -math.pi / 4,
-      _OrbitSlot.right: 0,
-      _OrbitSlot.bottomRight: math.pi / 4,
-      _OrbitSlot.bottomCenter: math.pi / 2,
-      _OrbitSlot.bottomLeft: 3 * math.pi / 4,
-      _OrbitSlot.left: math.pi,
-      _OrbitSlot.topLeft: -3 * math.pi / 4,
-    };
     final double total = _sliceOrder.fold<double>(
       0,
       (double sum, String key) => sum + (totals[key] ?? 0),
@@ -894,15 +959,9 @@ class _HomePageState extends State<HomePage> {
       };
     }
 
-    final List<String> sortedKeys = _sliceOrder
-        .where((String key) => (totals[key] ?? 0) > 0)
-        .toList()
-      ..sort(
-          (String a, String b) =>
-              (totals[b] ?? 0).compareTo(totals[a] ?? 0),
-        );
+    final List<String> sortedKeys = _activeCategoryKeysByAmountOrder(totals);
 
-    double currentAngle = _computeStartAngle(totals) * math.pi / 180;
+    double currentAngle = _computeAmountStartAngle(totals) * math.pi / 180;
     final Map<String, double> segmentMidAngles = <String, double>{};
     for (final String key in sortedKeys) {
       final double sweep = ((totals[key] ?? 0) / total) * 2 * math.pi;
@@ -917,33 +976,14 @@ class _HomePageState extends State<HomePage> {
       currentAngle += sweep;
     }
 
-    final Map<String, _OrbitSlot> assignment = <String, _OrbitSlot>{};
-    final Set<_OrbitSlot> usedSlots = <_OrbitSlot>{};
+    final Map<String, _OrbitSlot> assignment = _bestSlotAssignment(
+      sortedKeys: sortedKeys,
+      segmentMidAngles: segmentMidAngles,
+      slotAngles: _slotAngles,
+    );
+    final Set<_OrbitSlot> usedSlots = assignment.values.toSet();
 
-    for (final String key in sortedKeys) {
-      final double segmentAngle = segmentMidAngles[key]!;
-      _OrbitSlot? bestSlot;
-      double bestDiff = double.infinity;
-      for (final MapEntry<_OrbitSlot, double> slot in slotAngles.entries) {
-        if (usedSlots.contains(slot.key)) {
-          continue;
-        }
-        double diff = (slot.value - segmentAngle).abs();
-        if (diff > math.pi) {
-          diff = (2 * math.pi) - diff;
-        }
-        if (diff < bestDiff) {
-          bestDiff = diff;
-          bestSlot = slot.key;
-        }
-      }
-      if (bestSlot != null) {
-        assignment[key] = bestSlot;
-        usedSlots.add(bestSlot);
-      }
-    }
-
-    final List<_OrbitSlot> remainingSlots = slotAngles.keys
+    final List<_OrbitSlot> remainingSlots = _clockwiseSlotOrder
         .where(( _OrbitSlot slot) => !usedSlots.contains(slot))
         .toList();
     int slotIndex = 0;
@@ -959,7 +999,62 @@ class _HomePageState extends State<HomePage> {
     return assignment;
   }
 
-  double _computeStartAngle(Map<String, double> totals) {
+  Map<String, _OrbitSlot> _bestSlotAssignment({
+    required List<String> sortedKeys,
+    required Map<String, double> segmentMidAngles,
+    required Map<_OrbitSlot, double> slotAngles,
+  }) {
+    final List<_OrbitSlot> slots = slotAngles.keys.toList();
+    Map<String, _OrbitSlot> bestAssignment = <String, _OrbitSlot>{};
+    double bestCost = double.infinity;
+
+    void search(
+      int keyIndex,
+      Set<_OrbitSlot> usedSlots,
+      Map<String, _OrbitSlot> currentAssignment,
+      double currentCost,
+    ) {
+      if (currentCost >= bestCost) {
+        return;
+      }
+      if (keyIndex == sortedKeys.length) {
+        bestCost = currentCost;
+        bestAssignment = Map<String, _OrbitSlot>.from(currentAssignment);
+        return;
+      }
+
+      final String key = sortedKeys[keyIndex];
+      final double segmentAngle = segmentMidAngles[key]!;
+      for (final _OrbitSlot slot in slots) {
+        if (usedSlots.contains(slot)) {
+          continue;
+        }
+        usedSlots.add(slot);
+        currentAssignment[key] = slot;
+        search(
+          keyIndex + 1,
+          usedSlots,
+          currentAssignment,
+          currentCost + _angularDistance(segmentAngle, slotAngles[slot]!),
+        );
+        currentAssignment.remove(key);
+        usedSlots.remove(slot);
+      }
+    }
+
+    search(0, <_OrbitSlot>{}, <String, _OrbitSlot>{}, 0);
+    return bestAssignment;
+  }
+
+  double _angularDistance(double a, double b) {
+    double diff = (a - b).abs();
+    if (diff > math.pi) {
+      diff = (2 * math.pi) - diff;
+    }
+    return diff;
+  }
+
+  double _computeAmountStartAngle(Map<String, double> totals) {
     final double total = _sliceOrder.fold<double>(
       0,
       (double sum, String key) => sum + (totals[key] ?? 0),
@@ -968,22 +1063,40 @@ class _HomePageState extends State<HomePage> {
       return _donutStartAngle;
     }
 
-    String? largestKey;
-    double largestValue = 0;
-    for (final String key in _sliceOrder) {
-      final double value = totals[key] ?? 0;
-      if (value > largestValue) {
-        largestValue = value;
-        largestKey = key;
-      }
-    }
-    if (largestKey == null) {
+    final List<String> sortedKeys = _activeCategoryKeysByAmountOrder(totals);
+    if (sortedKeys.isEmpty) {
       return _donutStartAngle;
     }
 
     const double targetMidAngle = -math.pi / 2;
+    final double largestValue = totals[sortedKeys.first] ?? 0;
     final double sweep0 = (largestValue / total) * 2 * math.pi;
     final double startAngleRadians = targetMidAngle - (sweep0 / 2);
+    return startAngleRadians * (180 / math.pi);
+  }
+
+  double _computeStartAngle(
+    List<DonutCategorySlice> slices,
+    Map<String, _OrbitSlot> slotAssignment,
+  ) {
+    if (slices.isEmpty) {
+      return _donutStartAngle;
+    }
+
+    final double total = slices.fold<double>(
+      0,
+      (double sum, DonutCategorySlice slice) => sum + slice.value,
+    );
+    if (total <= 0) {
+      return _donutStartAngle;
+    }
+
+    final DonutCategorySlice firstSlice = slices.first;
+    final _OrbitSlot firstSlot =
+        slotAssignment[firstSlice.categoryKey] ?? _OrbitSlot.topCenter;
+    final double firstSweep = (firstSlice.value / total) * 2 * math.pi;
+    final double startAngleRadians =
+        (_slotAngles[firstSlot] ?? -math.pi / 2) - (firstSweep / 2);
     return startAngleRadians * (180 / math.pi);
   }
 
