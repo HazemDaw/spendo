@@ -136,6 +136,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get allTransactionsTitle => 'Все транзакции';
 
   @override
+  String get allTransactionsAllFilter => 'Все';
+
+  @override
+  String get allTransactionsAllCategoriesFilter => 'Все категории';
+
+  @override
+  String get allTransactionsTryChangingFilters =>
+      'Попробуйте изменить фильтры';
+
+  @override
   String get incomeSectionTitle => 'Доход';
 
   @override

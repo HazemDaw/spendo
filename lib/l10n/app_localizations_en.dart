@@ -137,6 +137,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allTransactionsTitle => 'All transactions';
 
   @override
+  String get allTransactionsAllFilter => 'All';
+
+  @override
+  String get allTransactionsAllCategoriesFilter => 'All Categories';
+
+  @override
+  String get allTransactionsTryChangingFilters => 'Try changing the filters';
+
+  @override
   String get incomeSectionTitle => 'Income';
 
   @override

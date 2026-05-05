@@ -78,6 +78,9 @@ abstract class AppLocalizations {
   String get noTransactionsInCategory;
   String get totalExpenseLabel;
   String get allTransactionsTitle;
+  String get allTransactionsAllFilter;
+  String get allTransactionsAllCategoriesFilter;
+  String get allTransactionsTryChangingFilters;
   String get incomeSectionTitle;
   String get noTransactions;
   String get drawerStub;
