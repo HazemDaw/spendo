@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/transaction.dart';
@@ -29,6 +30,7 @@ void showTransactionDeletedUndoSnackBar(
           label: l10n.undoDeleteAction,
           textColor: const Color(0xFF7C3AED),
           onPressed: () {
+            HapticFeedback.lightImpact();
             context.read<TransactionBloc>().add(
                   AddTransactionEvent(transaction),
                 );

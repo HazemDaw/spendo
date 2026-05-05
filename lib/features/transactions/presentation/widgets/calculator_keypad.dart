@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
@@ -46,7 +47,10 @@ class CalculatorKeypad extends StatelessWidget {
         final bool isOperator = <String>{'+', '-', '×', '÷'}.contains(key);
 
         return FilledButton(
-          onPressed: () => onKeyTap(key),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            onKeyTap(key);
+          },
           style: FilledButton.styleFrom(
             backgroundColor:
                 isOperator ? AppColors.primaryLight : AppColors.surface,

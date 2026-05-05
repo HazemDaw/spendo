@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/mock/mock_data.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -51,7 +52,10 @@ class _CategoryPickerSheetState extends State<CategoryPickerSheet> {
                   return CategoryIconButton(
                     category: category,
                     selected: category.key == widget.selectedCategoryKey,
-                    onPressed: () => widget.onCategorySelected(category.key),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      widget.onCategorySelected(category.key);
+                    },
                   );
                 }).toList(),
               ),
@@ -64,7 +68,10 @@ class _CategoryPickerSheetState extends State<CategoryPickerSheet> {
                     return CategoryIconButton(
                       category: category,
                       selected: category.key == widget.selectedCategoryKey,
-                      onPressed: () => widget.onCategorySelected(category.key),
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        widget.onCategorySelected(category.key);
+                      },
                     );
                   }).toList(),
                 ),

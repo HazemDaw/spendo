@@ -74,55 +74,55 @@ class _HomePageState extends State<HomePage> {
   };
   static const List<_OrbitAssignment> _defaultOrbitAssignments =
       <_OrbitAssignment>[
-        _OrbitAssignment(
-          slotIndex: 0,
-          categoryKey: 'entertainment',
-          slot: _OrbitSlot.topLeft,
-          isCustom: false,
-        ),
-        _OrbitAssignment(
-          slotIndex: 1,
-          categoryKey: 'clothing',
-          slot: _OrbitSlot.topCenter,
-          isCustom: false,
-        ),
-        _OrbitAssignment(
-          slotIndex: 2,
-          categoryKey: 'communication',
-          slot: _OrbitSlot.topRight,
-          isCustom: false,
-        ),
-        _OrbitAssignment(
-          slotIndex: 3,
-          categoryKey: 'housing',
-          slot: _OrbitSlot.right,
-          isCustom: false,
-        ),
-        _OrbitAssignment(
-          slotIndex: 4,
-          categoryKey: 'transport',
-          slot: _OrbitSlot.bottomRight,
-          isCustom: false,
-        ),
-        _OrbitAssignment(
-          slotIndex: 5,
-          categoryKey: 'food',
-          slot: _OrbitSlot.bottomCenter,
-          isCustom: false,
-        ),
-        _OrbitAssignment(
-          slotIndex: 6,
-          categoryKey: 'sport',
-          slot: _OrbitSlot.bottomLeft,
-          isCustom: false,
-        ),
-        _OrbitAssignment(
-          slotIndex: 7,
-          categoryKey: 'health',
-          slot: _OrbitSlot.left,
-          isCustom: false,
-        ),
-      ];
+    _OrbitAssignment(
+      slotIndex: 0,
+      categoryKey: 'entertainment',
+      slot: _OrbitSlot.topLeft,
+      isCustom: false,
+    ),
+    _OrbitAssignment(
+      slotIndex: 1,
+      categoryKey: 'clothing',
+      slot: _OrbitSlot.topCenter,
+      isCustom: false,
+    ),
+    _OrbitAssignment(
+      slotIndex: 2,
+      categoryKey: 'communication',
+      slot: _OrbitSlot.topRight,
+      isCustom: false,
+    ),
+    _OrbitAssignment(
+      slotIndex: 3,
+      categoryKey: 'housing',
+      slot: _OrbitSlot.right,
+      isCustom: false,
+    ),
+    _OrbitAssignment(
+      slotIndex: 4,
+      categoryKey: 'transport',
+      slot: _OrbitSlot.bottomRight,
+      isCustom: false,
+    ),
+    _OrbitAssignment(
+      slotIndex: 5,
+      categoryKey: 'food',
+      slot: _OrbitSlot.bottomCenter,
+      isCustom: false,
+    ),
+    _OrbitAssignment(
+      slotIndex: 6,
+      categoryKey: 'sport',
+      slot: _OrbitSlot.bottomLeft,
+      isCustom: false,
+    ),
+    _OrbitAssignment(
+      slotIndex: 7,
+      categoryKey: 'health',
+      slot: _OrbitSlot.left,
+      isCustom: false,
+    ),
+  ];
 
   TransactionPeriod _selectedPeriod = TransactionPeriod.month;
   DateTime _referenceDate = DateTime.now();
@@ -135,7 +135,7 @@ class _HomePageState extends State<HomePage> {
       <String, CustomCategoryModel>{};
 
   List<String> get _sliceOrder => _orbitAssignments
-      .map(( _OrbitAssignment assignment) => assignment.categoryKey)
+      .map((_OrbitAssignment assignment) => assignment.categoryKey)
       .toList();
 
   @override
@@ -145,7 +145,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadOrbitSlots() async {
-    final List<OrbitSlotModel> slots = await sl<OrbitSlotDatasource>().getSlots();
+    final List<OrbitSlotModel> slots =
+        await sl<OrbitSlotDatasource>().getSlots();
     final CustomCategoryLocalDatasource customCategoryDatasource =
         sl<CustomCategoryLocalDatasource>();
     final List<_OrbitAssignment> mappedAssignments = <_OrbitAssignment>[];
@@ -215,8 +216,7 @@ class _HomePageState extends State<HomePage> {
         isDark ? const Color(0xFF1E1B2E) : const Color(0xFFF5F3FF);
     const Color balanceBarBg = Color(0xFF7C3AED);
     // ignore: unused_local_variable
-    final Color textOnCanvas =
-        isDark ? Colors.white : const Color(0xFF1E1B4B);
+    final Color textOnCanvas = isDark ? Colors.white : const Color(0xFF1E1B4B);
     // ignore: unused_local_variable
     const Color periodChipSelected = Color(0xFF7C3AED);
     // ignore: unused_local_variable
@@ -226,7 +226,8 @@ class _HomePageState extends State<HomePage> {
     // ignore: unused_local_variable
     final Color periodChipLabelUnselected =
         isDark ? Colors.white70 : const Color(0xFF7C3AED);
-    final TransactionState transactionState = context.watch<TransactionBloc>().state;
+    final TransactionState transactionState =
+        context.watch<TransactionBloc>().state;
     final DateTime now = DateTime.now();
     final DateTime oldestTransactionDate = _oldestTransactionDate(
       transactionState,
@@ -251,9 +252,10 @@ class _HomePageState extends State<HomePage> {
     final double expense = transactionState is TransactionLoaded
         ? transactionState.totalExpense
         : 0;
-    final Map<String, double> expenseTotals = transactionState is TransactionLoaded
-        ? transactionState.categoryTotals
-        : const <String, double>{};
+    final Map<String, double> expenseTotals =
+        transactionState is TransactionLoaded
+            ? transactionState.categoryTotals
+            : const <String, double>{};
     final Map<String, _OrbitSlot> orbitSlotAssignment =
         _assignSlots(expenseTotals);
     final List<DonutCategorySlice> slices = _buildSlices(
@@ -267,9 +269,10 @@ class _HomePageState extends State<HomePage> {
     final BudgetState budgetState = context.watch<BudgetBloc>().state;
     final Set<String> exceededBudgetCategoryKeys =
         _exceededBudgetCategoryKeys(budgetState, expenseTotals);
-    final List<Transaction> allTransactions = transactionState is TransactionLoaded
-        ? transactionState.transactions
-        : MockData.sampleTransactions;
+    final List<Transaction> allTransactions =
+        transactionState is TransactionLoaded
+            ? transactionState.transactions
+            : MockData.sampleTransactions;
     final List<_OrbitNode> orbitNodes = _buildOrbitNodes(
       expenseTotals,
       orbitSlotAssignment,
@@ -279,8 +282,7 @@ class _HomePageState extends State<HomePage> {
       orbitNodes: orbitNodes,
       startAngle: dynamicStartAngle,
     );
-    final bool isLoading =
-        transactionState is TransactionInitial ||
+    final bool isLoading = transactionState is TransactionInitial ||
         transactionState is TransactionLoading;
     final String periodCanvasKey =
         '${_selectedPeriod}_${_referenceDate.millisecondsSinceEpoch}';
@@ -375,9 +377,8 @@ class _HomePageState extends State<HomePage> {
                         ) {
                           final bool isIncoming =
                               child.key == ValueKey<String>(periodCanvasKey);
-                          final double direction = _slideDirection == 0
-                              ? 1.0
-                              : _slideDirection;
+                          final double direction =
+                              _slideDirection == 0 ? 1.0 : _slideDirection;
                           final Offset beginOffset = Offset(
                             isIncoming ? direction : -direction,
                             0,
@@ -411,113 +412,118 @@ class _HomePageState extends State<HomePage> {
                                   right: 0,
                                   top: 170,
                                   child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: <Widget>[
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 16),
-                                      child: GestureDetector(
-                                        onTap: () => _navigatePeriod(
-                                          -1,
-                                          oldestTransactionDate,
-                                        ),
-                                        child: Text(
-                                          isAtOldestBoundary
-                                              ? ''
-                                              : _buildAdjacentLabel(-1),
-                                          style: GoogleFonts.inter(
-                                            color: isDark
-                                                ? Colors.white38
-                                                : const Color(
-                                                    0xFF7C3AED,
-                                                  ).withValues(alpha: 0.4),
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        GestureDetector(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: <Widget>[
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 16),
+                                        child: GestureDetector(
                                           onTap: () => _navigatePeriod(
                                             -1,
                                             oldestTransactionDate,
                                           ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(12),
-                                            child: Icon(
-                                              Icons.chevron_left_rounded,
-                                              color: isAtOldestBoundary
-                                                  ? Colors.transparent
-                                                  : isDark
-                                                  ? Colors.white54
-                                                  : const Color(0xFF7C3AED),
-                                              size: 36,
-                                            ),
-                                          ),
-                                        ),
-                                        GestureDetector(
-                                          onTap: _cyclePeriod,
                                           child: Text(
-                                            selectedPeriodLabel,
+                                            isAtOldestBoundary
+                                                ? ''
+                                                : _buildAdjacentLabel(-1),
                                             style: GoogleFonts.inter(
                                               color: isDark
-                                                  ? Colors.white
-                                                  : const Color(0xFF1E1B4B),
-                                              fontSize: 28,
-                                              fontWeight: FontWeight.w600,
-                                              letterSpacing: 0,
+                                                  ? Colors.white38
+                                                  : const Color(
+                                                      0xFF7C3AED,
+                                                    ).withValues(alpha: 0.4),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w400,
                                             ),
                                           ),
                                         ),
-                                        GestureDetector(
+                                      ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: <Widget>[
+                                          GestureDetector(
+                                            onTap: () => _navigatePeriod(
+                                              -1,
+                                              oldestTransactionDate,
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(12),
+                                              child: Icon(
+                                                Icons.chevron_left_rounded,
+                                                color: isAtOldestBoundary
+                                                    ? Colors.transparent
+                                                    : isDark
+                                                        ? Colors.white54
+                                                        : const Color(
+                                                            0xFF7C3AED),
+                                                size: 36,
+                                              ),
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: _cyclePeriod,
+                                            child: Text(
+                                              selectedPeriodLabel,
+                                              style: GoogleFonts.inter(
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : const Color(0xFF1E1B4B),
+                                                fontSize: 28,
+                                                fontWeight: FontWeight.w600,
+                                                letterSpacing: 0,
+                                              ),
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () => _navigatePeriod(
+                                              1,
+                                              oldestTransactionDate,
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(12),
+                                              child: Icon(
+                                                Icons.chevron_right_rounded,
+                                                color: isAtFutureBoundary
+                                                    ? Colors.transparent
+                                                    : isDark
+                                                        ? Colors.white54
+                                                        : const Color(
+                                                            0xFF7C3AED),
+                                                size: 36,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 16),
+                                        child: GestureDetector(
                                           onTap: () => _navigatePeriod(
                                             1,
                                             oldestTransactionDate,
                                           ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(12),
-                                            child: Icon(
-                                              Icons.chevron_right_rounded,
-                                              color: isAtFutureBoundary
-                                                  ? Colors.transparent
-                                                  : isDark
-                                                  ? Colors.white54
-                                                  : const Color(0xFF7C3AED),
-                                              size: 36,
+                                          child: Text(
+                                            isAtFutureBoundary
+                                                ? ''
+                                                : _buildAdjacentLabel(1),
+                                            style: GoogleFonts.inter(
+                                              color: isDark
+                                                  ? Colors.white38
+                                                  : const Color(
+                                                      0xFF7C3AED,
+                                                    ).withValues(alpha: 0.4),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w400,
                                             ),
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 16),
-                                      child: GestureDetector(
-                                        onTap: () => _navigatePeriod(
-                                          1,
-                                          oldestTransactionDate,
-                                        ),
-                                        child: Text(
-                                          isAtFutureBoundary
-                                              ? ''
-                                              : _buildAdjacentLabel(1),
-                                          style: GoogleFonts.inter(
-                                            color: isDark
-                                                ? Colors.white38
-                                                : const Color(
-                                                    0xFF7C3AED,
-                                                  ).withValues(alpha: 0.4),
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
+                                    ],
+                                  ),
                                 ),
                                 Positioned(
                                   left: 32,
@@ -571,8 +577,8 @@ class _HomePageState extends State<HomePage> {
                                               onSliceTap: (String categoryKey) {
                                                 context.pushNamed(
                                                   'transactionList',
-                                                  pathParameters:
-                                                      <String, String>{
+                                                  pathParameters: <String,
+                                                      String>{
                                                     'categoryKey': categoryKey,
                                                   },
                                                 );
@@ -717,13 +723,12 @@ class _HomePageState extends State<HomePage> {
                 context: context,
                 delegate: _TransactionSearchDelegate(
                   l10n: l10n,
-                  transactions:
-                      (context.read<TransactionBloc>().state
-                              is TransactionLoaded)
-                          ? (context.read<TransactionBloc>().state
-                                  as TransactionLoaded)
-                              .transactions
-                          : <Transaction>[],
+                  transactions: (context.read<TransactionBloc>().state
+                          is TransactionLoaded)
+                      ? (context.read<TransactionBloc>().state
+                              as TransactionLoaded)
+                          .transactions
+                      : <Transaction>[],
                 ),
               );
             },
@@ -735,7 +740,6 @@ class _HomePageState extends State<HomePage> {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
-      
           const SizedBox(width: 6),
           Builder(
             builder: (BuildContext scaffoldContext) {
@@ -763,6 +767,7 @@ class _HomePageState extends State<HomePage> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () async {
+          HapticFeedback.lightImpact();
           final Object? result = await context.pushNamed(
             'addTransaction',
             queryParameters: _addTransactionQueryParameters(
@@ -828,9 +833,8 @@ class _HomePageState extends State<HomePage> {
       for (int i = 0; i < _sliceOrder.length; i++) _sliceOrder[i]: i,
     };
 
-    final List<String> keys = _sliceOrder
-        .where((String key) => (totals[key] ?? 0) > 0)
-        .toList();
+    final List<String> keys =
+        _sliceOrder.where((String key) => (totals[key] ?? 0) > 0).toList();
     keys.sort((String a, String b) {
       final int amountComparison = (totals[b] ?? 0).compareTo(totals[a] ?? 0);
       if (amountComparison != 0) {
@@ -853,12 +857,10 @@ class _HomePageState extends State<HomePage> {
         _clockwiseSlotOrder[i]: i,
     };
 
-    final List<String> keys = _sliceOrder
-        .where((String key) => (totals[key] ?? 0) > 0)
-        .toList();
+    final List<String> keys =
+        _sliceOrder.where((String key) => (totals[key] ?? 0) > 0).toList();
     keys.sort((String a, String b) {
-      final int slotComparison =
-          (slotIndex[slotAssignment[a]] ?? 0).compareTo(
+      final int slotComparison = (slotIndex[slotAssignment[a]] ?? 0).compareTo(
         slotIndex[slotAssignment[b]] ?? 0,
       );
       if (slotComparison != 0) {
@@ -897,14 +899,16 @@ class _HomePageState extends State<HomePage> {
       0,
       (double sum, double value) => sum + value,
     );
-    return _orbitAssignments.map(
-      (_OrbitAssignment assignment) => _buildNodeForSlot(
-        assignment,
-        slotAssignment,
-        totals,
-        totalExpense,
-      ),
-    ).toList();
+    return _orbitAssignments
+        .map(
+          (_OrbitAssignment assignment) => _buildNodeForSlot(
+            assignment,
+            slotAssignment,
+            totals,
+            totalExpense,
+          ),
+        )
+        .toList();
   }
 
   _OrbitNode _buildNodeForSlot(
@@ -956,7 +960,9 @@ class _HomePageState extends State<HomePage> {
       ),
       color: Color(customCategory.colorValue),
       categoryKey: customCategory.id,
-      label: active ? _percentLabel(totals, totalExpense, customCategory.id) : null,
+      label: active
+          ? _percentLabel(totals, totalExpense, customCategory.id)
+          : null,
       active: active,
     );
   }
@@ -967,7 +973,8 @@ class _HomePageState extends State<HomePage> {
       return category.color;
     }
 
-    final CustomCategoryModel? customCategory = _customOrbitCategories[categoryKey];
+    final CustomCategoryModel? customCategory =
+        _customOrbitCategories[categoryKey];
     if (customCategory != null) {
       return Color(customCategory.colorValue);
     }
@@ -1013,7 +1020,7 @@ class _HomePageState extends State<HomePage> {
     final Set<_OrbitSlot> usedSlots = assignment.values.toSet();
 
     final List<_OrbitSlot> remainingSlots = _clockwiseSlotOrder
-        .where(( _OrbitSlot slot) => !usedSlots.contains(slot))
+        .where((_OrbitSlot slot) => !usedSlots.contains(slot))
         .toList();
     int slotIndex = 0;
     for (final _OrbitAssignment assignmentEntry in _orbitAssignments) {
@@ -1201,15 +1208,15 @@ class _HomePageState extends State<HomePage> {
 
       assert(_routeRadiusFor(node.slot) >= 0);
 
-        connectors.add(
-          OrbitConnector(
-            start: lineStart,
-            end: segmentEdge,
-            color: node.color,
-            chartCenter: _chartCenter,
-            routeRadius: 0,
-          ),
-        );
+      connectors.add(
+        OrbitConnector(
+          start: lineStart,
+          end: segmentEdge,
+          color: node.color,
+          chartCenter: _chartCenter,
+          routeRadius: 0,
+        ),
+      );
       currentAngle += sweep;
     }
     return connectors;
@@ -1259,7 +1266,8 @@ class _HomePageState extends State<HomePage> {
       _OrbitSlot.topLeft ||
       _OrbitSlot.topRight ||
       _OrbitSlot.bottomRight ||
-      _OrbitSlot.bottomLeft => _donutOuterRadius + 86,
+      _OrbitSlot.bottomLeft =>
+        _donutOuterRadius + 86,
     };
   }
 
@@ -1284,7 +1292,8 @@ class _HomePageState extends State<HomePage> {
               ? totalSpent
               : (expenseTotals[budget.categoryKey] ?? 0);
           if (spent >= budget.limitAmount) {
-            exceededLabels.add(_budgetWarningLabel(context, budget.categoryKey));
+            exceededLabels
+                .add(_budgetWarningLabel(context, budget.categoryKey));
           } else if (spent >= budget.limitAmount * 0.8) {
             warningLabels.add(_budgetWarningLabel(context, budget.categoryKey));
           }
@@ -1302,27 +1311,22 @@ class _HomePageState extends State<HomePage> {
             ? l10n.budgetExceededWarning(exceededLabels.join(', '))
             : l10n.budgetWarningLabel(warningLabels.join(', '));
         final Color bannerBg = isDark
-            ? (isExceeded
-                  ? const Color(0xFF3D1515)
-                  : const Color(0xFF2D2210))
+            ? (isExceeded ? const Color(0xFF3D1515) : const Color(0xFF2D2210))
             : (isExceeded
-                  ? const Color(0xFFFEE2E2)
-                  : isWarning
-                  ? const Color(0xFFFFF3CD)
-                  : Colors.transparent);
-        final Color bannerBorder = isExceeded
-            ? const Color(0xFFEF4444)
-            : const Color(0xFFF59E0B);
-        final Color bannerText = isDark
-            ? Colors.white
-            : const Color(0xFF1E1B4B);
-        final Color bannerIcon = isExceeded
-            ? const Color(0xFFEF4444)
-            : const Color(0xFFF59E0B);
+                ? const Color(0xFFFEE2E2)
+                : isWarning
+                    ? const Color(0xFFFFF3CD)
+                    : Colors.transparent);
+        final Color bannerBorder =
+            isExceeded ? const Color(0xFFEF4444) : const Color(0xFFF59E0B);
+        final Color bannerText =
+            isDark ? Colors.white : const Color(0xFF1E1B4B);
+        final Color bannerIcon =
+            isExceeded ? const Color(0xFFEF4444) : const Color(0xFFF59E0B);
 
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => context.push('/budget'),
+          onTap: () => _openBudgetFromWarning(isExceeded),
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -1359,7 +1363,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(width: 12),
                 GestureDetector(
-                  onTap: () => context.push('/budget'),
+                  onTap: () => _openBudgetFromWarning(isExceeded),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -1387,6 +1391,13 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  void _openBudgetFromWarning(bool isExceeded) {
+    if (isExceeded) {
+      HapticFeedback.mediumImpact();
+    }
+    context.push('/budget');
   }
 
   String _budgetWarningLabel(BuildContext context, String? categoryKey) {
@@ -1436,9 +1447,8 @@ class _HomePageState extends State<HomePage> {
 
     return switch (_selectedPeriod) {
       TransactionPeriod.day => dayFmt.format(_referenceDate),
-      TransactionPeriod.week =>
-        '${weekFmt.format(displayedRange.start)} — '
-            '${weekFmt.format(displayedRange.end)}',
+      TransactionPeriod.week => '${weekFmt.format(displayedRange.start)} — '
+          '${weekFmt.format(displayedRange.end)}',
       TransactionPeriod.month => monthFmt.format(_referenceDate),
       TransactionPeriod.year => yearFmt.format(_referenceDate),
       TransactionPeriod.all => l10n.allTime,
@@ -1512,12 +1522,12 @@ class _HomePageState extends State<HomePage> {
         _slideDirection = slideDirection;
       });
       context.read<TransactionBloc>().add(
-        LoadTransactionsEvent(
-          TransactionPeriod.interval,
-          intervalStart: picked.start,
-          intervalEnd: picked.end,
-        ),
-      );
+            LoadTransactionsEvent(
+              TransactionPeriod.interval,
+              intervalStart: picked.start,
+              intervalEnd: picked.end,
+            ),
+          );
     }
   }
 
@@ -1586,11 +1596,11 @@ class _HomePageState extends State<HomePage> {
       _referenceDate = nextReferenceDate;
     });
     context.read<TransactionBloc>().add(
-      LoadTransactionsEvent(
-        _selectedPeriod,
-        referenceDate: nextReferenceDate,
-      ),
-    );
+          LoadTransactionsEvent(
+            _selectedPeriod,
+            referenceDate: nextReferenceDate,
+          ),
+        );
   }
 
   void _cyclePeriod() {
@@ -1621,11 +1631,11 @@ class _HomePageState extends State<HomePage> {
       _slideDirection = slideDirection;
     });
     context.read<TransactionBloc>().add(
-      LoadTransactionsEvent(
-        period,
-        referenceDate: now,
-      ),
-    );
+          LoadTransactionsEvent(
+            period,
+            referenceDate: now,
+          ),
+        );
   }
 
   double _periodChangeDirection(TransactionPeriod nextPeriod) {
@@ -1650,7 +1660,8 @@ class _HomePageState extends State<HomePage> {
   DateTime _initialTransactionDate() {
     return switch (_selectedPeriod) {
       TransactionPeriod.all => DateTime.now(),
-      TransactionPeriod.interval => _intervalEnd ?? _intervalStart ?? DateTime.now(),
+      TransactionPeriod.interval =>
+        _intervalEnd ?? _intervalStart ?? DateTime.now(),
       TransactionPeriod.day ||
       TransactionPeriod.week ||
       TransactionPeriod.month ||
@@ -1849,17 +1860,17 @@ class _TransactionSearchDelegate extends SearchDelegate<Transaction?> {
 
   @override
   List<Widget> buildActions(BuildContext context) => <Widget>[
-    IconButton(
-      icon: const Icon(Icons.clear),
-      onPressed: () => query = '',
-    ),
-  ];
+        IconButton(
+          icon: const Icon(Icons.clear),
+          onPressed: () => query = '',
+        ),
+      ];
 
   @override
   Widget buildLeading(BuildContext context) => IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () => close(context, null),
-  );
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => close(context, null),
+      );
 
   @override
   Widget buildResults(BuildContext context) => _buildList(context);
@@ -1873,7 +1884,8 @@ class _TransactionSearchDelegate extends SearchDelegate<Transaction?> {
       return t.note?.toLowerCase().contains(q) == true ||
           (t.categoryKey?.toLowerCase().contains(q) == true) ||
           t.amount.toString().contains(q);
-    }).toList()..sort((Transaction a, Transaction b) => b.date.compareTo(a.date));
+    }).toList()
+      ..sort((Transaction a, Transaction b) => b.date.compareTo(a.date));
 
     if (results.isEmpty) {
       return Center(child: Text(l10n.nothingFound));

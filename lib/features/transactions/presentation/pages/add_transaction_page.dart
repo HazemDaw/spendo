@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -234,6 +235,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   Future<void> _showSuccessAndPop(String result) async {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -487,6 +489,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       return;
     }
 
+    HapticFeedback.mediumImpact();
     setState(() {
       _pendingAction = _PendingAction.delete;
       _pendingDeletedTransaction = _editingTransaction;

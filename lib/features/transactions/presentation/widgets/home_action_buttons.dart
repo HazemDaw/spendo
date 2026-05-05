@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class HomeActionButtons extends StatelessWidget {
   const HomeActionButtons({
@@ -52,7 +53,10 @@ class _CircularActionButton extends StatelessWidget {
       width: 190,
       height: 190,
       child: OutlinedButton(
-        onPressed: onPressed,
+        onPressed: () {
+          HapticFeedback.lightImpact();
+          onPressed();
+        },
         style: OutlinedButton.styleFrom(
           shape: const CircleBorder(),
           side: BorderSide(color: color, width: 8),
