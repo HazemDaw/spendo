@@ -39,14 +39,16 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final double topInset = MediaQuery.paddingOf(context).top;
 
     return Drawer(
       child: SafeArea(
+        top: false,
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
             Container(
-              padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+              padding: EdgeInsets.fromLTRB(16, topInset + 48, 16, 16),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,

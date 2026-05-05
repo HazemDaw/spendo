@@ -27,16 +27,18 @@ class AppLeftDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final double topInset = MediaQuery.paddingOf(context).top;
 
     return Drawer(
       child: SafeArea(
+        top: false,
         child: Column(
           children: <Widget>[
             BlocBuilder<AuthBloc, AuthState>(
               builder: (BuildContext context, AuthState state) {
                 if (state is AuthAuthenticated) {
                   return Container(
-                    padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+                    padding: EdgeInsets.fromLTRB(16, topInset + 48, 16, 16),
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -88,7 +90,7 @@ class AppLeftDrawer extends StatelessWidget {
                 }
 
                 return Container(
-                  padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+                  padding: EdgeInsets.fromLTRB(16, topInset + 48, 16, 16),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
