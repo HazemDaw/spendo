@@ -252,7 +252,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         ),
       );
 
-    await Future<void>.delayed(const Duration(milliseconds: 1500));
+    await Future<void>.delayed(const Duration(milliseconds: 150));
     if (!mounted) {
       return;
     }
