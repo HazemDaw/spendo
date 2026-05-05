@@ -72,12 +72,14 @@ class SpendoApp extends StatelessWidget {
         BlocProvider<CurrencyCubit>(
           create: (_) => sl<CurrencyCubit>(),
         ),
-        BlocProvider<AuthBloc>(
-          create: (_) => sl<AuthBloc>()..add(const CheckAuthStatusEvent()),
-        ),
         BlocProvider<TransactionBloc>(
           create: (_) => sl<TransactionBloc>()
             ..add(const LoadTransactionsEvent(TransactionPeriod.month)),
+        ),
+        BlocProvider<AuthBloc>(
+          create: (BuildContext context) => sl<AuthBloc>(
+            param1: context.read<TransactionBloc>(),
+          )..add(const CheckAuthStatusEvent()),
         ),
         BlocProvider<BudgetBloc>(
           create: (_) => sl<BudgetBloc>()

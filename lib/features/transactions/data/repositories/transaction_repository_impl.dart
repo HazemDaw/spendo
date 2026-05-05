@@ -106,6 +106,28 @@ class TransactionRepositoryImpl implements TransactionRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, void>> restoreFromCloud() async {
+    try {
+      if (authRepository.currentUserId == null) {
+        return const Right<Failure, void>(null);
+      }
+
+      final List<TransactionModel> localTransactions =
+          await localDatasource.getAll();
+      if (localTransactions.isNotEmpty) {
+        return const Right<Failure, void>(null);
+      }
+
+      final List<TransactionModel> cloudTransactions =
+          await remoteDatasource.fetchAllFromFirestore();
+      await localDatasource.insertAll(cloudTransactions);
+      return const Right<Failure, void>(null);
+    } on Exception catch (exception) {
+      return Left<Failure, void>(_mapFailure(exception));
+    }
+  }
+
   Failure _mapFailure(Exception exception) {
     return CacheFailure(exception.toString());
   }

@@ -55,7 +55,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final List<_OnboardingSlide> slides = <_OnboardingSlide>[
       _OnboardingSlide(
-        icon: Icons.donut_large,
+        assetPath: 'assets/icons/Spendo.png',
         title: l10n.onboardingPageOneTitle,
         subtitle: l10n.onboardingPageOneSubtitle,
       ),
@@ -210,11 +210,18 @@ class _OnboardingSlideView extends StatelessWidget {
           scale: active
               ? scaleAnimation
               : const AlwaysStoppedAnimation<double>(1),
-          child: Icon(
-            slide.icon,
-            size: 120,
-            color: Colors.white,
-          ),
+          child: slide.assetPath == null
+              ? Icon(
+                  slide.icon,
+                  size: 120,
+                  color: Colors.white,
+                )
+              : Image.asset(
+                  slide.assetPath!,
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.contain,
+                ),
         ),
         const SizedBox(height: 48),
         Padding(
@@ -337,12 +344,14 @@ class _OnboardingActionButton extends StatelessWidget {
 
 class _OnboardingSlide {
   const _OnboardingSlide({
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.title,
     required this.subtitle,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final String title;
   final String subtitle;
 }

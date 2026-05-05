@@ -22,4 +22,6 @@ abstract class TransactionRepository {
   Future<Either<Failure, Unit>> updateTransaction(Transaction transaction);
 
   Future<Either<Failure, Unit>> deleteTransaction(String id);
+
+  Future<Either<Failure, void>> restoreFromCloud();
 }

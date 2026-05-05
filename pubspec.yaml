@@ -60,6 +60,7 @@ flutter:
 
   assets:
     - assets/fonts/Roboto-Regular.ttf
+    - assets/icons/Spendo.png
 
 flutter_launcher_icons:
   android: true

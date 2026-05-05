@@ -36,6 +36,17 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   DateTime? _currentIntervalStart;
   DateTime? _currentIntervalEnd;
 
+  void reloadCurrentPeriod() {
+    add(
+      LoadTransactionsEvent(
+        _currentPeriod,
+        referenceDate: _currentReferenceDate,
+        intervalStart: _currentIntervalStart,
+        intervalEnd: _currentIntervalEnd,
+      ),
+    );
+  }
+
   Future<void> _onLoadTransactions(
     LoadTransactionsEvent event,
     Emitter<TransactionState> emit,

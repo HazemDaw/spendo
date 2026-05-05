@@ -173,11 +173,13 @@ Future<void> initDependencies() async {
     );
   }
   if (!sl.isRegistered<AuthBloc>()) {
-    sl.registerFactory<AuthBloc>(
-      () => AuthBloc(
+    sl.registerFactoryParam<AuthBloc, TransactionBloc, void>(
+      (TransactionBloc transactionBloc, _) => AuthBloc(
         authRepository: sl(),
         localDatasource: sl(),
         remoteDatasource: sl(),
+        transactionRepository: sl(),
+        transactionBloc: transactionBloc,
         sharedPreferences: sl(),
       ),
     );

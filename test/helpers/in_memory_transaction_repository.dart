@@ -25,6 +25,11 @@ class InMemoryTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<Either<Failure, void>> restoreFromCloud() async {
+    return const Right<Failure, void>(null);
+  }
+
+  @override
   Future<Either<Failure, double>> getBalance() async {
     final double balance = _transactions.fold<double>(
       0,

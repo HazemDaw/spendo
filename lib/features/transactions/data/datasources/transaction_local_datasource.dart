@@ -14,6 +14,7 @@ abstract class TransactionLocalDatasource {
     DateTime end,
   );
   Future<void> save(TransactionModel model);
+  Future<void> insertAll(List<TransactionModel> transactions);
   Future<void> update(TransactionModel model);
   Future<void> delete(String id);
   Future<DateTime?> getOldestTransactionDate();
@@ -81,15 +82,22 @@ class TransactionLocalDatasourceImpl implements TransactionLocalDatasource {
   @override
   Future<void> save(TransactionModel model) async {
     await _db.into(_db.transactions).insertOnConflictUpdate(
-          TransactionsCompanion(
-            id: Value<String>(model.id),
-            amount: Value<double>(model.amount),
-            categoryKey: Value<String?>(model.categoryKey),
-            type: Value<String>(model.type),
-            date: Value<DateTime>(model.date),
-            note: Value<String?>(model.note),
-          ),
+          _toCompanion(model),
         );
+  }
+
+  @override
+  Future<void> insertAll(List<TransactionModel> transactions) async {
+    if (transactions.isEmpty) {
+      return;
+    }
+
+    await _db.batch((Batch batch) {
+      batch.insertAllOnConflictUpdate(
+        _db.transactions,
+        transactions.map(_toCompanion).toList(growable: false),
+      );
+    });
   }
 
   @override
@@ -121,4 +129,15 @@ class TransactionLocalDatasourceImpl implements TransactionLocalDatasource {
         date: row.date,
         note: row.note,
       );
+
+  TransactionsCompanion _toCompanion(TransactionModel model) {
+    return TransactionsCompanion(
+      id: Value<String>(model.id),
+      amount: Value<double>(model.amount),
+      categoryKey: Value<String?>(model.categoryKey),
+      type: Value<String>(model.type),
+      date: Value<DateTime>(model.date),
+      note: Value<String?>(model.note),
+    );
+  }
 }
