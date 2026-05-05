@@ -38,7 +38,7 @@ class AppLeftDrawer extends StatelessWidget {
               builder: (BuildContext context, AuthState state) {
                 if (state is AuthAuthenticated) {
                   return Container(
-                    padding: EdgeInsets.fromLTRB(16, topInset + 48, 16, 16),
+                    padding: EdgeInsets.fromLTRB(16, topInset + 24, 16, 18),
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -90,7 +90,7 @@ class AppLeftDrawer extends StatelessWidget {
                 }
 
                 return Container(
-                  padding: EdgeInsets.fromLTRB(16, topInset + 48, 16, 16),
+                  padding: EdgeInsets.fromLTRB(16, topInset + 24, 16, 18),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,

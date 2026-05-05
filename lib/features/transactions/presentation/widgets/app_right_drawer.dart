@@ -48,7 +48,7 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             Container(
-              padding: EdgeInsets.fromLTRB(16, topInset + 48, 16, 16),
+              padding: EdgeInsets.fromLTRB(16, topInset + 24, 16, 18),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -72,30 +72,33 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        l10n.drawerSettingsTitle,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          inherit: true,
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          l10n.drawerSettingsTitle,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            inherit: true,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Spendo',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          inherit: true,
+                        const SizedBox(height: 2),
+                        Text(
+                          'Spendo',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            inherit: true,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
