@@ -86,6 +86,8 @@
   "languageTitleEnglish": "Language: English",
   "currencyLabel": "Валюта",
   "insightsTitle": "Аналитика",
+  "insightsDailySpendingTitle": "Расходы по дням",
+  "insightsMonthlySpendingTitle": "Расходы по месяцам",
   "insightsEmptyTitle": "Пока нет аналитики",
   "insightsEmptyMessage": "Добавьте несколько транзакций за этот период, и Spendo найдет полезные закономерности.",
   "insightsErrorTitle": "Не удалось загрузить аналитику",

@@ -264,6 +264,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get insightsTitle => 'Аналитика';
 
   @override
+  String get insightsDailySpendingTitle => 'Расходы по дням';
+
+  @override
+  String get insightsMonthlySpendingTitle => 'Расходы по месяцам';
+
+  @override
   String get insightsEmptyTitle => 'Пока нет аналитики';
 
   @override
@@ -310,8 +316,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'В прошлом периоде расходов не было; в этом вы потратили $amount';
 
   @override
-  String insightMostExpensiveDay(String day) =>
-      '$day — ваш самый дорогой день';
+  String insightMostExpensiveDay(String day) => '$day — ваш самый дорогой день';
 
   @override
   String get insightNoExpenseDay => 'Пока нет дня с заметными расходами';
@@ -435,8 +440,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get budgetLimitInputLabel => 'Лимит';
 
   @override
-  String get budgetInvalidLimitMessage =>
-      'Введите лимит больше нуля';
+  String get budgetInvalidLimitMessage => 'Введите лимит больше нуля';
 
   @override
   String get budgetTotalCategoryLabel => 'общий';
@@ -467,8 +471,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signInToSync => 'Войдите для синхронизации';
 
   @override
-  String get builtInCategoriesHint =>
-      'Встроенные (нажмите чтобы заменить)';
+  String get builtInCategoriesHint => 'Встроенные (нажмите чтобы заменить)';
 
   @override
   String get customCategories => 'Пользовательские';

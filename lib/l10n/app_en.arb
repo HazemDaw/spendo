@@ -86,6 +86,8 @@
   "languageTitleEnglish": "Language: English",
   "currencyLabel": "Currency",
   "insightsTitle": "Insights",
+  "insightsDailySpendingTitle": "Daily Spending",
+  "insightsMonthlySpendingTitle": "Monthly Spending",
   "insightsEmptyTitle": "No insights yet",
   "insightsEmptyMessage": "Add a few transactions for this period and Spendo will find useful patterns.",
   "insightsErrorTitle": "Could not load insights",

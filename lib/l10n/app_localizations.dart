@@ -120,6 +120,8 @@ abstract class AppLocalizations {
   String get languageTitleEnglish;
   String get currencyLabel;
   String get insightsTitle;
+  String get insightsDailySpendingTitle;
+  String get insightsMonthlySpendingTitle;
   String get insightsEmptyTitle;
   String get insightsEmptyMessage;
   String get insightsErrorTitle;

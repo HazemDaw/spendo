@@ -58,8 +58,9 @@ class InsightsCubit extends Cubit<InsightsState> {
       referenceDate.year,
     );
 
-    final Failure? failure =
-        currentResult.failure ?? previousResult.failure ?? budgetsResult.failure;
+    final Failure? failure = currentResult.failure ??
+        previousResult.failure ??
+        budgetsResult.failure;
     if (failure != null) {
       emit(InsightsError(failure.message));
       return;
@@ -68,7 +69,14 @@ class InsightsCubit extends Cubit<InsightsState> {
     final List<Transaction> currentTransactions =
         currentResult.value ?? const <Transaction>[];
     if (currentTransactions.isEmpty) {
-      emit(const InsightsLoaded(insights: <InsightCardData>[]));
+      emit(
+        InsightsLoaded(
+          insights: const <InsightCardData>[],
+          currentTransactions: currentTransactions,
+          currentRange: currentRange,
+          period: period,
+        ),
+      );
       return;
     }
 
@@ -97,6 +105,9 @@ class InsightsCubit extends Cubit<InsightsState> {
             currencySymbol,
           ),
         ],
+        currentTransactions: currentTransactions,
+        currentRange: currentRange,
+        period: period,
       ),
     );
   }
@@ -393,14 +404,26 @@ class InsightsLoading extends InsightsState {
 class InsightsLoaded extends InsightsState {
   const InsightsLoaded({
     required this.insights,
+    this.currentTransactions = const <Transaction>[],
+    this.currentRange,
+    this.period,
   });
 
   final List<InsightCardData> insights;
+  final List<Transaction> currentTransactions;
+  final TransactionDateRange? currentRange;
+  final TransactionPeriod? period;
 
   bool get isEmpty => insights.isEmpty;
 
   @override
-  List<Object?> get props => <Object?>[insights];
+  List<Object?> get props => <Object?>[
+        insights,
+        currentTransactions,
+        currentRange?.start,
+        currentRange?.end,
+        period,
+      ];
 }
 
 class InsightsError extends InsightsState {

@@ -228,15 +228,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerAbout => 'About Spendo';
 
   @override
-  String get drawerAboutDescription =>
-      'An app for tracking personal expenses.';
+  String get drawerAboutDescription => 'An app for tracking personal expenses.';
 
   @override
   String get drawerSettingsTitle => 'Settings';
 
   @override
-  String get featureComingSoonMessage =>
-      'This feature will be available later';
+  String get featureComingSoonMessage => 'This feature will be available later';
 
   @override
   String get syncTitle => 'Sync';
@@ -264,6 +262,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightsTitle => 'Insights';
+
+  @override
+  String get insightsDailySpendingTitle => 'Daily Spending';
+
+  @override
+  String get insightsMonthlySpendingTitle => 'Monthly Spending';
 
   @override
   String get insightsEmptyTitle => 'No insights yet';
@@ -304,8 +308,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'You spent $percent% less than last period';
 
   @override
-  String get insightSpentSame =>
-      'Your spending is the same as last period';
+  String get insightSpentSame => 'Your spending is the same as last period';
 
   @override
   String insightNoPreviousExpenses(String amount) =>
@@ -437,8 +440,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetLimitInputLabel => 'Limit';
 
   @override
-  String get budgetInvalidLimitMessage =>
-      'Enter a limit greater than zero';
+  String get budgetInvalidLimitMessage => 'Enter a limit greater than zero';
 
   @override
   String get budgetTotalCategoryLabel => 'total';
@@ -475,8 +477,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customCategories => 'Custom';
 
   @override
-  String get noCustomCategories =>
-      'No custom categories.\nTap + to add one.';
+  String get noCustomCategories => 'No custom categories.\nTap + to add one.';
 
   @override
   String replaceCategoryTitle(String category) => "Replace '$category'";
