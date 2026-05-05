@@ -11,52 +11,48 @@ this file when architecture, product direction, or implementation status changes
 
 - App: `Spendo`
 - Type: Flutter mobile app for personal expense tracking
-- Context: graduation project / thesis work
+- Context: Graduation project / thesis — Amur State University, 09.03.04
 - Platforms: Android and iOS
-- Current state: complete thesis build. Phases 1, 2, and 3 are implemented.
-- Core direction: offline-first expense tracking with a custom Monefy-inspired
+- Current state: **Feature-complete. Final thesis build. Do not add new features.**
+- Core direction: Offline-first expense tracking with a custom Monefy-inspired
   home screen, Drift/SQLite persistence, BLoC state management, Firebase auth/sync,
-  Russian/English localization, persistent dark mode, budgets, export, and
-  custom categories.
+  Russian/English localization, persistent dark mode, budgets, export, spending
+  insights, and custom categories.
 
 ---
 
 ## Complete Feature Set
 
-### Phase 1 - UI and Transaction Experience
+### Phase 1 — UI and Transaction Experience
 
-Complete. The app includes the full user-facing transaction experience:
-
-- Custom home screen with fixed-reference `738 x 1600` canvas scaled by
-  `FittedBox`
+- Custom home screen with fixed-reference `738 x 1600` canvas scaled by `FittedBox`
 - Donut chart with category totals
-- Orbit category icons around the chart
-- Connector lines between orbit icons and chart slices
-- Swipe navigation between periods
-- Full-screen animated period transition
+- Orbit category icons around the chart with connector lines
+- PageView-based period swiping (physical swipe, carousel feel)
 - Adjacent period labels on the home screen
 - Six period types: day, week, month, year, all time, interval
 - Add, edit, and delete transactions
-- Calculator keypad for amount entry
+- Transaction undo snackbar after delete (4s window)
+- Transaction success feedback (violet SnackBar + haptic on save)
+- Calculator keypad for amount entry with expression evaluation
 - Category picker
 - Category transaction list
-- All transactions screen
-- Search over transactions
+- All transactions screen with filter chips (type + category) and search
+- Search over transactions via SearchDelegate
 - Left drawer and right drawer
 - Balance bar navigation to all transactions
-- Date labels based on the selected period and current reference date
+- Date labels based on selected period and reference date
 - Localized home labels and actions
+- Haptic feedback on key interactive elements
 
-### Phase 2 - Offline-First Data and State
+### Phase 2 — Offline-First Data and State
 
-Complete. Local state and persistence are implemented with:
-
-- Drift/SQLite offline-first database
-- Clean-architecture-style layers: presentation, domain, data
+- Drift/SQLite offline-first database (4 tables: Transactions, Budgets,
+  CustomCategories, OrbitSlots)
+- Clean Architecture layers: presentation, domain, data
 - Repository APIs returning `Either<Failure, T>`
 - Transaction data model, datasource, repository, and use cases
 - `TransactionBloc` for loading, adding, updating, deleting, and reloading
-  transactions
 - `KeypadCubit` for calculator keypad state
 - `PeriodCubit` registered for period state support
 - `get_it` dependency injection
@@ -64,41 +60,40 @@ Complete. Local state and persistence are implemented with:
 - Budget storage
 - Widget and bloc tests for core transaction behavior
 
-### Phase 3 - Auth and Cloud Sync
+### Phase 3 — Auth and Cloud Sync
 
-Complete. Authentication and remote sync are implemented with:
-
-- Firebase Auth
-- Email/password sign-in and registration
-- Google sign-in
+- Firebase Auth (email/password + Google Sign-In)
 - Auth BLoC/state flow
-- Auth-aware drawer header
-- Google profile photo in the authenticated drawer header when available
-- Firestore transaction sync
-- First-login upload of local Drift transactions
+- Auth-aware drawer header with Google profile photo
+- Firestore transaction sync (local → cloud on every write)
+- First-login upload of local Drift transactions to Firestore
+- **Restore from cloud on fresh install**: on sign-in with empty local DB,
+  all Firestore transactions are pulled down and saved to Drift
 - Local-only mode for unauthenticated users
 - Sync status displayed in the left drawer
 
 ### Extra Features
 
-Complete. The app also includes:
-
 - Persistent dark mode via `ThemeCubit` and `SharedPreferences`
-- Russian and English language switching via `LocaleCubit` and
-  `SharedPreferences`
+- Russian/English language switching via `LocaleCubit` and `SharedPreferences`
 - `flutter_localizations` and generated app localization classes
-- PDF export
+- Currency display selector (₽, $, €) via `CurrencyCubit` + `SharedPreferences`
+- PDF export (header, period label, income/expense summary, category breakdown table,
+  transaction list grouped by category)
 - CSV export
-- Budget limits
-- Budget warning banner on the home screen
+- Budget limits (total + per-category)
+- Budget warning banner on home screen (tappable → navigates to budget page)
+- Budget progress indicator (orange at 80%, red at 100%)
+- Pulsing animation on donut segment of over-budget category
 - Budget page with total and per-category limits
-- Custom categories
+- Custom categories with orbit slot swapping
 - Categories page
-- Orbit slot swapping
 - Custom category picker support
 - Export bottom sheet
 - Right drawer settings/actions
-- Recurring transactions placeholder
+- Spending Insights screen with 4 auto-generated insight cards + bar chart
+- Onboarding flow (3 screens, shown only on first launch, persisted via SharedPreferences)
+- Branded app icon and splash screen (violet #7C3AED)
 
 ---
 
@@ -124,6 +119,8 @@ Complete. The app also includes:
 - `pdf`
 - `csv`
 - `share_plus`
+- `flutter_launcher_icons` (dev)
+- `flutter_native_splash` (dev)
 
 Do not introduce a new state management or persistence stack unless explicitly
 requested. The app direction is BLoC + Drift/SQLite + Firebase sync.
@@ -137,8 +134,7 @@ The app follows a clean-architecture-flavored structure:
 - `presentation` triggers events and renders state
 - `domain` defines entities, repositories, and use cases
 - `data` implements repositories, datasources, models, and persistence details
-- Repositories return `Either<Failure, T>` instead of throwing upward for
-  expected failures
+- Repositories return `Either<Failure, T>` instead of throwing for expected failures
 - Dependency registration is centralized in `lib/injection_container.dart`
 
 Transaction flow:
@@ -154,6 +150,7 @@ Core files:
 - `lib/injection_container.dart`
 - `lib/core/theme/theme_cubit.dart`
 - `lib/core/locale/locale_cubit.dart`
+- `lib/core/currency/currency_cubit.dart`
 - `lib/core/utils/date_utils.dart`
 - `lib/features/transactions/presentation/bloc/transaction_bloc.dart`
 - `lib/features/transactions/data/datasources/transaction_local_datasource.dart`
@@ -161,6 +158,8 @@ Core files:
 - `lib/features/transactions/data/repositories/transaction_repository_impl.dart`
 - `lib/features/auth/presentation/bloc/auth_bloc.dart`
 - `lib/features/auth/data/datasources/firebase_auth_datasource.dart`
+- `lib/features/insights/presentation/bloc/insights_cubit.dart`
+- `lib/features/insights/presentation/pages/insights_page.dart`
 
 ---
 
@@ -168,13 +167,15 @@ Core files:
 
 Routes are defined in `lib/main.dart`.
 
+- `/onboarding` -> onboarding flow (first launch only)
 - `/` -> home
 - `/add` -> add transaction
 - `/edit/:transactionId` -> edit transaction
 - `/transactions/:categoryKey` -> category transaction list
-- `/all-transactions` -> all transactions grouped by category
+- `/all-transactions` -> all transactions with filter chips
 - `/budget` -> budget page
 - `/categories` -> categories page
+- `/insights` -> spending insights screen
 - `/login` -> login
 - `/register` -> registration
 
@@ -183,8 +184,10 @@ At app startup:
 - Dependency injection is initialized
 - `ThemeCubit` loads persisted dark/light preference
 - `LocaleCubit` loads persisted Russian/English preference
+- `CurrencyCubit` loads persisted currency symbol preference
 - `Intl.defaultLocale` is kept in sync with the selected app locale
 - `TransactionBloc` loads the current period
+- Onboarding check: if `onboarding_complete` is false → `/onboarding`, else `/`
 - Auth state is checked and sync behavior follows authentication status
 
 ---
@@ -200,21 +203,37 @@ Preserve these characteristics:
 - The screen is scaled via `FittedBox`
 - Layout is heavily position-based, not a standard responsive column layout
 - The composition is fragile; do not normalize it into generic Material layout
-- The home screen uses a custom Monefy-inspired visual system
-- Standard screens rely on `AppTheme` and the purple token set in
-  `lib/core/theme`
-- Orbit icons, connector lines, donut geometry, balance bar, and action buttons
-  are visually sensitive
+- Period swiping uses `PageView` with a large virtual page count (e.g. 10000)
+  centered at the middle. The two action buttons (income/expense) are OUTSIDE
+  the PageView and must never move during swipes.
+- `_chartCenter = Offset(369, 686)` — do NOT change
+- `_donutOuterRadius = 205` — do NOT change
+- Colors via `isDark` boolean on home screen, NOT `Theme.of(context)`
+- Standard screens rely on `AppTheme` and `AppColors`
 
 Before changing category rendering, verify whether the change affects:
+orbit layout, donut slices, connector lines, list filtering, category picker
+behavior, budget warning labels, custom category mapping.
 
-- Orbit layout
-- Donut slices
-- Connector lines
-- List filtering
-- Category picker behavior
-- Budget warning labels
-- Custom category mapping
+---
+
+## Insights Screen
+
+- Located at `lib/features/insights/presentation/pages/insights_page.dart`
+- Accessible from right drawer (lightbulb icon)
+- `InsightsCubit` calculates all insights locally from Drift data — no network calls
+- Depends on `TransactionRepository` and `BudgetRepository`
+- 4 insight cards:
+  1. Largest expense category this period
+  2. Spending vs previous period (% change)
+  3. Most expensive day of the week
+  4. Budget status (on track / exceeded)
+- Bar chart below cards: daily spending (or monthly for year/all-time periods)
+  - Highest bar highlighted in red #EF4444
+  - Gradient fill, rounded tops, no border frame
+  - Chart title changes dynamically based on grouping
+- Two empty states: no transactions ever / no transactions this period
+- Loading state: CircularProgressIndicator
 
 ---
 
@@ -227,71 +246,68 @@ Before changing category rendering, verify whether the change affects:
 - Transactions are identified by string `id`
 - Mutations reload the active period after success
 - Transaction state is exposed through `TransactionBloc`
+- Delete shows undo SnackBar (4s, grey background, re-adds via AddTransactionEvent)
 
 ### Periods
 
-Supported periods:
+Supported periods: `day`, `week`, `month`, `year`, `all`, `interval`
 
-- `day`
-- `week`
-- `month`
-- `year`
-- `all`
-- `interval`
-
-Date-range logic lives in `lib/core/utils/date_utils.dart`. The home screen
-uses period state to dispatch `LoadTransactionsEvent` with reference date and,
-for intervals, optional start/end dates.
+Date-range logic lives in `lib/core/utils/date_utils.dart`. The home screen uses
+PageView-based swiping; page changes update `_referenceDate` and dispatch
+`LoadTransactionsEvent`. 12-month back limit is enforced.
 
 ### Categories
 
-- Built-in category metadata lives in `MockData`
-- Do not remove `MockData`; transaction storage moved to Drift/SQLite, but category
-  metadata still depends on it
-- Custom categories are persisted locally
-- Category labels must go through `CategoryLocalizer` / `AppLocalizations`
-- Orbit slot swapping lets users replace default orbit slots with custom
-  categories
+- Built-in category metadata lives in `MockData` — do not remove
+- Custom categories are persisted locally in Drift `CustomCategories` table
+- Category labels go through `CategoryLocalizer` / `AppLocalizations`
+- Orbit slot swapping persisted in `OrbitSlots` table
+- `iconIndex` used instead of dynamic `IconData` for tree-shaking safety
 
 ### Budgets
 
-- Budgets support total limits and per-category limits
-- Budget page shows built-in and visible custom categories
-- Home page displays a warning banner when budgets approach or exceed limits
-- Budget warning labels are localized
+- Total and per-category monthly limits stored in Drift `Budgets` table
+- Warning banner on home screen is tappable → navigates to `/budget`
+- Donut segment of over-budget category has pulsing opacity animation
+- Progress indicator: orange at 80%, red at 100%
+
+### Currency
+
+- `CurrencyCubit` holds selected symbol: ₽, $, €
+- Persists via `SharedPreferences`
+- `currency_formatter.dart` reads from `CurrencyCubit`
+- Selector in right drawer
 
 ### Auth and Sync
 
-- Unauthenticated users can use the app in local-only mode
-- Authenticated users sync through Firestore
-- First login uploads local Drift transactions
+- Unauthenticated users: full local-only mode
+- Authenticated users: every write syncs to Firestore as background microtask
+- First login: local Drift transactions uploaded to Firestore
+- Fresh install + sign-in: Firestore transactions restored to local Drift
+  (triggered when local DB is empty after sign-in)
 - Drawer sync status reflects auth/sync state
-- Authenticated drawer header shows display name/email and Google photo when
-  available
 
 ---
 
 ## Localization Rules
 
-- The app supports Russian and English via `flutter_localizations`
-- User-facing strings must never be hardcoded in widget code
+- App supports Russian and English via `flutter_localizations`
+- Never hardcode user-facing strings in widget code
 - Always use `AppLocalizations` for user-facing strings
-- Category names should use `CategoryLocalizer`
+- Category names use `CategoryLocalizer`
 - Language preference persists via `SharedPreferences` in `LocaleCubit`
 - `LocaleCubit` updates `Intl.defaultLocale`
-- ARB files live in `lib/l10n`
-- Keep English strings in `app_en.arb`
-- Keep Russian strings in `app_ru.arb`
-- Generated localization classes are checked in and used by the app
+- ARB files: `lib/l10n/app_en.arb` and `lib/l10n/app_ru.arb`
+- Generated localization classes are checked in
 
 ---
 
 ## Theme Rules
 
 - Dark mode persists via `SharedPreferences` in `ThemeCubit`
-- Standard screens should use `AppTheme` and `AppColors`
-- The home screen intentionally has a distinct custom visual system
-- Do not silently force the home screen to match generic app theme styling
+- Standard screens use `AppTheme` and `AppColors`
+- Home screen has intentionally distinct custom visual system using `isDark` boolean
+- Do not silently force home screen to match generic app theme styling
 
 ---
 
@@ -312,66 +328,65 @@ When making non-trivial changes, run:
 - `flutter analyze`
 - `flutter test`
 
-If a command times out or hangs, record that clearly in the final response.
-
 ---
 
 ## Working Rules For Future Sessions
 
-1. Treat the current app as feature-complete for the thesis build.
-2. Do not reintroduce phase prompts or old "not started" language.
-3. Do not revert the home screen to the old purple spec.
-4. Home screen uses `FittedBox` with a `738 x 1600` reference canvas; treat it as
-   fragile and do not normalize it.
-5. Never hardcode user-facing strings; always use `AppLocalizations`.
-6. Preserve Russian/English localization and persisted language switching.
-7. Preserve persisted dark mode behavior.
-8. Keep transaction persistence offline-first.
-9. Keep repository APIs returning `Either<Failure, T>`.
-10. Do not throw from repositories for expected data-layer failures.
-11. Avoid large architecture rewrites when the user asked for a focused fix.
-12. Prefer preserving route names and existing navigation contracts.
-13. Before changing category rendering, verify orbit, donut, connectors, lists,
-    picker behavior, and budget behavior.
-14. Run `flutter analyze` and `flutter test` after every non-trivial change.
-15. Work with existing dirty files; never revert user changes unless explicitly
-    requested.
+1. The app is **feature-complete**. Do not add new features without explicit request.
+2. Do not reintroduce phase prompts or "not started" language.
+3. Do not revert the home screen to any old spec.
+4. Home screen `FittedBox` canvas (`738 x 1600`) is fragile — do not normalize it.
+5. The two action buttons (income/expense) must always remain OUTSIDE the PageView.
+6. Never hardcode user-facing strings; always use `AppLocalizations`.
+7. Preserve Russian/English localization and persisted language switching.
+8. Preserve persisted dark mode and currency symbol behavior.
+9. Keep transaction persistence offline-first.
+10. Keep repository APIs returning `Either<Failure, T>`.
+11. Do not throw from repositories for expected data-layer failures.
+12. Avoid large architecture rewrites for focused fixes.
+13. Prefer preserving route names and existing navigation contracts.
+14. Before changing category rendering, verify orbit, donut, connectors, lists,
+    picker, and budget behavior.
+15. Run `flutter analyze` and `flutter test` after every non-trivial change.
+16. Never revert user changes unless explicitly requested.
+17. `CurrencyCubit` must be used for all currency symbol display — never hardcode ₽.
+18. InsightsCubit must never make network calls — local Drift data only.
 
 ---
 
 ## Known Gaps / Post-Thesis Roadmap
 
-These are roadmap items, not blockers for the final thesis build:
-
-- Recurring transactions: UI placeholder exists, logic is not built
-- Financial insights / analytics screen
+- Recurring transactions: UI placeholder exists, logic not built
 - Multi-account support
 - Budget export
-- Custom category in home orbit: currently picker/storage support exists, but
-  full home-orbit rendering is not complete
-- Pets and gifts missing from default orbit: the app defines 10 built-in
-  categories, but the default home orbit shows 8 of 10
+- Fix dynamic `IconData` to remove `--no-tree-shake-icons` build flag
+- Pets and gifts missing from default orbit (8/10 slots shown)
+- `PeriodCubit` registered but home screen drives period via local `_referenceDate`
+- Home screen colors use `isDark` boolean, not theme system
 
 ---
 
 ## Thesis Framing
 
 When asked for thesis-oriented explanations, structure as:
-
 1. What was implemented
-2. Why it was chosen over nearby alternatives
+2. Why it was chosen over alternatives
 3. Trade-offs
 4. How it supports the project goals
 
 | Topic | Thesis angle |
 |---|---|
 | Clean Architecture | SOLID, testability, layer isolation |
-| Drift/SQLite over Isar | SQL-backed portability, generated type-safe queries, release-build stability |
+| Drift/SQLite over Isar | SQL-backed portability, type-safe queries, release-build stability |
 | BLoC over setState | Predictable state machine, testability, explicit event log |
-| Offline-first | Resilience, UX continuity, local-first UX |
+| Offline-first | Resilience, UX continuity, local-first data ownership |
 | Repository pattern | Datasource abstraction, domain independence |
-| Flutter cross-platform | Single codebase trade-offs vs native |
+| Flutter cross-platform | Single codebase vs native trade-offs |
 | Firebase Auth + Firestore | Managed BaaS vs self-hosted: cost, scalability, lock-in |
-| Localization | Internationalization readiness and accessibility for RU/EN users |
-| Persistent settings | User preference continuity through local storage |
-| FittedBox canvas approach | Fixed-reference visual fidelity vs responsive flexibility |
+| Localization | RU/EN internationalization, ARB-based string management |
+| Persistent settings | User preference continuity via SharedPreferences |
+| FittedBox canvas | Fixed-reference visual fidelity vs responsive flexibility |
+| PageView period swiping | Native-feeling carousel navigation vs AnimatedSwitcher |
+| CurrencyCubit | Lightweight display preference layer without conversion complexity |
+| InsightsCubit | Local analytics engine — domain logic in pure Dart, zero network |
+| Onboarding | First-run UX, SharedPreferences persistence, go_router integration |
