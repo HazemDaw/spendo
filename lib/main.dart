@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'core/locale/locale_cubit.dart';
+import 'core/currency/currency_cubit.dart';
 import 'core/mock/mock_data.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
@@ -52,6 +53,9 @@ class SpendoApp extends StatelessWidget {
         ),
         BlocProvider<LocaleCubit>(
           create: (_) => sl<LocaleCubit>(),
+        ),
+        BlocProvider<CurrencyCubit>(
+          create: (_) => sl<CurrencyCubit>(),
         ),
         BlocProvider<AuthBloc>(
           create: (_) => sl<AuthBloc>()..add(const CheckAuthStatusEvent()),

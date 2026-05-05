@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/utils/category_localizer.dart';
@@ -90,6 +91,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final TransactionState transactionState = context.watch<TransactionBloc>().state;
     final bool isDark = context.watch<ThemeCubit>().state == ThemeMode.dark;
+    final String currencySymbol = context.watch<CurrencyCubit>().state;
     final Category? category =
         _categoryStore?.resolveCategory(_selectedCategoryKey);
     final bool isResolvingEditTransaction =
@@ -183,7 +185,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                     children: <Widget>[
                       _buildDateCard(context, l10n),
                       const SizedBox(height: 16),
-                      _buildAmountCard(),
+                      _buildAmountCard(currencySymbol),
                       const SizedBox(height: 16),
                       _buildNoteField(l10n, isDark),
                       const SizedBox(height: 16),
@@ -337,7 +339,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
   }
 
-  Widget _buildAmountCard() {
+  Widget _buildAmountCard(String currencySymbol) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -346,9 +348,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           builder: (BuildContext context, String expression) {
             return Row(
               children: <Widget>[
-                const Text(
-                  '₽',
-                  style: TextStyle(
+                Text(
+                  currencySymbol,
+                  style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryDark,

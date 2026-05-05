@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/mock/mock_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_localizer.dart';
@@ -62,6 +63,7 @@ class _BudgetPageState extends State<BudgetPage> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final String currencySymbol = context.watch<CurrencyCubit>().state;
     final TransactionState transactionState = context.watch<TransactionBloc>().state;
     final Map<String, double> categoryTotals =
         transactionState is TransactionLoaded
@@ -111,6 +113,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     l10n: l10n,
                     budgets: budgets,
                     totalSpent: totalSpent,
+                    currencySymbol: currencySymbol,
                   ),
                   const SizedBox(height: 16),
                   ..._orbitCategoryKeys.map(
@@ -122,6 +125,7 @@ class _BudgetPageState extends State<BudgetPage> {
                         categoryKey: categoryKey,
                         budgets: budgets,
                         spentAmount: categoryTotals[categoryKey] ?? 0,
+                        currencySymbol: currencySymbol,
                       ),
                     ),
                   ),
@@ -146,6 +150,7 @@ class _BudgetPageState extends State<BudgetPage> {
                           category: category,
                           budgets: budgets,
                           spentAmount: categoryTotals[category.id] ?? 0,
+                          currencySymbol: currencySymbol,
                         ),
                       ),
                     ),
@@ -176,6 +181,7 @@ class _BudgetPageState extends State<BudgetPage> {
     required AppLocalizations l10n,
     required List<Budget> budgets,
     required double totalSpent,
+    required String currencySymbol,
   }) {
     final Budget? totalBudget = _findBudget(budgets, null);
 
@@ -213,19 +219,34 @@ class _BudgetPageState extends State<BudgetPage> {
                 children: <Widget>[
                   Expanded(
                     child: Text(
-                      l10n.budgetSpentLabel(CurrencyFormatter.format(totalSpent)),
+                      l10n.budgetSpentLabel(
+                        CurrencyFormatter.format(
+                          totalSpent,
+                          symbol: currencySymbol,
+                        ),
+                      ),
                       style: const TextStyle(color: AppColors.expense),
                     ),
                   ),
                   Expanded(
                     child: Text(
-                      l10n.budgetLimitLabel(CurrencyFormatter.format(totalBudget.limitAmount)),
+                      l10n.budgetLimitLabel(
+                        CurrencyFormatter.format(
+                          totalBudget.limitAmount,
+                          symbol: currencySymbol,
+                        ),
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
                   Expanded(
                     child: Text(
-                      l10n.budgetRemainingLabel(_formatSignedAmount(totalBudget.limitAmount - totalSpent)),
+                      l10n.budgetRemainingLabel(
+                        _formatSignedAmount(
+                          totalBudget.limitAmount - totalSpent,
+                          currencySymbol,
+                        ),
+                      ),
                       textAlign: TextAlign.end,
                       style: TextStyle(
                         color: totalBudget.limitAmount - totalSpent >= 0
@@ -259,6 +280,7 @@ class _BudgetPageState extends State<BudgetPage> {
     required String categoryKey,
     required List<Budget> budgets,
     required double spentAmount,
+    required String currencySymbol,
   }) {
     final category = MockData.categoryByKey(categoryKey)!;
     final Budget? budget = _findBudget(budgets, categoryKey);
@@ -280,7 +302,10 @@ class _BudgetPageState extends State<BudgetPage> {
                   ),
                 ),
                 Text(
-                  CurrencyFormatter.format(spentAmount),
+                  CurrencyFormatter.format(
+                    spentAmount,
+                    symbol: currencySymbol,
+                  ),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -314,7 +339,12 @@ class _BudgetPageState extends State<BudgetPage> {
                   ),
                   const Spacer(),
                   Text(
-                    l10n.budgetLimitLabel(CurrencyFormatter.format(budget.limitAmount)),
+                    l10n.budgetLimitLabel(
+                      CurrencyFormatter.format(
+                        budget.limitAmount,
+                        symbol: currencySymbol,
+                      ),
+                    ),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontSize: 12,
                         ),
@@ -334,6 +364,7 @@ class _BudgetPageState extends State<BudgetPage> {
     required CustomCategoryModel category,
     required List<Budget> budgets,
     required double spentAmount,
+    required String currencySymbol,
   }) {
     final Budget? budget = _findBudget(budgets, category.id);
     final Color color = Color(category.colorValue);
@@ -362,7 +393,10 @@ class _BudgetPageState extends State<BudgetPage> {
                   ),
                 ),
                 Text(
-                  CurrencyFormatter.format(spentAmount),
+                  CurrencyFormatter.format(
+                    spentAmount,
+                    symbol: currencySymbol,
+                  ),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -396,7 +430,12 @@ class _BudgetPageState extends State<BudgetPage> {
                   ),
                   const Spacer(),
                   Text(
-                    l10n.budgetLimitLabel(CurrencyFormatter.format(budget.limitAmount)),
+                    l10n.budgetLimitLabel(
+                      CurrencyFormatter.format(
+                        budget.limitAmount,
+                        symbol: currencySymbol,
+                      ),
+                    ),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontSize: 12,
                         ),
@@ -450,8 +489,11 @@ class _BudgetPageState extends State<BudgetPage> {
     return '${value[0].toUpperCase()}${value.substring(1)}';
   }
 
-  String _formatSignedAmount(double amount) {
-    final String formatted = CurrencyFormatter.format(amount.abs());
+  String _formatSignedAmount(double amount, String currencySymbol) {
+    final String formatted = CurrencyFormatter.format(
+      amount.abs(),
+      symbol: currencySymbol,
+    );
     return amount.isNegative ? '-$formatted' : formatted;
   }
 
@@ -492,6 +534,7 @@ class _BudgetPageState extends State<BudgetPage> {
     final Budget? existingBudget = _findBudget(budgets, categoryKey);
     String amountInput = existingBudget?.limitAmount.toStringAsFixed(0) ?? '';
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final String currencySymbol = context.read<CurrencyCubit>().state;
 
     await showDialog<void>(
       context: context,
@@ -517,7 +560,17 @@ class _BudgetPageState extends State<BudgetPage> {
                 ),
                 decoration: InputDecoration(
                   labelText: l10n.budgetLimitInputLabel,
-                  prefixIcon: const Icon(Icons.currency_ruble),
+                  prefixIcon: Center(
+                    widthFactor: 1,
+                    child: Text(
+                      currencySymbol,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],

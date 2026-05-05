@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_localizer.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -27,6 +29,7 @@ class TransactionListItem extends StatelessWidget {
     final Color amountColor = transaction.type == TransactionType.expense
         ? AppColors.expense
         : AppColors.income;
+    final String currencySymbol = context.watch<CurrencyCubit>().state;
     final String dateLabel =
         DateFormat('EEE, d MMM', 'ru_RU').format(transaction.date);
 
@@ -55,7 +58,10 @@ class TransactionListItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
           Text(
-            CurrencyFormatter.format(transaction.amount),
+            CurrencyFormatter.format(
+              transaction.amount,
+              symbol: currencySymbol,
+            ),
             style: Theme.of(context)
                 .textTheme
                 .titleMedium

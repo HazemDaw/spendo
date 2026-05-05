@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_utils.dart';
@@ -355,7 +356,10 @@ class _AccountRow extends StatelessWidget {
         children: <Widget>[
           Text(label),
           Text(
-            CurrencyFormatter.format(amount),
+            CurrencyFormatter.format(
+              amount,
+              symbol: context.watch<CurrencyCubit>().state,
+            ),
             style: TextStyle(
               color: color,
               fontWeight: FontWeight.w600,

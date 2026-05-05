@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/locale/locale_cubit.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_cubit.dart';
@@ -14,9 +15,11 @@ import 'export_bottom_sheet.dart';
 class AppRightDrawer extends StatefulWidget {
   const AppRightDrawer({
     super.key,
+    required this.currentPeriodLabel,
     this.onCategoriesTap,
   });
 
+  final String currentPeriodLabel;
   final Future<void> Function()? onCategoriesTap;
 
   @override
@@ -136,6 +139,29 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
                 );
               },
             ),
+            BlocBuilder<CurrencyCubit, String>(
+              builder: (BuildContext context, String selectedCurrency) {
+                return ListTile(
+                  leading: const Icon(Icons.payments, color: AppColors.primary),
+                  title: Text(l10n.currencyLabel),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: CurrencyCubit.supportedSymbols
+                        .map(
+                          (String symbol) => _CurrencyOption(
+                            symbol: symbol,
+                            isSelected: selectedCurrency == symbol,
+                            onTap: () =>
+                                context.read<CurrencyCubit>().setCurrency(
+                                      symbol,
+                                    ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(
                 Icons.upload_file,
@@ -147,7 +173,9 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
                 Navigator.pop(context);
                 showModalBottomSheet<void>(
                   context: context,
-                  builder: (_) => const ExportBottomSheet(),
+                  builder: (_) => ExportBottomSheet(
+                    periodLabel: widget.currentPeriodLabel,
+                  ),
                 );
               },
             ),
@@ -197,6 +225,40 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CurrencyOption extends StatelessWidget {
+  const _CurrencyOption({
+    required this.symbol,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String symbol;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color =
+        isSelected ? const Color(0xFF7C3AED) : AppColors.textSecondary;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Text(
+          symbol,
+          style: TextStyle(
+            color: color,
+            fontSize: 16,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
         ),
       ),
     );

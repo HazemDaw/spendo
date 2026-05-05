@@ -8,10 +8,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:spendo/features/transactions/domain/entities/transaction.dart';
 
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/mock/mock_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/utils/category_localizer.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../injection_container.dart';
 import '../../../categories/data/datasources/custom_category_local_datasource.dart';
@@ -49,11 +51,6 @@ class _HomePageState extends State<HomePage> {
   static const double _iconTouchSize = 84;
   static const double _iconSize = 58;
   static const double _slotAxisRadius = _donutOuterRadius + _orbitGridOffset;
-  static final NumberFormat _homeAmountFormatter = NumberFormat.currency(
-    locale: 'en_US',
-    symbol: 'RUB',
-    decimalDigits: 2,
-  );
   static const List<_OrbitAssignment> _defaultOrbitAssignments =
       <_OrbitAssignment>[
         _OrbitAssignment(
@@ -191,6 +188,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final bool isDark = context.watch<ThemeCubit>().state == ThemeMode.dark;
+    final String currencySymbol = context.watch<CurrencyCubit>().state;
     const Color headerBg = Color(0xFF7C3AED);
     final Color canvasBg =
         isDark ? const Color(0xFF1E1B2E) : const Color(0xFFF5F3FF);
@@ -278,7 +276,10 @@ class _HomePageState extends State<HomePage> {
             onPeriodSelected: _selectPeriod,
           ),
           drawerEnableOpenDragGesture: false,
-          endDrawer: AppRightDrawer(onCategoriesTap: _openCategoriesPage),
+          endDrawer: AppRightDrawer(
+            currentPeriodLabel: selectedPeriodLabel,
+            onCategoriesTap: _openCategoriesPage,
+          ),
           endDrawerEnableOpenDragGesture: false,
           body: Align(
             alignment: Alignment.topCenter,
@@ -488,10 +489,16 @@ class _HomePageState extends State<HomePage> {
                                           dimension: _donutOuterRadius * 2,
                                           child: DonutChartWidget(
                                             slices: slices,
-                                            incomeText: _homeAmountFormatter
-                                                .format(income),
-                                            expenseText: _homeAmountFormatter
-                                                .format(expense),
+                                            incomeText:
+                                                CurrencyFormatter.format(
+                                              income,
+                                              symbol: currencySymbol,
+                                            ),
+                                            expenseText:
+                                                CurrencyFormatter.format(
+                                              expense,
+                                              symbol: currencySymbol,
+                                            ),
                                             startAngleDegrees:
                                                 dynamicStartAngle,
                                             outerRadius: _donutOuterRadius,
@@ -542,6 +549,7 @@ class _HomePageState extends State<HomePage> {
                               balanceLabel: l10n.balanceLabel,
                               balanceText: _formatSignedHomeAmount(
                                 income - expense,
+                                currencySymbol,
                               ),
                               backgroundColor: balanceBarBg,
                               onTap: () => context.push(
@@ -1233,8 +1241,11 @@ class _HomePageState extends State<HomePage> {
     return '${((amount / totalExpense) * 100).round()}%';
   }
 
-  String _formatSignedHomeAmount(double amount) {
-    final String formatted = _homeAmountFormatter.format(amount.abs());
+  String _formatSignedHomeAmount(double amount, String currencySymbol) {
+    final String formatted = CurrencyFormatter.format(
+      amount.abs(),
+      symbol: currencySymbol,
+    );
     return amount.isNegative ? '-$formatted' : formatted;
   }
 

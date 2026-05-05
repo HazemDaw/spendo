@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/database/app_database.dart';
+import 'core/currency/currency_cubit.dart';
 import 'core/locale/locale_cubit.dart';
 import 'core/theme/theme_cubit.dart';
 import 'features/auth/data/datasources/firebase_auth_datasource.dart';
@@ -184,6 +185,11 @@ Future<void> initDependencies() async {
   if (!sl.isRegistered<LocaleCubit>()) {
     sl.registerFactory<LocaleCubit>(
       () => LocaleCubit(sl<SharedPreferences>()),
+    );
+  }
+  if (!sl.isRegistered<CurrencyCubit>()) {
+    sl.registerFactory<CurrencyCubit>(
+      () => CurrencyCubit(sl<SharedPreferences>()),
     );
   }
 }

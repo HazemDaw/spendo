@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/mock/mock_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_localizer.dart';
@@ -41,6 +42,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final String currencySymbol = context.watch<CurrencyCubit>().state;
     final category = MockData.categoryByKey(widget.categoryKey);
 
     return BlocListener<TransactionBloc, TransactionState>(
@@ -119,7 +121,10 @@ class _TransactionListPageState extends State<TransactionListPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          CurrencyFormatter.format(total),
+                          CurrencyFormatter.format(
+                            total,
+                            symbol: currencySymbol,
+                          ),
                           style: Theme.of(context)
                               .textTheme
                               .titleLarge

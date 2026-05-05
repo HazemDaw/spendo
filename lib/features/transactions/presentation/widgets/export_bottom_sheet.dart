@@ -4,13 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/services/export_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../bloc/transaction_bloc.dart';
 import '../bloc/transaction_state.dart';
 
 class ExportBottomSheet extends StatefulWidget {
-  const ExportBottomSheet({super.key});
+  const ExportBottomSheet({
+    super.key,
+    required this.periodLabel,
+  });
+
+  final String periodLabel;
 
   @override
   State<ExportBottomSheet> createState() => _ExportBottomSheetState();
@@ -98,12 +104,15 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
     try {
       late final File file;
       final String locale = Localizations.localeOf(context).languageCode;
+      final String currencySymbol = context.read<CurrencyCubit>().state;
       if (format == 'pdf') {
         file = await _exportService.exportPdf(
           state.transactions,
           state.totalIncome,
           state.totalExpense,
           locale: locale,
+          periodLabel: widget.periodLabel,
+          currencySymbol: currencySymbol,
         );
       } else {
         file = await _exportService.exportCsv(

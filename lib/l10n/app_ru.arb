@@ -84,6 +84,7 @@
   "chartOther": "Прочее",
   "languageTitleRussian": "Язык: Русский",
   "languageTitleEnglish": "Language: English",
+  "currencyLabel": "Валюта",
   "exportTitle": "Экспорт данных",
   "exportChooseFormat": "Выберите формат",
   "exportPdf": "Экспорт в PDF",
@@ -195,7 +196,7 @@
       }
     }
   },
-  "budgetLimitInputLabel": "Лимит (₽)",
+  "budgetLimitInputLabel": "Лимит",
   "budgetInvalidLimitMessage": "Введите лимит больше нуля",
   "budgetTotalCategoryLabel": "общий",
   "deleteConfirmTitle": "Удалить категорию?",

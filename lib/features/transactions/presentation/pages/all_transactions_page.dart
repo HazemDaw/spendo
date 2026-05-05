@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_localizer.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -31,6 +32,7 @@ class _AllTransactionsPageState extends State<AllTransactionsPage> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final String currencySymbol = context.watch<CurrencyCubit>().state;
 
     return BlocListener<TransactionBloc, TransactionState>(
       listener: (BuildContext context, TransactionState state) {
@@ -109,7 +111,10 @@ class _AllTransactionsPageState extends State<AllTransactionsPage> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            CurrencyFormatter.format(section.total),
+                            CurrencyFormatter.format(
+                              section.total,
+                              symbol: currencySymbol,
+                            ),
                             style: TextStyle(
                               color: section.isIncome
                                   ? AppColors.income

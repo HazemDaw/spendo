@@ -256,6 +256,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get languageTitleEnglish => 'Language: English';
+
+  @override
+  String get currencyLabel => 'Валюта';
+
   @override
   String get exportTitle => 'Экспорт данных';
 
@@ -361,7 +365,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String budgetUsedPercent(int percent) => '$percent% использовано';
 
   @override
-  String get budgetLimitInputLabel => 'Лимит (₽)';
+  String get budgetLimitInputLabel => 'Лимит';
 
   @override
   String get budgetInvalidLimitMessage =>

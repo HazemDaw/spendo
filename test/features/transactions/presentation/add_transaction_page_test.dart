@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spendo/core/currency/currency_cubit.dart';
 import 'package:spendo/core/theme/theme_cubit.dart';
 import 'package:spendo/core/utils/date_utils.dart';
 import 'package:spendo/features/transactions/domain/entities/transaction.dart';
@@ -38,12 +39,15 @@ void main() {
           await SharedPreferences.getInstance();
       final ThemeCubit themeCubit = ThemeCubit(preferences);
       addTearDown(themeCubit.close);
+      final CurrencyCubit currencyCubit = CurrencyCubit(preferences);
+      addTearDown(currencyCubit.close);
 
       await tester.pumpWidget(
         MultiBlocProvider(
           providers: <BlocProvider<dynamic>>[
             BlocProvider<TransactionBloc>.value(value: bloc),
             BlocProvider<ThemeCubit>.value(value: themeCubit),
+            BlocProvider<CurrencyCubit>.value(value: currencyCubit),
           ],
           child: const MaterialApp(
             locale: Locale('ru'),
@@ -92,12 +96,15 @@ void main() {
           await SharedPreferences.getInstance();
       final ThemeCubit themeCubit = ThemeCubit(preferences);
       addTearDown(themeCubit.close);
+      final CurrencyCubit currencyCubit = CurrencyCubit(preferences);
+      addTearDown(currencyCubit.close);
 
       await tester.pumpWidget(
         MultiBlocProvider(
           providers: <BlocProvider<dynamic>>[
             BlocProvider<TransactionBloc>.value(value: bloc),
             BlocProvider<ThemeCubit>.value(value: themeCubit),
+            BlocProvider<CurrencyCubit>.value(value: currencyCubit),
           ],
           child: const MaterialApp(
             locale: Locale('ru'),

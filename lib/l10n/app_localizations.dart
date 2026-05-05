@@ -118,6 +118,7 @@ abstract class AppLocalizations {
   String get chartOther;
   String get languageTitleRussian;
   String get languageTitleEnglish;
+  String get currencyLabel;
   String get exportTitle;
   String get exportChooseFormat;
   String get exportPdf;
