@@ -54,13 +54,25 @@ class _DonutChartWidgetState extends State<DonutChartWidget>
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
-    )..repeat(reverse: true);
+    );
     _pulseOpacity = Tween<double>(begin: 1.0, end: 0.6).animate(
       CurvedAnimation(
         parent: _pulseController,
         curve: Curves.easeInOut,
       ),
     );
+    _syncPulseController();
+  }
+
+  @override
+  void didUpdateWidget(covariant DonutChartWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!setEquals(
+      oldWidget.exceededBudgetCategoryKeys,
+      widget.exceededBudgetCategoryKeys,
+    )) {
+      _syncPulseController();
+    }
   }
 
   @override
@@ -86,22 +98,26 @@ class _DonutChartWidgetState extends State<DonutChartWidget>
         child: Stack(
           alignment: Alignment.center,
           children: <Widget>[
-            AnimatedBuilder(
-              animation: _pulseOpacity,
-              builder: (BuildContext context, Widget? child) {
-                return CustomPaint(
-                  size: Size.square(widget.outerRadius * 2),
-                  painter: _DonutChartPainter(
-                    slices: widget.slices,
-                    startAngleDegrees: widget.startAngleDegrees,
-                    outerRadius: widget.outerRadius,
-                    innerRadius: widget.innerRadius,
-                    exceededBudgetCategoryKeys:
-                        widget.exceededBudgetCategoryKeys,
-                    pulseOpacity: _pulseOpacity.value,
-                  ),
-                );
-              },
+            RepaintBoundary(
+              child: AnimatedBuilder(
+                animation: _pulseOpacity,
+                builder: (BuildContext context, Widget? child) {
+                  return CustomPaint(
+                    size: Size.square(widget.outerRadius * 2),
+                    isComplex: true,
+                    willChange: widget.exceededBudgetCategoryKeys.isNotEmpty,
+                    painter: _DonutChartPainter(
+                      slices: widget.slices,
+                      startAngleDegrees: widget.startAngleDegrees,
+                      outerRadius: widget.outerRadius,
+                      innerRadius: widget.innerRadius,
+                      exceededBudgetCategoryKeys:
+                          widget.exceededBudgetCategoryKeys,
+                      pulseOpacity: _pulseOpacity.value,
+                    ),
+                  );
+                },
+              ),
             ),
             IgnorePointer(
               child: Column(
@@ -131,6 +147,19 @@ class _DonutChartWidgetState extends State<DonutChartWidget>
         ),
       ),
     );
+  }
+
+  void _syncPulseController() {
+    if (widget.exceededBudgetCategoryKeys.isEmpty) {
+      _pulseController
+        ..stop()
+        ..value = 0;
+      return;
+    }
+
+    if (!_pulseController.isAnimating) {
+      _pulseController.repeat(reverse: true);
+    }
   }
 
   String? _hitTest(Offset localPosition) {

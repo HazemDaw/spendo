@@ -281,6 +281,8 @@ class _HomePageState extends State<HomePage> {
     final bool isLoading =
         transactionState is TransactionInitial ||
         transactionState is TransactionLoading;
+    final String periodCanvasKey =
+        '${_selectedPeriod}_${_referenceDate.millisecondsSinceEpoch}';
 
     return BlocListener<TransactionBloc, TransactionState>(
       listener: (BuildContext context, TransactionState state) {
@@ -355,36 +357,59 @@ class _HomePageState extends State<HomePage> {
                       ),
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 300),
+                        layoutBuilder: (
+                          Widget? currentChild,
+                          List<Widget> previousChildren,
+                        ) {
+                          return Stack(
+                            children: <Widget>[
+                              ...previousChildren,
+                              if (currentChild != null) currentChild,
+                            ],
+                          );
+                        },
                         transitionBuilder: (
                           Widget child,
                           Animation<double> animation,
                         ) {
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: Offset(_slideDirection, 0),
-                              end: Offset.zero,
-                            ).animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.easeOutCubic,
+                          final bool isIncoming =
+                              child.key == ValueKey<String>(periodCanvasKey);
+                          final double direction = _slideDirection == 0
+                              ? 1.0
+                              : _slideDirection;
+                          final Offset beginOffset = Offset(
+                            isIncoming ? direction : -direction,
+                            0,
+                          );
+
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: beginOffset,
+                                end: Offset.zero,
+                              ).animate(
+                                CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOutCubic,
+                                ),
                               ),
+                              child: child,
                             ),
-                            child: child,
                           );
                         },
-                        child: SizedBox(
-                          key: ValueKey<String>(
-                            '${_selectedPeriod}_${_referenceDate.millisecondsSinceEpoch}',
-                          ),
-                          width: _referenceSize.width,
-                          height: _referenceSize.height,
-                          child: Stack(
-                            children: <Widget>[
-                              Positioned(
-                                left: 0,
-                                right: 0,
-                                top: 170,
-                                child: Row(
+                        child: RepaintBoundary(
+                          key: ValueKey<String>(periodCanvasKey),
+                          child: SizedBox(
+                            width: _referenceSize.width,
+                            height: _referenceSize.height,
+                            child: Stack(
+                              children: <Widget>[
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  top: 170,
+                                  child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -492,81 +517,84 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ],
                                 ),
-                              ),
-                              Positioned(
-                                left: 32,
-                                right: 32,
-                                top: 220,
-                                child: _buildBudgetWarningBanner(
-                                  expenseTotals: expenseTotals,
-                                  totalSpent: expense,
                                 ),
-                              ),
-                              Positioned.fill(
-                                child: IgnorePointer(
-                                  child: CustomPaint(
-                                    painter: ConnectorLinesPainter(
-                                      connectors: connectors,
-                                    ),
+                                Positioned(
+                                  left: 32,
+                                  right: 32,
+                                  top: 220,
+                                  child: _buildBudgetWarningBanner(
+                                    expenseTotals: expenseTotals,
+                                    totalSpent: expense,
                                   ),
                                 ),
-                              ),
-                              Positioned(
-                                left: _chartCenter.dx - _donutOuterRadius,
-                                top: _chartCenter.dy - _donutOuterRadius,
-                                child: GestureDetector(
-                                  child: SizedBox.square(
-                                    dimension: _donutOuterRadius * 2,
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: <Widget>[
-                                        SizedBox.square(
-                                          dimension: _donutOuterRadius * 2,
-                                          child: DonutChartWidget(
-                                            slices: slices,
-                                            incomeText:
-                                                CurrencyFormatter.format(
-                                              income,
-                                              symbol: currencySymbol,
-                                            ),
-                                            expenseText:
-                                                CurrencyFormatter.format(
-                                              expense,
-                                              symbol: currencySymbol,
-                                            ),
-                                            startAngleDegrees:
-                                                dynamicStartAngle,
-                                            outerRadius: _donutOuterRadius,
-                                            innerRadius: _donutInnerRadius,
-                                            exceededBudgetCategoryKeys:
-                                                exceededBudgetCategoryKeys,
-                                            onSliceTap: (String categoryKey) {
-                                              context.pushNamed(
-                                                'transactionList',
-                                                pathParameters:
-                                                    <String, String>{
-                                                  'categoryKey': categoryKey,
-                                                },
-                                              );
-                                            },
-                                          ),
+                                Positioned.fill(
+                                  child: IgnorePointer(
+                                    child: RepaintBoundary(
+                                      child: CustomPaint(
+                                        painter: ConnectorLinesPainter(
+                                          connectors: connectors,
                                         ),
-                                        if (isLoading)
-                                          const SizedBox(
-                                            width: 36,
-                                            height: 36,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2.5,
-                                            ),
-                                          ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              for (final _OrbitNode node in orbitNodes)
-                                _buildOrbitNode(node),
-                            ],
+                                Positioned(
+                                  left: _chartCenter.dx - _donutOuterRadius,
+                                  top: _chartCenter.dy - _donutOuterRadius,
+                                  child: GestureDetector(
+                                    child: SizedBox.square(
+                                      dimension: _donutOuterRadius * 2,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: <Widget>[
+                                          SizedBox.square(
+                                            dimension: _donutOuterRadius * 2,
+                                            child: DonutChartWidget(
+                                              slices: slices,
+                                              incomeText:
+                                                  CurrencyFormatter.format(
+                                                income,
+                                                symbol: currencySymbol,
+                                              ),
+                                              expenseText:
+                                                  CurrencyFormatter.format(
+                                                expense,
+                                                symbol: currencySymbol,
+                                              ),
+                                              startAngleDegrees:
+                                                  dynamicStartAngle,
+                                              outerRadius: _donutOuterRadius,
+                                              innerRadius: _donutInnerRadius,
+                                              exceededBudgetCategoryKeys:
+                                                  exceededBudgetCategoryKeys,
+                                              onSliceTap: (String categoryKey) {
+                                                context.pushNamed(
+                                                  'transactionList',
+                                                  pathParameters:
+                                                      <String, String>{
+                                                    'categoryKey': categoryKey,
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          if (isLoading)
+                                            const SizedBox(
+                                              width: 36,
+                                              height: 36,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                for (final _OrbitNode node in orbitNodes)
+                                  _buildOrbitNode(node),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -1005,45 +1033,73 @@ class _HomePageState extends State<HomePage> {
     required Map<_OrbitSlot, double> slotAngles,
   }) {
     final List<_OrbitSlot> slots = slotAngles.keys.toList();
-    Map<String, _OrbitSlot> bestAssignment = <String, _OrbitSlot>{};
-    double bestCost = double.infinity;
+    final Map<int, double> memoizedCosts = <int, double>{};
 
-    void search(
-      int keyIndex,
-      Set<_OrbitSlot> usedSlots,
-      Map<String, _OrbitSlot> currentAssignment,
-      double currentCost,
-    ) {
-      if (currentCost >= bestCost) {
-        return;
-      }
+    double bestRemainingCost(int keyIndex, int usedSlotMask) {
       if (keyIndex == sortedKeys.length) {
-        bestCost = currentCost;
-        bestAssignment = Map<String, _OrbitSlot>.from(currentAssignment);
-        return;
+        return 0;
+      }
+
+      final int memoKey = (keyIndex << slots.length) | usedSlotMask;
+      final double? memoizedCost = memoizedCosts[memoKey];
+      if (memoizedCost != null) {
+        return memoizedCost;
       }
 
       final String key = sortedKeys[keyIndex];
       final double segmentAngle = segmentMidAngles[key]!;
-      for (final _OrbitSlot slot in slots) {
-        if (usedSlots.contains(slot)) {
+      double bestCost = double.infinity;
+      for (int slotIndex = 0; slotIndex < slots.length; slotIndex++) {
+        final int slotBit = 1 << slotIndex;
+        if ((usedSlotMask & slotBit) != 0) {
           continue;
         }
-        usedSlots.add(slot);
-        currentAssignment[key] = slot;
-        search(
-          keyIndex + 1,
-          usedSlots,
-          currentAssignment,
-          currentCost + _angularDistance(segmentAngle, slotAngles[slot]!),
-        );
-        currentAssignment.remove(key);
-        usedSlots.remove(slot);
+        final _OrbitSlot slot = slots[slotIndex];
+        final double cost = _angularDistance(segmentAngle, slotAngles[slot]!) +
+            bestRemainingCost(
+              keyIndex + 1,
+              usedSlotMask | slotBit,
+            );
+        if (cost < bestCost) {
+          bestCost = cost;
+        }
       }
+
+      memoizedCosts[memoKey] = bestCost;
+      return bestCost;
     }
 
-    search(0, <_OrbitSlot>{}, <String, _OrbitSlot>{}, 0);
-    return bestAssignment;
+    final Map<String, _OrbitSlot> assignment = <String, _OrbitSlot>{};
+    int usedSlotMask = 0;
+    for (int keyIndex = 0; keyIndex < sortedKeys.length; keyIndex++) {
+      final String key = sortedKeys[keyIndex];
+      final double segmentAngle = segmentMidAngles[key]!;
+      double bestCost = double.infinity;
+      int bestSlotIndex = 0;
+
+      for (int slotIndex = 0; slotIndex < slots.length; slotIndex++) {
+        final int slotBit = 1 << slotIndex;
+        if ((usedSlotMask & slotBit) != 0) {
+          continue;
+        }
+
+        final _OrbitSlot slot = slots[slotIndex];
+        final double cost = _angularDistance(segmentAngle, slotAngles[slot]!) +
+            bestRemainingCost(
+              keyIndex + 1,
+              usedSlotMask | slotBit,
+            );
+        if (cost < bestCost) {
+          bestCost = cost;
+          bestSlotIndex = slotIndex;
+        }
+      }
+
+      assignment[key] = slots[bestSlotIndex];
+      usedSlotMask |= 1 << bestSlotIndex;
+    }
+
+    return assignment;
   }
 
   double _angularDistance(double a, double b) {
@@ -1445,10 +1501,14 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     if (picked != null) {
+      final double slideDirection = _periodChangeDirection(
+        TransactionPeriod.interval,
+      );
       setState(() {
         _intervalStart = picked.start;
         _intervalEnd = picked.end;
         _selectedPeriod = TransactionPeriod.interval;
+        _slideDirection = slideDirection;
       });
       context.read<TransactionBloc>().add(
         LoadTransactionsEvent(
@@ -1486,12 +1546,6 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    final DateTime hardLimit = DateTime(
-      now.year,
-      now.month - 12,
-      now.day,
-    );
-
     final DateTime candidate = switch (_selectedPeriod) {
       TransactionPeriod.day => _referenceDate.add(Duration(days: direction)),
       TransactionPeriod.week => _referenceDate.add(
@@ -1509,24 +1563,25 @@ class _HomePageState extends State<HomePage> {
         ),
       TransactionPeriod.all || TransactionPeriod.interval => _referenceDate,
     };
-    if (direction < 0 && candidate.isBefore(hardLimit)) {
+    final TransactionDateRange candidateRange = AppDateUtils.getPeriodRange(
+      _selectedPeriod,
+      referenceDate: candidate,
+    );
+    if (direction < 0 && candidateRange.end.isBefore(oldestTransactionDate)) {
       return;
     }
 
     DateTime nextReferenceDate = candidate;
     if (candidate.isAfter(now) ||
         _containsDate(
-          AppDateUtils.getPeriodRange(
-            _selectedPeriod,
-            referenceDate: candidate,
-          ),
+          candidateRange,
           now,
         )) {
       nextReferenceDate = now;
     }
 
     setState(() {
-      _slideDirection = direction > 0 ? -1.0 : 1.0;
+      _slideDirection = direction > 0 ? 1.0 : -1.0;
       _referenceDate = nextReferenceDate;
     });
     context.read<TransactionBloc>().add(
@@ -1558,10 +1613,11 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     final DateTime now = DateTime.now();
+    final double slideDirection = _periodChangeDirection(period);
     setState(() {
       _selectedPeriod = period;
       _referenceDate = now;
-      _slideDirection = 0;
+      _slideDirection = slideDirection;
     });
     context.read<TransactionBloc>().add(
       LoadTransactionsEvent(
@@ -1569,6 +1625,14 @@ class _HomePageState extends State<HomePage> {
         referenceDate: now,
       ),
     );
+  }
+
+  double _periodChangeDirection(TransactionPeriod nextPeriod) {
+    if (nextPeriod.index == _selectedPeriod.index) {
+      return 0;
+    }
+
+    return nextPeriod.index > _selectedPeriod.index ? 1.0 : -1.0;
   }
 
   Map<String, String> _addTransactionQueryParameters({
