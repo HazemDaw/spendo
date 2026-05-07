@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/currency/currency_cubit.dart';
 import '../../../../core/locale/locale_cubit.dart';
+import '../../../../core/services/receipt_scanner_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_cubit.dart';
 import '../../../../core/utils/date_utils.dart';
@@ -12,6 +13,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import 'export_bottom_sheet.dart';
+import 'receipt_scan_result_sheet.dart';
 
 class AppRightDrawer extends StatefulWidget {
   const AppRightDrawer({
@@ -193,6 +195,15 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
             ),
             ListTile(
               leading: const Icon(
+                Icons.receipt_long,
+                color: AppColors.primary,
+              ),
+              title: Text(l10n.scanReceiptTitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _scanReceipt(l10n),
+            ),
+            ListTile(
+              leading: const Icon(
                 Icons.upload_file,
                 color: AppColors.primary,
               ),
@@ -269,6 +280,60 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
       if (widget.intervalEnd != null)
         'intervalEnd': widget.intervalEnd!.millisecondsSinceEpoch.toString(),
     };
+  }
+
+  Future<void> _scanReceipt(AppLocalizations l10n) async {
+    final NavigatorState rootNavigator =
+        Navigator.of(context, rootNavigator: true);
+    final BuildContext rootContext = rootNavigator.context;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+
+    Navigator.pop(context);
+    if (!rootContext.mounted) {
+      return;
+    }
+
+    showDialog<void>(
+      context: rootContext,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    final ReceiptScannerService service = ReceiptScannerService();
+    try {
+      final ReceiptScanResult result = await service.scanFromGallery();
+      if (!rootContext.mounted) {
+        return;
+      }
+
+      rootNavigator.pop();
+      showModalBottomSheet<void>(
+        context: rootContext,
+        isScrollControlled: true,
+        builder: (_) => ReceiptScanResultSheet(result: result),
+      );
+    } catch (error) {
+      if (!rootContext.mounted) {
+        return;
+      }
+
+      rootNavigator.pop();
+      if (messenger.mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              error.toString().contains('No image')
+                  ? l10n.scanNoImageSelected
+                  : l10n.scanError(error.toString()),
+            ),
+          ),
+        );
+      }
+    } finally {
+      service.dispose();
+    }
   }
 }
 

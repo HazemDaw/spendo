@@ -161,11 +161,13 @@ GoRouter _createRouter(String initialLocation) => GoRouter(
         final DateTime? initialDate = _nullableDateFromQuery(
           state.uri.queryParameters['date'],
         );
+        final String? initialAmount = state.uri.queryParameters['amount'];
 
         return AddTransactionPage(
           type: type,
           initialCategoryKey: categoryKey,
           initialDate: initialDate,
+          initialAmount: initialAmount,
         );
       },
     ),
@@ -255,8 +257,8 @@ DateTime _dateFromQuery(String? value, DateTime fallback) {
 
 DateTime? _nullableDateFromQuery(String? value) {
   final int? milliseconds = int.tryParse(value ?? '');
-  if (milliseconds == null) {
-    return null;
+  if (milliseconds != null) {
+    return DateTime.fromMillisecondsSinceEpoch(milliseconds);
   }
-  return DateTime.fromMillisecondsSinceEpoch(milliseconds);
+  return DateTime.tryParse(value ?? '');
 }

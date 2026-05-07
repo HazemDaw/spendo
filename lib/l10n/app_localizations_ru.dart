@@ -277,6 +277,69 @@ class AppLocalizationsRu extends AppLocalizations {
   String get drawerSettingsTitle => 'Настройки';
 
   @override
+  String get scanReceiptTitle => 'Сканировать чек';
+
+  @override
+  String get scanResultTitle => 'Результат сканирования';
+
+  @override
+  String get scanSuccess => 'Чек распознан';
+
+  @override
+  String get scanFailure => 'Не удалось распознать сумму';
+
+  @override
+  String get scanFallbackHint => 'Попробуйте другое фото или введите вручную';
+
+  @override
+  String get scanRawText => 'Распознанный текст (для проверки)';
+
+  @override
+  String get addManually => 'Добавить вручную';
+
+  @override
+  String get scanUnknownCategory => 'Не определена — выберите вручную';
+
+  @override
+  String get scanDateNotRecognized => 'Дата не распознана';
+
+  @override
+  String get scanFinalTotalLabel => 'Итоговая сумма';
+
+  @override
+  String get scanParsedItemsTitle => 'Позиции чека';
+
+  @override
+  String scanSelectedItemsCount(int count) {
+    return 'Выбрано: $count';
+  }
+
+  @override
+  String get scanAddSingleExpense => 'Добавить одним расходом';
+
+  @override
+  String get scanAddSelectedItems => 'Добавить выбранные позиции';
+
+  @override
+  String get scanNoItemsSelected => 'Выберите хотя бы одну позицию';
+
+  @override
+  String get scanConfirmSelectedItemsTitle => 'Добавить позиции?';
+
+  @override
+  String scanConfirmSelectedItemsMessage(int count, String amount) {
+    return 'Будет создано транзакций: $count. Общая сумма: $amount.';
+  }
+
+  @override
+  String get scanNoImageSelected => 'Изображение не выбрано';
+
+  @override
+  String scanError(String error) {
+    return 'Ошибка сканирования: $error';
+  }
+
+  @override
   String get featureComingSoonMessage => 'Функция будет доступна позже';
 
   @override

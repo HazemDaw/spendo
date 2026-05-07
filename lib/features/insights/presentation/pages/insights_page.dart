@@ -655,15 +655,17 @@ class _DailySpendingChartData {
       return null;
     }
 
-    final double maxY = maxAmount * 1.25;
-    final double yInterval = _niceInterval(maxY);
+    final double rawMaxY = maxAmount * 1.25;
+    final double yInterval = _niceInterval(rawMaxY);
+    final double maxY = (rawMaxY / yInterval).ceil() * yInterval;
+
     return _DailySpendingChartData(
       entries: entries,
       highestIndex: highestIndex,
       maxY: maxY,
       yInterval: yInterval,
       usesMonthlyBuckets: usesMonthlyBuckets,
-    );
+   );
   }
 
   static bool _usesMonthlyBuckets({

@@ -89,6 +89,49 @@
   "drawerAbout": "О приложении",
   "drawerAboutDescription": "Приложение для отслеживания личных расходов.",
   "drawerSettingsTitle": "Настройки",
+  "scanReceiptTitle": "Сканировать чек",
+  "scanResultTitle": "Результат сканирования",
+  "scanSuccess": "Чек распознан",
+  "scanFailure": "Не удалось распознать сумму",
+  "scanFallbackHint": "Попробуйте другое фото или введите вручную",
+  "scanRawText": "Распознанный текст (для проверки)",
+  "addManually": "Добавить вручную",
+  "scanUnknownCategory": "Не определена — выберите вручную",
+  "scanDateNotRecognized": "Дата не распознана",
+  "scanFinalTotalLabel": "Итоговая сумма",
+  "scanParsedItemsTitle": "Позиции чека",
+  "scanSelectedItemsCount": "Выбрано: {count}",
+  "@scanSelectedItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanAddSingleExpense": "Добавить одним расходом",
+  "scanAddSelectedItems": "Добавить выбранные позиции",
+  "scanNoItemsSelected": "Выберите хотя бы одну позицию",
+  "scanConfirmSelectedItemsTitle": "Добавить позиции?",
+  "scanConfirmSelectedItemsMessage": "Будет создано транзакций: {count}. Общая сумма: {amount}.",
+  "@scanConfirmSelectedItemsMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNoImageSelected": "Изображение не выбрано",
+  "scanError": "Ошибка сканирования: {error}",
+  "@scanError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "featureComingSoonMessage": "Функция будет доступна позже",
   "syncTitle": "Синхронизация",
   "syncSyncedSubtitle": "Синхронизировано",

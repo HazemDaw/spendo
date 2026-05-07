@@ -89,6 +89,49 @@
   "drawerAbout": "About Spendo",
   "drawerAboutDescription": "An app for tracking personal expenses.",
   "drawerSettingsTitle": "Settings",
+  "scanReceiptTitle": "Scan Receipt",
+  "scanResultTitle": "Scan Result",
+  "scanSuccess": "Receipt recognized",
+  "scanFailure": "Could not recognize amount",
+  "scanFallbackHint": "Try a different photo or enter manually",
+  "scanRawText": "Recognized text (for review)",
+  "addManually": "Add manually",
+  "scanUnknownCategory": "Not recognized — choose manually",
+  "scanDateNotRecognized": "Date not recognized",
+  "scanFinalTotalLabel": "Final total",
+  "scanParsedItemsTitle": "Receipt items",
+  "scanSelectedItemsCount": "Selected: {count}",
+  "@scanSelectedItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanAddSingleExpense": "Add as one expense",
+  "scanAddSelectedItems": "Add selected items",
+  "scanNoItemsSelected": "Select at least one item",
+  "scanConfirmSelectedItemsTitle": "Add items?",
+  "scanConfirmSelectedItemsMessage": "This will create {count} transactions. Total amount: {amount}.",
+  "@scanConfirmSelectedItemsMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNoImageSelected": "No image selected",
+  "scanError": "Scan error: {error}",
+  "@scanError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "featureComingSoonMessage": "This feature will be available later",
   "syncTitle": "Sync",
   "syncSyncedSubtitle": "Synced",

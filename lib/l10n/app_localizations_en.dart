@@ -276,6 +276,69 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerSettingsTitle => 'Settings';
 
   @override
+  String get scanReceiptTitle => 'Scan Receipt';
+
+  @override
+  String get scanResultTitle => 'Scan Result';
+
+  @override
+  String get scanSuccess => 'Receipt recognized';
+
+  @override
+  String get scanFailure => 'Could not recognize amount';
+
+  @override
+  String get scanFallbackHint => 'Try a different photo or enter manually';
+
+  @override
+  String get scanRawText => 'Recognized text (for review)';
+
+  @override
+  String get addManually => 'Add manually';
+
+  @override
+  String get scanUnknownCategory => 'Not recognized — choose manually';
+
+  @override
+  String get scanDateNotRecognized => 'Date not recognized';
+
+  @override
+  String get scanFinalTotalLabel => 'Final total';
+
+  @override
+  String get scanParsedItemsTitle => 'Receipt items';
+
+  @override
+  String scanSelectedItemsCount(int count) {
+    return 'Selected: $count';
+  }
+
+  @override
+  String get scanAddSingleExpense => 'Add as one expense';
+
+  @override
+  String get scanAddSelectedItems => 'Add selected items';
+
+  @override
+  String get scanNoItemsSelected => 'Select at least one item';
+
+  @override
+  String get scanConfirmSelectedItemsTitle => 'Add items?';
+
+  @override
+  String scanConfirmSelectedItemsMessage(int count, String amount) {
+    return 'This will create $count transactions. Total amount: $amount.';
+  }
+
+  @override
+  String get scanNoImageSelected => 'No image selected';
+
+  @override
+  String scanError(String error) {
+    return 'Scan error: $error';
+  }
+
+  @override
   String get featureComingSoonMessage => 'This feature will be available later';
 
   @override

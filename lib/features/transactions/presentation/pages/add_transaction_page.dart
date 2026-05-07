@@ -27,12 +27,14 @@ class AddTransactionPage extends StatefulWidget {
     required this.type,
     this.initialCategoryKey,
     this.initialDate,
+    this.initialAmount,
     this.transactionId,
   });
 
   final String type;
   final String? initialCategoryKey;
   final DateTime? initialDate;
+  final String? initialAmount;
   final String? transactionId;
 
   @override
@@ -75,6 +77,11 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     _categoryStore?.ensureLoaded();
     _selectedCategoryKey = widget.initialCategoryKey;
     _selectedDate = widget.initialDate ?? _selectedDate;
+    if (!_isEditMode && widget.initialAmount?.trim().isNotEmpty == true) {
+      _keypadCubit.setExpression(
+        _formatInitialExpression(widget.initialAmount!.trim()),
+      );
+    }
     if (_isEditMode) {
       final TransactionState state = context.read<TransactionBloc>().state;
       if (state is TransactionLoaded) {
@@ -552,6 +559,14 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   String _formatInitialAmount(double amount) {
     return amount % 1 == 0 ? amount.toInt().toString() : amount.toString();
+  }
+
+  String _formatInitialExpression(String amount) {
+    final double? parsed = double.tryParse(amount.replaceAll(',', '.'));
+    if (parsed == null) {
+      return amount;
+    }
+    return _formatInitialAmount(parsed);
   }
 }
 
