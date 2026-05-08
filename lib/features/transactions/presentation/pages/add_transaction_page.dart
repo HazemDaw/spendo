@@ -360,6 +360,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   }
 
   Widget _buildAmountCard(String currencySymbol) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -370,20 +372,20 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               children: <Widget>[
                 Text(
                   currencySymbol,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.primaryDark,
+                    color: colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Text(
                     expression.isEmpty ? '0' : expression,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                 ),
