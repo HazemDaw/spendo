@@ -33,7 +33,9 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
   final CustomCategoryStore? _categoryStore = maybeCustomCategoryStore();
   late final TextEditingController _amountController;
   late final List<TextEditingController> _itemNameControllers;
+  late final List<TextEditingController> _itemAmountControllers;
   late List<ReceiptItemDraft> _items;
+  late List<bool> _validItemAmounts;
   late List<bool> _selectedItems;
   late DateTime? _selectedDate;
   late String? _categoryKey;
@@ -55,6 +57,18 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
     _itemNameControllers = _items
         .map((ReceiptItemDraft item) => TextEditingController(text: item.name))
         .toList();
+    _itemAmountControllers = _items
+        .map(
+          (ReceiptItemDraft item) => TextEditingController(
+            text: _formatAmount(item.amount),
+          ),
+        )
+        .toList();
+    _validItemAmounts = List<bool>.filled(
+      _items.length,
+      true,
+      growable: true,
+    );
     _amountController = TextEditingController(
       text: _amount == null ? '' : _formatAmount(_amount!),
     );
@@ -64,6 +78,9 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
   void dispose() {
     _amountController.dispose();
     for (final TextEditingController controller in _itemNameControllers) {
+      controller.dispose();
+    }
+    for (final TextEditingController controller in _itemAmountControllers) {
       controller.dispose();
     }
     super.dispose();
@@ -183,7 +200,7 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
           const SizedBox(height: 10),
           OutlinedButton(
             onPressed:
-                _selectedItemCount > 0 ? () => _addSelectedItems(l10n) : null,
+                _canAddSelectedItems ? () => _addSelectedItems(l10n) : null,
             child: Text(l10n.scanAddSelectedItems),
           ),
         ],
@@ -372,18 +389,6 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
                       icon: const Icon(Icons.edit_outlined, size: 16),
                       label: Text(l10n.pickCategoryAction),
                     ),
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      onPressed: item.suggestedCategoryKey == null
-                          ? null
-                          : () => _clearItemCategory(index),
-                      icon: const Icon(Icons.close, size: 16),
-                      label: Text(l10n.deleteAction),
-                    ),
                   ],
                 ),
               ],
@@ -394,9 +399,25 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
-              Text(
-                '${_formatAmount(item.amount)} $currencySymbol',
-                style: const TextStyle(fontWeight: FontWeight.w700),
+              SizedBox(
+                width: 116,
+                child: TextField(
+                  controller: _itemAmountControllers[index],
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  textAlign: TextAlign.end,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    suffixText: currencySymbol,
+                    errorText: _validItemAmounts[index] ? null : '',
+                    errorStyle: const TextStyle(fontSize: 0, height: 0),
+                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                  onChanged: (String value) {
+                    _updateItemAmount(index, value);
+                  },
+                ),
               ),
               IconButton(
                 tooltip: l10n.deleteAction,
@@ -511,6 +532,28 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
     });
   }
 
+  void _updateItemAmount(int itemIndex, String rawAmount) {
+    if (!_isValidItemIndex(itemIndex)) {
+      return;
+    }
+
+    final double? amount = double.tryParse(
+      rawAmount.trim().replaceAll(',', '.'),
+    );
+    final bool isValid = amount != null && amount > 0;
+
+    setState(() {
+      if (!_isValidItemIndex(itemIndex)) {
+        return;
+      }
+
+      _validItemAmounts[itemIndex] = isValid;
+      if (isValid) {
+        _items[itemIndex] = _items[itemIndex].copyWith(amount: amount);
+      }
+    });
+  }
+
   void _updateItemSelection(int itemIndex, bool selected) {
     if (!_isValidItemIndex(itemIndex)) {
       return;
@@ -537,9 +580,13 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
 
       final TextEditingController controller =
           _itemNameControllers.removeAt(itemIndex);
+      final TextEditingController amountController =
+          _itemAmountControllers.removeAt(itemIndex);
       _items.removeAt(itemIndex);
       _selectedItems.removeAt(itemIndex);
+      _validItemAmounts.removeAt(itemIndex);
       controller.dispose();
+      amountController.dispose();
     });
   }
 
@@ -561,6 +608,11 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
     final List<ReceiptItemDraft> selectedItems = _selectedReceiptItems;
     if (selectedItems.isEmpty) {
       _showSnackBar(l10n.scanNoItemsSelected);
+      return;
+    }
+
+    if (_hasInvalidSelectedItemAmount) {
+      _showSnackBar(l10n.invalidAmountMessage);
       return;
     }
 
@@ -645,13 +697,17 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
     return index >= 0 &&
         index < _items.length &&
         index < _selectedItems.length &&
-        index < _itemNameControllers.length;
+        index < _itemNameControllers.length &&
+        index < _itemAmountControllers.length &&
+        index < _validItemAmounts.length;
   }
 
   int get _itemRowCount => <int>[
         _items.length,
         _selectedItems.length,
         _itemNameControllers.length,
+        _itemAmountControllers.length,
+        _validItemAmounts.length,
       ].reduce((int value, int element) => value < element ? value : element);
 
   List<ReceiptItemDraft> get _selectedReceiptItems {
@@ -669,6 +725,19 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
         .take(_itemRowCount)
         .where((bool value) => value)
         .length;
+  }
+
+  bool get _hasInvalidSelectedItemAmount {
+    for (int index = 0; index < _itemRowCount; index++) {
+      if (_selectedItems[index] && !_validItemAmounts[index]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool get _canAddSelectedItems {
+    return _selectedItemCount > 0 && !_hasInvalidSelectedItemAmount;
   }
 
   void _showSnackBar(String message) {
