@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../mock/mock_data.dart';
+import 'receipt_ocr_engine.dart';
 
 class ReceiptItemDraft {
   const ReceiptItemDraft({
@@ -88,17 +88,25 @@ class ReceiptAmountCandidateDebug {
 }
 
 class ReceiptScannerService {
-  final TextRecognizer _textRecognizer = TextRecognizer(
-    script: TextRecognitionScript.latin,
-  );
+  ReceiptScannerService({
+    ReceiptOcrEngine? primaryOcrEngine,
+    ReceiptOcrEngine? fallbackOcrEngine,
+    ImagePicker? imagePicker,
+  })  : _primaryOcrEngine =
+            primaryOcrEngine ?? const TesseractReceiptOcrEngine(),
+        _fallbackOcrEngine = fallbackOcrEngine ?? MlKitReceiptOcrEngine(),
+        _picker = imagePicker ?? ImagePicker();
+
+  final ReceiptOcrEngine _primaryOcrEngine;
+  final ReceiptOcrEngine _fallbackOcrEngine;
+  final ImagePicker _picker;
 
   static ReceiptScanResult parseText(String text) {
     return const ReceiptParsingPipeline().parse(text);
   }
 
   Future<ReceiptScanResult> scanFromGallery() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
+    final XFile? image = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 85,
     );
@@ -106,14 +114,41 @@ class ReceiptScannerService {
       throw Exception('No image selected');
     }
 
-    final InputImage inputImage = InputImage.fromFilePath(image.path);
-    final RecognizedText recognized =
-        await _textRecognizer.processImage(inputImage);
+    final String rawText = await _recognizeText(image.path);
 
-    return parseText(recognized.text);
+    return parseText(rawText);
   }
 
-  void dispose() => _textRecognizer.close();
+  Future<String> _recognizeText(String imagePath) async {
+    Object primaryError;
+    StackTrace primaryStackTrace;
+
+    try {
+      final String text = await _primaryOcrEngine.recognizeText(imagePath);
+      if (text.trim().isNotEmpty) {
+        return text;
+      }
+      primaryError = StateError('Primary OCR returned no text');
+      primaryStackTrace = StackTrace.current;
+    } catch (error, stackTrace) {
+      primaryError = error;
+      primaryStackTrace = stackTrace;
+    }
+
+    if (kDebugMode) {
+      debugPrint(
+        'Primary receipt OCR failed, falling back to ML Kit: $primaryError',
+      );
+      debugPrint(primaryStackTrace.toString());
+    }
+
+    return _fallbackOcrEngine.recognizeText(imagePath);
+  }
+
+  void dispose() {
+    _primaryOcrEngine.dispose();
+    _fallbackOcrEngine.dispose();
+  }
 }
 
 class ReceiptParsingPipeline {

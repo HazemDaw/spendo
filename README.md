@@ -131,6 +131,32 @@ flutter pub get
 flutter run
 ```
 
+### Receipt OCR Setup
+
+Receipt scanning uses an OCR abstraction. Tesseract is tried first for Russian
+retail receipts because `rus` traineddata handles Cyrillic text better in this
+use case; Google ML Kit remains as the offline fallback when Tesseract is not
+configured or fails. OCR only extracts raw text. The app parser still extracts
+the final total, date, receipt items, and draft categories.
+
+The `tesseract_ocr` package requires traineddata assets. The repo includes
+`assets/tessdata_config.json`, but does not commit the binary traineddata files.
+To enable Tesseract OCR, download:
+
+- `rus.traineddata`
+- `eng.traineddata`
+
+Place both files in:
+
+```text
+assets/tessdata/
+```
+
+Use files from the official Tesseract tessdata repositories, such as
+`tessdata_fast` for smaller mobile builds or `tessdata_best` for accuracy
+testing. If these files are missing, receipt scanning safely falls back to
+ML Kit.
+
 ### Build Release APK
 
 ```bash

@@ -1,4 +1,5 @@
 import com.android.build.gradle.LibraryExtension
+import org.gradle.api.tasks.compile.JavaCompile
 
 allprojects {
     repositories {
@@ -38,6 +39,14 @@ subprojects {
         extensions.configure<com.android.build.gradle.LibraryExtension> {
             compileSdk = 36
         }
+    }
+}
+
+subprojects {
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.addAll(
+            listOf("-Xlint:-options", "-Xlint:-unchecked", "-Xlint:-deprecation")
+        )
     }
 }
 
