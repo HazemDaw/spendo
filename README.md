@@ -22,6 +22,9 @@ Spendo is a cross-platform Flutter mobile application for tracking personal inco
 - Calculator keypad with expression evaluation (e.g. 200 + 50)
 - Transaction undo after delete (4-second window)
 - Success feedback on transaction save
+- Left and right drawers for period controls, account/auth status, settings,
+  export, receipt scanning, and app information
+- Category transaction list, all-transactions view, filters, and search
 
 ### Analytics & Insights
 - Spending Insights screen with 4 auto-generated cards:
@@ -84,8 +87,10 @@ UI -> BLoC -> Use Cases -> Repository -> Drift/SQLite (local) / Firestore (remot
 | Flutter | Cross-platform mobile UI framework |
 | flutter_bloc | State management with BLoC/Cubit |
 | Drift/SQLite | Local offline-first database |
+| Firebase Core | Firebase initialization |
 | Firebase Auth | Email/password and Google authentication |
 | Cloud Firestore | Remote cloud sync and restore |
+| Google Sign-In | Google account authentication |
 | go_router | Declarative navigation and routing |
 | get_it | Dependency injection |
 | fl_chart | Donut chart + bar chart visualization |
@@ -94,15 +99,20 @@ UI -> BLoC -> Use Cases -> Repository -> Drift/SQLite (local) / Firestore (remot
 | dartz | Functional result types (`Either`) |
 | equatable | Value equality for states and events |
 | shared_preferences | Persisted theme, locale, and currency settings |
+| flutter_localizations | Russian/English app localization |
 | pdf | PDF report generation |
 | csv | CSV export |
 | share_plus | System share dialog |
+| image_picker | Receipt image selection |
+| tesseract_ocr | Offline OCR for Russian/English receipt text |
+| google_mlkit_text_recognition | Offline fallback OCR engine |
 
 ---
 
 ## Screenshots
 
-*Add screenshots here*
+Screenshots are omitted from the repository README. The release APK and source
+code are the canonical thesis artifacts.
 
 ---
 
@@ -168,6 +178,9 @@ flutter build apk --release --no-tree-shake-icons
 
 > `--no-tree-shake-icons` is required due to dynamic `IconData` usage in the
 > custom categories feature. Post-thesis fix planned.
+>
+> The thesis APK is not intended for Play Store distribution and uses the
+> project's current Android release signing setup.
 
 Release APK output:
 
@@ -188,12 +201,14 @@ lib/
 │   ├── currency/         # CurrencyCubit
 │   ├── constants/        # kCategoryIcons list
 │   ├── mock/             # MockData (built-in category metadata)
+│   ├── services/         # export and receipt scanner/OCR services
 │   └── utils/            # date_utils, currency_formatter
 ├── features/
 │   ├── transactions/     # Main feature: CRUD, BLoC, Drift, Firestore
 │   ├── categories/       # Built-in + custom categories, orbit slots
 │   ├── budget/           # Budget limits and warnings
 │   ├── insights/         # InsightsCubit, InsightsPage, bar chart
+│   ├── onboarding/       # First-run onboarding
 │   └── auth/             # Firebase authentication
 ├── l10n/
 │   ├── app_en.arb
@@ -228,6 +243,8 @@ These are known post-thesis improvement areas:
 
 - **Recurring transactions:** UI placeholder exists, logic not implemented
 - **Multi-account support:** not implemented (single account per user)
+- **Budget export:** export covers transactions and spending summaries, not a
+  dedicated budget report
 - **`--no-tree-shake-icons` flag:** required due to dynamic IconData in categories
 - **Pets and gifts categories:** defined but missing from the default home orbit (8/10 slots shown)
 - **Home screen colors:** use `isDark` boolean instead of the theme system (intentional for canvas stability)
@@ -264,11 +281,14 @@ Spendo — кроссплатформенное мобильное прилож�
 - Калькуляторная клавиатура с вычислением выражений
 - Отмена удаления транзакции (4 секунды)
 - Подтверждение при сохранении транзакции
+- Левый и правый ящики для периодов, статуса аккаунта, настроек, экспорта,
+  сканера чеков и информации о приложении
 
 ### Аналитика
 - Экран аналитики (Insights) с 4 автоматическими выводами
 - Столбчатая диаграмма расходов по дням / месяцам
-- Экран всех транзакций с фильтрами по типу и категории
+- Экран всех транзакций с фильтрами по типу и категории, списки по
+  категориям и поиск
 
 ### Бюджет и категории
 - Общий и категориальный лимиты бюджета
@@ -282,6 +302,8 @@ Spendo — кроссплатформенное мобильное прилож�
 - Синхронизация с Firestore при каждой записи
 - Восстановление данных из облака при переустановке приложения
 - Экспорт в PDF (с разбивкой по категориям) и CSV
+- Сканер чеков: OCR Tesseract/ML Kit, черновик позиций, редактируемые
+  названия, суммы и категории, создание транзакций только после подтверждения
 
 ### Персонализация
 - Тёмная тема (сохраняется)

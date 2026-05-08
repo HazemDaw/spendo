@@ -340,6 +340,9 @@ Existing tests cover:
 - Transaction bloc reload behavior after add/update/delete
 - Add transaction keypad input
 - Edit-screen hydration after async load
+- Add-screen save behavior with provided initial date
+- Receipt parser totals, dates, item extraction, VAT/discount/fiscal filtering,
+  noisy Russian OCR, English receipts, and suspicious multiplication rejection
 
 Test helpers:
 
