@@ -11,6 +11,7 @@ this file when architecture, product direction, or implementation status changes
 
 - App: `Spendo`
 - Type: Flutter mobile app for personal expense tracking
+- Current thesis APK: `1.0.2`
 - Context: Graduation project / thesis — Amur State University, 09.03.04
 - Platforms: Android and iOS
 - Current state: **Feature-complete. Final thesis build. Do not add new features.**
@@ -94,6 +95,10 @@ this file when architecture, product direction, or implementation status changes
 - Spending Insights screen with 4 auto-generated insight cards + bar chart
 - Onboarding flow (3 screens, shown only on first launch, persisted via SharedPreferences)
 - Branded app icon and splash screen (violet #7C3AED)
+- Receipt scanner draft workflow: Tesseract OCR for Russian/English receipts,
+  ML Kit fallback, parser-level total/date/item extraction, editable draft item
+  name/amount/category rows, and explicit user confirmation before transactions
+  are created.
 
 ---
 
@@ -119,6 +124,9 @@ this file when architecture, product direction, or implementation status changes
 - `pdf`
 - `csv`
 - `share_plus`
+- `google_mlkit_text_recognition`
+- `tesseract_ocr`
+- `image_picker`
 - `flutter_launcher_icons` (dev)
 - `flutter_native_splash` (dev)
 
@@ -278,6 +286,20 @@ PageView-based swiping; page changes update `_referenceDate` and dispatch
 - `currency_formatter.dart` reads from `CurrencyCubit`
 - Selector in right drawer
 
+### Receipt Scanner
+
+- Receipt scanning is a draft/review workflow only; it must never auto-save.
+- OCR is abstracted behind `ReceiptOcrEngine`.
+- Tesseract (`rus+eng`) is the primary receipt OCR engine for Russian/English
+  receipts; Google ML Kit remains the offline fallback.
+- Tesseract assets `assets/tessdata/rus.traineddata` and
+  `assets/tessdata/eng.traineddata` are included for the thesis APK.
+- Parser output is temporary draft data: final total, date, overall suggested
+  category, parsed item drafts, raw OCR text, and debug candidate info in debug
+  mode.
+- Item draft rows support editing name, amount, and category before the user
+  confirms transaction creation.
+
 ### Auth and Sync
 
 - Unauthenticated users: full local-only mode
@@ -327,6 +349,13 @@ When making non-trivial changes, run:
 
 - `flutter analyze`
 - `flutter test`
+
+Release APK command for the thesis build:
+
+- `flutter build apk --release --no-tree-shake-icons`
+
+The `--no-tree-shake-icons` flag remains required because custom categories
+still use dynamic `IconData`.
 
 ---
 

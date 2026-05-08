@@ -258,7 +258,7 @@ class _AppRightDrawerState extends State<AppRightDrawer> {
               onTap: () => showAboutDialog(
                 context: context,
                 applicationName: 'Spendo',
-                applicationVersion: '1.0.0',
+                applicationVersion: '1.0.2',
                 children: <Widget>[
                   Text(l10n.drawerAboutDescription),
                 ],

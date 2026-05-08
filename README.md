@@ -4,6 +4,8 @@
 
 Spendo is a cross-platform Flutter mobile application for tracking personal income and expenses, built as a graduation project at Amur State University.
 
+**Current thesis APK:** `1.0.2`
+
 **Thesis title:**
 - English: Development of a cross-platform mobile application for personal finance tracking
 - Russian: Разработка кроссплатформенного мобильного приложения для учёта личных финансов
@@ -44,6 +46,10 @@ Spendo is a cross-platform Flutter mobile application for tracking personal inco
 - Restore from cloud on fresh install — sign in to recover all data
 - Export to PDF (with period summary + category breakdown)
 - Export to CSV
+- Receipt scanner draft workflow with Tesseract OCR for Russian/English text,
+  ML Kit fallback, final total/date extraction, parsed item drafts, editable
+  item names, editable item amounts, editable item categories, and user
+  confirmation before creating transactions
 
 ### Personalization
 - Dark mode (persists across restarts)
@@ -139,23 +145,20 @@ use case; Google ML Kit remains as the offline fallback when Tesseract is not
 configured or fails. OCR only extracts raw text. The app parser still extracts
 the final total, date, receipt items, and draft categories.
 
-The `tesseract_ocr` package requires traineddata assets. The repo includes
-`assets/tessdata_config.json`, but does not commit the binary traineddata files.
-To enable Tesseract OCR, download:
+The `tesseract_ocr` package requires traineddata assets. The thesis APK keeps
+these assets offline-first in the repository:
 
 - `rus.traineddata`
 - `eng.traineddata`
 
-Place both files in:
+They must be present in:
 
 ```text
 assets/tessdata/
 ```
 
-Use files from the official Tesseract tessdata repositories, such as
-`tessdata_fast` for smaller mobile builds or `tessdata_best` for accuracy
-testing. If these files are missing, receipt scanning safely falls back to
-ML Kit.
+If these files are missing in a local checkout, receipt scanning safely falls
+back to ML Kit, but Russian Cyrillic recognition will be weaker.
 
 ### Build Release APK
 
@@ -165,6 +168,12 @@ flutter build apk --release --no-tree-shake-icons
 
 > `--no-tree-shake-icons` is required due to dynamic `IconData` usage in the
 > custom categories feature. Post-thesis fix planned.
+
+Release APK output:
+
+```text
+build/app/outputs/flutter-apk/app-release.apk
+```
 
 ---
 
