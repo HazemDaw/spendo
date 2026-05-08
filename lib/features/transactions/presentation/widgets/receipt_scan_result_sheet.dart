@@ -46,8 +46,12 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
     _selectedDate = widget.result.date;
     _categoryKey = widget.result.suggestedCategoryKey;
     _amount = widget.result.totalAmount;
-    _items = List<ReceiptItemDraft>.of(widget.result.items);
-    _selectedItems = List<bool>.filled(_items.length, true);
+    _items = List<ReceiptItemDraft>.of(widget.result.items, growable: true);
+    _selectedItems = List<bool>.filled(
+      _items.length,
+      true,
+      growable: true,
+    );
     _itemNameControllers = _items
         .map((ReceiptItemDraft item) => TextEditingController(text: item.name))
         .toList();
@@ -278,63 +282,128 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
         title: Text(l10n.scanParsedItemsTitle),
         subtitle: Text(l10n.scanSelectedItemsCount(_selectedItemCount)),
         children: <Widget>[
-          for (int index = 0; index < _items.length; index++)
-            _buildItemRow(l10n, index),
+          for (int index = 0; index < _itemRowCount; index++)
+            KeyedSubtree(
+              key: ObjectKey(_itemNameControllers[index]),
+              child: _buildItemRow(l10n, index),
+            ),
         ],
       ),
     );
   }
 
   Widget _buildItemRow(AppLocalizations l10n, int index) {
+    if (!_isValidItemIndex(index)) {
+      return const SizedBox.shrink();
+    }
+
     final ReceiptItemDraft item = _items[index];
     final Category? category = _categoryForKey(item.suggestedCategoryKey);
     final String currencySymbol = context.watch<CurrencyCubit>().state;
+    final String categoryLabel = category == null
+        ? l10n.scanUnknownCategory
+        : CategoryLocalizer.label(l10n, category);
 
-    return CheckboxListTile(
-      value: _selectedItems[index],
-      onChanged: (bool? selected) {
-        setState(() {
-          _selectedItems[index] = selected ?? false;
-        });
-      },
-      controlAffinity: ListTileControlAffinity.leading,
-      contentPadding: const EdgeInsets.only(left: 4, right: 4),
-      title: TextField(
-        controller: _itemNameControllers[index],
-        minLines: 1,
-        maxLines: 2,
-        decoration: const InputDecoration(
-          border: InputBorder.none,
-          isDense: true,
-          contentPadding: EdgeInsets.zero,
-        ),
-        style: Theme.of(context).textTheme.bodyMedium,
-        onChanged: (String value) {
-          _items[index] = _items[index].copyWith(name: value.trim());
-        },
-      ),
-      subtitle: Text(
-        category == null
-            ? l10n.scanUnknownCategory
-            : CategoryLocalizer.label(l10n, category),
-      ),
-      secondary: Row(
-        mainAxisSize: MainAxisSize.min,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            '${_formatAmount(item.amount)} $currencySymbol',
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          IconButton(
-            tooltip: l10n.deleteAction,
-            onPressed: () {
-              setState(() {
-                _itemNameControllers.removeAt(index).dispose();
-                _items.removeAt(index);
-                _selectedItems.removeAt(index);
-              });
+          Checkbox(
+            value: _selectedItems[index],
+            onChanged: (bool? selected) {
+              _updateItemSelection(index, selected ?? false);
             },
-            icon: const Icon(Icons.close),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                TextField(
+                  controller: _itemNameControllers[index],
+                  minLines: 1,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  onChanged: (String value) {
+                    _updateItemName(index, value.trim());
+                  },
+                ),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: InputChip(
+                    avatar: Icon(
+                      category?.icon ?? Icons.category_outlined,
+                      size: 16,
+                      color: category?.color ?? AppColors.textSecondary,
+                    ),
+                    label: Text(
+                      categoryLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onPressed: () => _showItemCategoryPicker(index),
+                    onDeleted: item.suggestedCategoryKey == null
+                        ? null
+                        : () => _clearItemCategory(index),
+                    deleteIcon: const Icon(Icons.close, size: 16),
+                    deleteButtonTooltipMessage: l10n.deleteAction,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: <Widget>[
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => _showItemCategoryPicker(index),
+                      icon: const Icon(Icons.edit_outlined, size: 16),
+                      label: Text(l10n.pickCategoryAction),
+                    ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: item.suggestedCategoryKey == null
+                          ? null
+                          : () => _clearItemCategory(index),
+                      icon: const Icon(Icons.close, size: 16),
+                      label: Text(l10n.deleteAction),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              Text(
+                '${_formatAmount(item.amount)} $currencySymbol',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              IconButton(
+                tooltip: l10n.deleteAction,
+                onPressed: () => _removeItem(index),
+                icon: const Icon(Icons.close),
+              ),
+            ],
           ),
         ],
       ),
@@ -379,6 +448,101 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
     );
   }
 
+  Future<void> _showItemCategoryPicker(int itemIndex) async {
+    if (!_isValidItemIndex(itemIndex)) {
+      return;
+    }
+
+    final String? selectedCategoryKey = _items[itemIndex].suggestedCategoryKey;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext context) {
+        return CategoryPickerSheet(
+          selectedCategoryKey: selectedCategoryKey,
+          onCategorySelected: (String categoryKey) {
+            if (!mounted) {
+              return;
+            }
+            _updateItemCategory(itemIndex, categoryKey);
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
+  }
+
+  void _updateItemCategory(int itemIndex, String? categoryKey) {
+    if (!_isValidItemIndex(itemIndex)) {
+      return;
+    }
+
+    setState(() {
+      if (!_isValidItemIndex(itemIndex)) {
+        return;
+      }
+
+      final ReceiptItemDraft item = _items[itemIndex];
+      _items[itemIndex] = ReceiptItemDraft(
+        name: item.name,
+        amount: item.amount,
+        suggestedCategoryKey: categoryKey,
+        confidence: item.confidence,
+        sourceLine: item.sourceLine,
+      );
+    });
+  }
+
+  void _clearItemCategory(int itemIndex) {
+    _updateItemCategory(itemIndex, null);
+  }
+
+  void _updateItemName(int itemIndex, String name) {
+    if (!_isValidItemIndex(itemIndex)) {
+      return;
+    }
+
+    setState(() {
+      if (!_isValidItemIndex(itemIndex)) {
+        return;
+      }
+
+      _items[itemIndex] = _items[itemIndex].copyWith(name: name);
+    });
+  }
+
+  void _updateItemSelection(int itemIndex, bool selected) {
+    if (!_isValidItemIndex(itemIndex)) {
+      return;
+    }
+
+    setState(() {
+      if (!_isValidItemIndex(itemIndex)) {
+        return;
+      }
+
+      _selectedItems[itemIndex] = selected;
+    });
+  }
+
+  void _removeItem(int itemIndex) {
+    if (!_isValidItemIndex(itemIndex)) {
+      return;
+    }
+
+    setState(() {
+      if (!_isValidItemIndex(itemIndex)) {
+        return;
+      }
+
+      final TextEditingController controller =
+          _itemNameControllers.removeAt(itemIndex);
+      _items.removeAt(itemIndex);
+      _selectedItems.removeAt(itemIndex);
+      controller.dispose();
+    });
+  }
+
   void _openAddExpense() {
     final GoRouter router = GoRouter.of(context);
     Navigator.of(context).pop();
@@ -401,8 +565,7 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
     }
 
     final bool hasMissingCategory = selectedItems.any(
-      (ReceiptItemDraft item) =>
-          (item.suggestedCategoryKey ?? _categoryKey) == null,
+      (ReceiptItemDraft item) => item.suggestedCategoryKey == null,
     );
     if (hasMissingCategory) {
       _showSnackBar(l10n.invalidCategoryMessage);
@@ -453,7 +616,7 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
           Transaction(
             id: '${idBase}_receipt_$index',
             amount: item.amount,
-            categoryKey: item.suggestedCategoryKey ?? _categoryKey,
+            categoryKey: item.suggestedCategoryKey,
             type: TransactionType.expense,
             date: date,
             note: item.name,
@@ -478,9 +641,22 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
     return _categoryStore?.resolveCategory(key) ?? MockData.categoryByKey(key);
   }
 
+  bool _isValidItemIndex(int index) {
+    return index >= 0 &&
+        index < _items.length &&
+        index < _selectedItems.length &&
+        index < _itemNameControllers.length;
+  }
+
+  int get _itemRowCount => <int>[
+        _items.length,
+        _selectedItems.length,
+        _itemNameControllers.length,
+      ].reduce((int value, int element) => value < element ? value : element);
+
   List<ReceiptItemDraft> get _selectedReceiptItems {
     final List<ReceiptItemDraft> selectedItems = <ReceiptItemDraft>[];
-    for (int index = 0; index < _items.length; index++) {
+    for (int index = 0; index < _itemRowCount; index++) {
       if (_selectedItems[index]) {
         selectedItems.add(_items[index]);
       }
@@ -488,8 +664,12 @@ class _ReceiptScanResultSheetState extends State<ReceiptScanResultSheet> {
     return selectedItems;
   }
 
-  int get _selectedItemCount =>
-      _selectedItems.where((bool value) => value).length;
+  int get _selectedItemCount {
+    return _selectedItems
+        .take(_itemRowCount)
+        .where((bool value) => value)
+        .length;
+  }
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context)
