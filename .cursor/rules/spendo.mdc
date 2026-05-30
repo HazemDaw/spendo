@@ -1,7 +1,0 @@
----
-description: Spendo Flutter project rules
-globs: ["lib/**/*.dart"]
-alwaysApply: true
----
-
-This is the Spendo Flutter project. Always read CLAUDE.md in the project root before writing any code. Follow all conventions, architecture rules, and phase restrictions defined there exactly.

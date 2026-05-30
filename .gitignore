@@ -11,6 +11,41 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+node_modules/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.jks
+*.keystore
+key.properties
+**/key.properties
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+
+# Local tool/editor metadata
+CLAUDE.md
+SPENDO_CHAT_SUMMARY.md
+.claude/
+.codex/
+.codex_appdata/
+.codex_localappdata/
+.cursor/
+
+# Local thesis, presentation, and generated artifacts
+output/
+presentation_work/
+scratch/
+tools/
+tmp_*.py
+dart_files.txt
+*.docx
+*.pptx
+*.pdf
 
 # IntelliJ related
 *.iml
@@ -33,6 +68,8 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+/android/build/
+/ios/build/
 
 # Symbolication related
 app.*.symbols
