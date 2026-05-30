@@ -11,7 +11,29 @@ Cross-platform Flutter mobile app for personal finance tracking, built as a full
 
 <!-- Add screenshots here -->
 
-Home screen · Insights · Budget
+
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center"><strong>Home Screen</strong></td>
+    <td align="center"><strong>Insights</strong></td>
+    <td align="center"><strong>Budget</strong></td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/3d85901b-907e-4d57-bbad-8953ff32a52b" height="480" alt="Home Screen" />
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/84b2b4e9-4d8a-4870-ae07-8944ab32cd53" height="480" alt="Insights Screen" />
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/6896689c-65ba-4f4d-9b54-575f48c1b03e" height="480" alt="Budget Screen" />
+    </td>
+  </tr>
+</table>
+
+</div>
 
 ## Overview
 
