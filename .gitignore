@@ -27,14 +27,7 @@ android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
 
-# Local tool/editor metadata
-CLAUDE.md
-SPENDO_CHAT_SUMMARY.md
-.claude/
-.codex/
-.codex_appdata/
-.codex_localappdata/
-.cursor/
+
 
 # Local thesis, presentation, and generated artifacts
 output/
